@@ -16,15 +16,15 @@ namespace HockeySlam
 		{
 		}
 
-		public override void Update()
+        public override void Update(GameTime gameTime)
 		{
 			//System.Console.WriteLine("updating court");
-	//		rotation *= Matrix.CreateRotationY(MathHelper.Pi / 180);
+			//rotation *= Matrix.CreateRotationY(MathHelper.Pi / 180);
 		}
 
-	//	public override Matrix GetWorld()
-	//	{
-		//	return world * rotation;
-	//	}
+		//public override Matrix GetWorld()
+		//{
+			//return world * rotation;
+		//}
 	}
 }

@@ -43,7 +43,7 @@ namespace HockeySlam
 			// TODO: Add your initialization logic here
 			camera = new Camera(this, new Vector3(100, 100, 0), Vector3.Zero, new Vector3(0,1,0));
 			Components.Add(camera);
-			Components.Add(new Player(this));
+			//Components.Add(new Player(this));
 			modelManager = new ModelManager(this);
 			Components.Add(modelManager);
 			base.Initialize();

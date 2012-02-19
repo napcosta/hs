@@ -21,7 +21,7 @@ namespace HockeySlam
 			model = m;
 		}
 
-		public virtual void Update()
+        public virtual void Update(GameTime gameTime)
 		{
 
 		}

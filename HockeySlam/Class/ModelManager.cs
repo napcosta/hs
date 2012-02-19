@@ -44,6 +44,7 @@ namespace HockeySlam
 			//    Game.Content.Load<Model>(@"Models\p1_wedge"))
 			    Game.Content.Load<Model>(@"Models\court"))
 			    );
+            models.Add(new Player(Game.Content.Load<Model>(@"Models\player")));
 
 			base.LoadContent();
 		}
@@ -56,7 +57,7 @@ namespace HockeySlam
 		{
 			// Loop through all models and call Update
 			for (int i = 0; i < models.Count; ++i) {
-				models[i].Update();
+				models[i].Update(gameTime);
 			}
 
 			base.Update(gameTime);

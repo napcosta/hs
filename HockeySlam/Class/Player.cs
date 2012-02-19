@@ -15,26 +15,25 @@ namespace HockeySlam
 	/// <summary>
 	/// This is a game component that implements IUpdateable.
 	/// </summary>
-	public class Player : Microsoft.Xna.Framework.DrawableGameComponent
+	class Player : BaseModel
 	{
 
 		Texture2D texture;
-		Vector2 position;
 		Vector2 velocity;
+        Matrix position = Matrix.Identity;
 
-		public Player(Game game)
-			: base(game)
+		public Player(Model model)
+			: base(model)
 		{
 			// TODO: Construct any child components here
+            velocity = Vector2.Zero;
+
+            Matrix rot = Matrix.CreateRotationX(-MathHelper.Pi / 2);
+            Matrix pos = Matrix.CreateTranslation(0, 20, 0);
+            world = world *rot* pos;
 		}
 
-		protected override void LoadContent()
-		{
-			texture = Game.Content.Load<Texture2D>(@"textures\Player");
-			base.LoadContent();
-		}
-
-		public override void Draw(GameTime gameTime)
+		/*public override void Draw(GameTime gameTime)
 		{
 			SpriteBatch spriteBatch = Game.Services.GetService(typeof(SpriteBatch)) as SpriteBatch;
 			spriteBatch.Begin();
@@ -44,7 +43,7 @@ namespace HockeySlam
 			spriteBatch.End();
 			base.Draw(gameTime);
 		}
-
+         * 
 		/// <summary>
 		/// Allows the game component to perform any initialization it needs to before starting
 		/// to run. This is where it can query for any required services and load content.
@@ -56,40 +55,40 @@ namespace HockeySlam
 			velocity = Vector2.Zero;
 			base.Initialize();
 		}
-
+*/
 		/// <summary>
 		/// Allows the game component to update itself.
 		/// </summary>
 		/// <param name="gameTime">Provides a snapshot of timing values.</param>
-		public override void Update(GameTime gameTime)
+        public override void Update(GameTime gameTime)
 		{
 			// TODO: Add your update code here
 
 #if WINDOWS
 			KeyboardState currentKeyboardState = Keyboard.GetState();
 
-			if (currentKeyboardState.IsKeyDown(Keys.Down) && velocity.Y < 200) {
-				velocity.Y += 10;
-			} else if (currentKeyboardState.IsKeyUp(Keys.Down) && velocity.Y > 0) {
-				velocity.Y -= 5;
+			if (currentKeyboardState.IsKeyDown(Keys.Down) && velocity.X < 200) {
+				velocity.X += 10;
+			} else if (currentKeyboardState.IsKeyUp(Keys.Down) && velocity.X > 0) {
+				velocity.X -= 5;
 			}
 
-			if (currentKeyboardState.IsKeyDown(Keys.Up) && velocity.Y > -200) {
-				velocity.Y -= 10;
-			} else if (currentKeyboardState.IsKeyUp(Keys.Up) && velocity.Y < 0) {
-				velocity.Y += 5;
-			}
-
-			if (currentKeyboardState.IsKeyDown(Keys.Left) && velocity.X > -200) {
+			if (currentKeyboardState.IsKeyDown(Keys.Up) && velocity.X > -200) {
 				velocity.X -= 10;
-			} else if (currentKeyboardState.IsKeyUp(Keys.Left) && velocity.X < 0) {
+			} else if (currentKeyboardState.IsKeyUp(Keys.Up) && velocity.X < 0) {
 				velocity.X += 5;
 			}
 
-			if (currentKeyboardState.IsKeyDown(Keys.Right) && velocity.X < 200) {
-				velocity.X += 10;
-			} else if (currentKeyboardState.IsKeyUp(Keys.Right) && velocity.X > 0) {
-				velocity.X -= 5;
+			if (currentKeyboardState.IsKeyDown(Keys.Right) && velocity.Y > -200) {
+				velocity.Y -= 10;
+			} else if (currentKeyboardState.IsKeyUp(Keys.Right) && velocity.Y < 0) {
+				velocity.Y += 5;
+			}
+
+			if (currentKeyboardState.IsKeyDown(Keys.Left) && velocity.Y < 200) {
+				velocity.Y += 10;
+			} else if (currentKeyboardState.IsKeyUp(Keys.Left) && velocity.Y > 0) {
+				velocity.Y -= 5;
 			}
 
 #else
@@ -97,25 +96,12 @@ namespace HockeySlam
             Vector2 leftThumStick = currentGamePadState.ThumbSticks.Left;
 
             Vector2 maxVelocity;
-            maxVelocity.X = 200 * Math.Abs(leftThumStick.X);
-            maxVelocity.Y = 200 * Math.Abs(leftThumStick.Y);
+            maxVelocity.X = 200 * Math.Abs(leftThumStick.Y);
+            maxVelocity.Y = 200 * Math.Abs(leftThumStick.X);
 
-            if (leftThumStick.X != 0 && velocity.X > -maxVelocity.X && velocity.X < maxVelocity.X)
+            if (leftThumStick.X != 0 && velocity.Y > -maxVelocity.Y && velocity.Y < maxVelocity.Y)
             {
-                velocity.X += leftThumStick.X * 10;
-            }
-            else if (velocity.X < 0)
-            {
-                velocity.X += 5;
-            }
-            else if (velocity.X > 0)
-            {
-                velocity.X -= 5;
-            }
-
-            if (leftThumStick.Y != 0 && velocity.Y > -maxVelocity.Y && velocity.Y < maxVelocity.Y)
-            {
-                velocity.Y -= leftThumStick.Y * 10;
+                velocity.Y -= leftThumStick.X * 10;
             }
             else if (velocity.Y < 0)
             {
@@ -125,13 +111,28 @@ namespace HockeySlam
             {
                 velocity.Y -= 5;
             }
+
+            if (leftThumStick.Y != 0 && velocity.X > -maxVelocity.X && velocity.X < maxVelocity.X)
+            {
+                velocity.X -= leftThumStick.Y * 10;
+            }
+            else if (velocity.X < 0)
+            {
+                velocity.X += 5;
+            }
+            else if (velocity.X > 0)
+            {
+                velocity.X -= 5;
+            }
 #endif
 
-			position = new Vector2(position.X + (float)gameTime.ElapsedGameTime.TotalSeconds * velocity.X,
-			    position.Y + (float)gameTime.ElapsedGameTime.TotalSeconds * velocity.Y);
-			base.Update(gameTime);
+			/*position = new Vector2(position.X + (float)gameTime.ElapsedGameTime.TotalSeconds * velocity.X,
+			    position.Y + (float)gameTime.ElapsedGameTime.TotalSeconds * velocity.Y);*/
 
-
+            position = Matrix.CreateTranslation((float)gameTime.ElapsedGameTime.TotalSeconds * velocity.X, 
+                0,
+                (float)gameTime.ElapsedGameTime.TotalSeconds * velocity.Y);
+            world = world * position;
 		}
 	}
 }
