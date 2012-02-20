@@ -103,27 +103,29 @@ namespace HockeySlam
             {
                 velocity.Y -= leftThumStick.X * 10;
             }
-            else if (velocity.Y < 0)
+            else if (velocity.Y < -5)
             {
                 velocity.Y += 5;
             }
-            else if (velocity.Y > 0)
+            else if (velocity.Y > 5)
             {
                 velocity.Y -= 5;
             }
+            else velocity.Y = 0;
 
             if (leftThumStick.Y != 0 && velocity.X > -maxVelocity.X && velocity.X < maxVelocity.X)
             {
                 velocity.X -= leftThumStick.Y * 10;
             }
-            else if (velocity.X < 0)
+            else if (velocity.X < -5)
             {
                 velocity.X += 5;
             }
-            else if (velocity.X > 0)
+            else if (velocity.X > 5)
             {
                 velocity.X -= 5;
             }
+            else velocity.X = 0;
 #endif
 
 			/*position = new Vector2(position.X + (float)gameTime.ElapsedGameTime.TotalSeconds * velocity.X,
