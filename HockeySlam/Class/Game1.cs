@@ -41,7 +41,7 @@ namespace HockeySlam
 		protected override void Initialize()
 		{
 			// TODO: Add your initialization logic here
-			camera = new Camera(this, new Vector3(100, 100, 0), Vector3.Zero, new Vector3(0,1,0));
+			camera = new Camera(this, new Vector3(85, 85, 0), Vector3.Zero, new Vector3(0,1,0));
 			Components.Add(camera);
 			//Components.Add(new Player(this));
 			modelManager = new ModelManager(this);
