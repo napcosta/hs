@@ -42,7 +42,7 @@ namespace HockeySlam
 			//Add models to list
 			models.Add(new Court(
 			//    Game.Content.Load<Model>(@"Models\p1_wedge"))
-			    Game.Content.Load<Model>(@"Models\court"))
+			    Game.Content.Load<Model>(@"Models\court2"))
 			    );
             models.Add(new Player(Game.Content.Load<Model>(@"Models\player")));
 
