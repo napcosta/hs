@@ -18,7 +18,6 @@ namespace HockeySlam
 	class Player : BaseModel
 	{
 
-		Texture2D texture;
 		Vector2 velocity;
         Matrix position = Matrix.Identity;
 
@@ -28,9 +27,9 @@ namespace HockeySlam
 			// TODO: Construct any child components here
             velocity = Vector2.Zero;
 
-            Matrix rot = Matrix.CreateRotationX(-MathHelper.Pi / 2);
-            Matrix pos = Matrix.CreateTranslation(0, 20, 0);
-            world = world *rot* pos;
+            Matrix pos = Matrix.CreateTranslation(0, 0, -30);
+			Matrix scale = Matrix.CreateScale((float)1.5);
+            world = world * scale * pos;
 		}
 
 		/*public override void Draw(GameTime gameTime)
@@ -67,28 +66,28 @@ namespace HockeySlam
 #if WINDOWS
 			KeyboardState currentKeyboardState = Keyboard.GetState();
 
-			if (currentKeyboardState.IsKeyDown(Keys.Down) && velocity.X < 200) {
-				velocity.X += 10;
-			} else if (currentKeyboardState.IsKeyUp(Keys.Down) && velocity.X > 0) {
-				velocity.X -= 5;
+			if (currentKeyboardState.IsKeyDown(Keys.Down) && velocity.X > -30) {
+				velocity.X -= 1;
+			} else if (currentKeyboardState.IsKeyUp(Keys.Down) && velocity.X < 0) {
+				velocity.X += (float)0.5;
 			}
 
-			if (currentKeyboardState.IsKeyDown(Keys.Up) && velocity.X > -200) {
-				velocity.X -= 10;
-			} else if (currentKeyboardState.IsKeyUp(Keys.Up) && velocity.X < 0) {
-				velocity.X += 5;
+			if (currentKeyboardState.IsKeyDown(Keys.Up) && velocity.X < 30) {
+				velocity.X += 1;
+			} else if (currentKeyboardState.IsKeyUp(Keys.Up) && velocity.X > 0) {
+				velocity.X -= (float)0.5;
 			}
 
-			if (currentKeyboardState.IsKeyDown(Keys.Right) && velocity.Y > -200) {
-				velocity.Y -= 10;
-			} else if (currentKeyboardState.IsKeyUp(Keys.Right) && velocity.Y < 0) {
-				velocity.Y += 5;
+			if (currentKeyboardState.IsKeyDown(Keys.Right) && velocity.Y < 30) {
+				velocity.Y += 1;
+			} else if (currentKeyboardState.IsKeyUp(Keys.Right) && velocity.Y > 0) {
+				velocity.Y -= (float)0.5;
 			}
 
-			if (currentKeyboardState.IsKeyDown(Keys.Left) && velocity.Y < 200) {
-				velocity.Y += 10;
-			} else if (currentKeyboardState.IsKeyUp(Keys.Left) && velocity.Y > 0) {
-				velocity.Y -= 5;
+			if (currentKeyboardState.IsKeyDown(Keys.Left) && velocity.Y > -30) {
+				velocity.Y -= 1;
+			} else if (currentKeyboardState.IsKeyUp(Keys.Left) && velocity.Y < 0) {
+				velocity.Y += (float)0.5;
 			}
 
 #else
@@ -96,34 +95,34 @@ namespace HockeySlam
             Vector2 leftThumStick = currentGamePadState.ThumbSticks.Left;
 
             Vector2 maxVelocity;
-            maxVelocity.X = 200 * Math.Abs(leftThumStick.Y);
-            maxVelocity.Y = 200 * Math.Abs(leftThumStick.X);
+            maxVelocity.X = 100 * Math.Abs(leftThumStick.Y);
+            maxVelocity.Y = 100 * Math.Abs(leftThumStick.X);
 
             if (leftThumStick.X != 0 && velocity.Y > -maxVelocity.Y && velocity.Y < maxVelocity.Y)
             {
-                velocity.Y -= leftThumStick.X * 10;
+                velocity.Y += leftThumStick.X;
             }
-            else if (velocity.Y < -5)
+			else if (velocity.Y < -(float)0.5)
             {
-                velocity.Y += 5;
+                velocity.Y += (float)0.5;
             }
-            else if (velocity.Y > 5)
+			else if (velocity.Y > (float)0.5)
             {
-                velocity.Y -= 5;
+				velocity.Y -= (float)0.5;
             }
             else velocity.Y = 0;
 
             if (leftThumStick.Y != 0 && velocity.X > -maxVelocity.X && velocity.X < maxVelocity.X)
             {
-                velocity.X -= leftThumStick.Y * 10;
+                velocity.X += leftThumStick.Y;
             }
-            else if (velocity.X < -5)
+			else if (velocity.X < -(float)0.5)
             {
-                velocity.X += 5;
+				velocity.X += (float)0.5;
             }
-            else if (velocity.X > 5)
+			else if (velocity.X > (float)0.5)
             {
-                velocity.X -= 5;
+				velocity.X -= (float)0.5;
             }
             else velocity.X = 0;
 #endif
@@ -132,8 +131,8 @@ namespace HockeySlam
 			    position.Y + (float)gameTime.ElapsedGameTime.TotalSeconds * velocity.Y);*/
 
             position = Matrix.CreateTranslation((float)gameTime.ElapsedGameTime.TotalSeconds * velocity.X, 
-                0,
-                (float)gameTime.ElapsedGameTime.TotalSeconds * velocity.Y);
+                (float)gameTime.ElapsedGameTime.TotalSeconds * velocity.Y,
+                0);
             world = world * position;
 		}
 	}
