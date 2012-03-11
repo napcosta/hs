@@ -62,6 +62,7 @@ namespace HockeySlam
         public override void Update(GameTime gameTime)
 		{
 			// TODO: Add your update code here
+			float rotation;
 
 #if WINDOWS
 			KeyboardState currentKeyboardState = Keyboard.GetState();
@@ -89,6 +90,17 @@ namespace HockeySlam
 			} else if (currentKeyboardState.IsKeyUp(Keys.Left) && velocity.Y < 0) {
 				velocity.Y += (float)0.5;
 			}
+
+			if (currentKeyboardState.IsKeyDown(Keys.A))
+			{
+				rotation = (float)0.1;
+			} 
+			else if (currentKeyboardState.IsKeyDown(Keys.D))
+			{
+				rotation = -(float)0.1;
+			} 
+			else rotation = 0;
+
 
 #else
             GamePadState currentGamePadState = GamePad.GetState(PlayerIndex.One);
@@ -129,6 +141,12 @@ namespace HockeySlam
 
 			/*position = new Vector2(position.X + (float)gameTime.ElapsedGameTime.TotalSeconds * velocity.X,
 			    position.Y + (float)gameTime.ElapsedGameTime.TotalSeconds * velocity.Y);*/
+
+			Matrix oldWorld = world;
+
+			world = Matrix.Identity;
+			world *= Matrix.CreateRotationZ(rotation);
+			world *= oldWorld;
 
             position = Matrix.CreateTranslation((float)gameTime.ElapsedGameTime.TotalSeconds * velocity.X, 
                 (float)gameTime.ElapsedGameTime.TotalSeconds * velocity.Y,
