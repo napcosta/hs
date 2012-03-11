@@ -27,7 +27,7 @@ namespace HockeySlam
 			// TODO: Construct any child components here
             velocity = Vector2.Zero;
 
-            Matrix pos = Matrix.CreateTranslation(0, 0, -30);
+            Matrix pos = Matrix.CreateTranslation(0, 0, -(float)0.5);
 			Matrix scale = Matrix.CreateScale((float)1.5);
             world = world * scale * pos;
 		}
