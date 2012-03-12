@@ -11,9 +11,9 @@ namespace HockeySlam
 	{
 		Matrix rotation = Matrix.Identity;
 
-		public Court(Model m)
-			: base(m)
+		public Court(Game game) : base(game)
 		{
+			model = game.Content.Load<Model>(@"Models\court2");
 		}
 
         public override void Update(GameTime gameTime)

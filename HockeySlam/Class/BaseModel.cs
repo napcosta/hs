@@ -7,8 +7,11 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace HockeySlam
 {
-	class BaseModel
+	class BaseModel : DrawableGameComponent
 	{
+
+		Camera camera;
+
 		public Model model
 		{
 			get;
@@ -16,17 +19,17 @@ namespace HockeySlam
 		}
 		protected Matrix world = Matrix.Identity;
 
-		public BaseModel(Model m)
+		public BaseModel(Game game): base (game)
 		{
-			model = m;
+			camera = ((Game1)Game).camera;
 		}
 
-        public virtual void Update(GameTime gameTime)
+        public override void Update(GameTime gameTime)
 		{
-
+			camera = ((Game1)Game).camera;
 		}
 
-		public void Draw(Camera camera)
+		public override void  Draw(GameTime gameTime)
 		{
 			Matrix[] transforms = new Matrix[model.Bones.Count];
 			model.CopyAbsoluteBoneTransformsTo(transforms);
@@ -41,6 +44,8 @@ namespace HockeySlam
 
 				mesh.Draw();
 			}
+
+			base.Draw(gameTime);
 		}
 
 		public virtual Matrix GetWorld()

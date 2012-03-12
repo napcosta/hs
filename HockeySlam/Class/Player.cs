@@ -21,9 +21,9 @@ namespace HockeySlam
 		Vector2 velocity;
         Matrix position = Matrix.Identity;
 
-		public Player(Model model)
-			: base(model)
+		public Player(Game game) : base(game)
 		{
+			model = game.Content.Load<Model>(@"Models\player");
 			// TODO: Construct any child components here
             velocity = Vector2.Zero;
 
@@ -61,6 +61,7 @@ namespace HockeySlam
 		/// <param name="gameTime">Provides a snapshot of timing values.</param>
         public override void Update(GameTime gameTime)
 		{
+			base.Update(gameTime);
 			// TODO: Add your update code here
 			float rotation;
 
