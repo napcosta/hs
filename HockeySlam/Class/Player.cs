@@ -20,29 +20,14 @@ namespace HockeySlam
 
 		Vector2 velocity;
         Matrix position = Matrix.Identity;
+		float tempRotation = 0.0f;
+
 
 		public Player(Game game) : base(game)
 		{
 			model = game.Content.Load<Model>(@"Models\player");
-			// TODO: Construct any child components here
-            velocity = Vector2.Zero;
-
-            Matrix pos = Matrix.CreateTranslation(0, 0, -2f);
-			Matrix scale = Matrix.CreateScale(1.5f);
-            world = world * scale * pos;
 		}
 
-		/*public override void Draw(GameTime gameTime)
-		{
-			SpriteBatch spriteBatch = Game.Services.GetService(typeof(SpriteBatch)) as SpriteBatch;
-			spriteBatch.Begin();
-			Rectangle p = new Rectangle((int)position.X, (int)position.Y, 50, 50);
-			spriteBatch.Draw(texture, p, Color.White);
-			//spriteBatch.Draw(texture, position, p, Color.White);
-			spriteBatch.End();
-			base.Draw(gameTime);
-		}
-         * 
 		/// <summary>
 		/// Allows the game component to perform any initialization it needs to before starting
 		/// to run. This is where it can query for any required services and load content.
@@ -50,11 +35,14 @@ namespace HockeySlam
 		public override void Initialize()
 		{
 			// TODO: Add your initialization code here
-			position = Vector2.Zero;
 			velocity = Vector2.Zero;
+
+			Matrix pos = Matrix.CreateTranslation(0, 0, -2f);
+			Matrix scale = Matrix.CreateScale(1.5f);
+			world = world * scale * pos;
 			base.Initialize();
 		}
-*/
+
 		/// <summary>
 		/// Allows the game component to update itself.
 		/// </summary>
@@ -63,44 +51,92 @@ namespace HockeySlam
 		{
 			base.Update(gameTime);
 			// TODO: Add your update code here
-			float rotation;
+			float rotation = 0;
 
 #if WINDOWS
 			KeyboardState currentKeyboardState = Keyboard.GetState();
 
-			if (currentKeyboardState.IsKeyDown(Keys.Down) && velocity.X > -30) {
+			#region Position
+			if (currentKeyboardState.IsKeyDown(Keys.S) && velocity.X > -30) {
 				velocity.X -= 1;
-			} else if (currentKeyboardState.IsKeyUp(Keys.Down) && velocity.X < 0) {
+			} else if (currentKeyboardState.IsKeyUp(Keys.S) && velocity.X < 0) {
 				velocity.X += (float)0.5;
 			}
 
-			if (currentKeyboardState.IsKeyDown(Keys.Up) && velocity.X < 30) {
+			if (currentKeyboardState.IsKeyDown(Keys.W) && velocity.X < 30) {
 				velocity.X += 1;
-			} else if (currentKeyboardState.IsKeyUp(Keys.Up) && velocity.X > 0) {
+			} else if (currentKeyboardState.IsKeyUp(Keys.W) && velocity.X > 0) {
 				velocity.X -= (float)0.5;
 			}
 
-			if (currentKeyboardState.IsKeyDown(Keys.Right) && velocity.Y < 30) {
+			if (currentKeyboardState.IsKeyDown(Keys.D) && velocity.Y < 30) {
 				velocity.Y += 1;
-			} else if (currentKeyboardState.IsKeyUp(Keys.Right) && velocity.Y > 0) {
+			} else if (currentKeyboardState.IsKeyUp(Keys.D) && velocity.Y > 0) {
 				velocity.Y -= (float)0.5;
 			}
 
-			if (currentKeyboardState.IsKeyDown(Keys.Left) && velocity.Y > -30) {
+			if (currentKeyboardState.IsKeyDown(Keys.A) && velocity.Y > -30) {
 				velocity.Y -= 1;
-			} else if (currentKeyboardState.IsKeyUp(Keys.Left) && velocity.Y < 0) {
+			} else if (currentKeyboardState.IsKeyUp(Keys.A) && velocity.Y < 0) {
 				velocity.Y += (float)0.5;
 			}
+			#endregion
 
-			if (currentKeyboardState.IsKeyDown(Keys.A))
+			#region Rotation
+			if (currentKeyboardState.IsKeyDown(Keys.Left) && 
+				((tempRotation >= 0.0f && tempRotation <= MathHelper.PiOver2) ||
+				(tempRotation <= -3*MathHelper.PiOver2 && tempRotation >= -2*MathHelper.Pi) ||
+				(tempRotation >= 3*MathHelper.PiOver2 && tempRotation<= 2*MathHelper.Pi) ||
+				(tempRotation <= 0.0f && tempRotation >= -MathHelper.PiOver2)))
 			{
-				rotation = (float)0.1;
-			} 
-			else if (currentKeyboardState.IsKeyDown(Keys.D))
+				rotation = 0.1f;
+			}
+			else if (currentKeyboardState.IsKeyDown(Keys.Left) &&
+				((tempRotation >= MathHelper.PiOver2 && tempRotation <= 3*MathHelper.PiOver2) ||
+				(tempRotation <= -MathHelper.PiOver2 && tempRotation >= -3*MathHelper.Pi)))
 			{
-				rotation = -(float)0.1;
-			} 
+				rotation = -0.1f;
+			}
+			else if (currentKeyboardState.IsKeyDown(Keys.Right) &&
+				((tempRotation >= 0.0f && tempRotation <= MathHelper.PiOver2) ||
+				(tempRotation <= -3 * MathHelper.PiOver2 && tempRotation >= -2 * MathHelper.Pi) ||
+				(tempRotation >= 3 * MathHelper.PiOver2 && tempRotation <= 2 * MathHelper.Pi) ||
+				(tempRotation <= 0.0f && tempRotation >= -MathHelper.PiOver2)))
+			{
+				rotation = -0.1f;
+			}
+			else if (currentKeyboardState.IsKeyDown(Keys.Right) &&
+				((tempRotation >= MathHelper.PiOver2 && tempRotation <= 3 * MathHelper.PiOver2) ||
+				(tempRotation <= -MathHelper.PiOver2 && tempRotation >= -3 * MathHelper.Pi)))
+			{
+				rotation = 0.1f;
+			}
+			else if (currentKeyboardState.IsKeyDown(Keys.Up) &&
+				((tempRotation >= 0.0f && tempRotation <= MathHelper.Pi) ||
+				(tempRotation <= -2*MathHelper.Pi && tempRotation >= -MathHelper.Pi)))
+			{
+				rotation = 0.1f;
+			}
+			else if (currentKeyboardState.IsKeyDown(Keys.Up) &&
+				((tempRotation >= MathHelper.Pi && tempRotation <=  2* MathHelper.Pi) ||
+				(tempRotation <= 0 && tempRotation >= -MathHelper.Pi)))
+			{
+				rotation = -0.1f;
+			}
+			else if (currentKeyboardState.IsKeyDown(Keys.Down) &&
+			((tempRotation >= 0.0f && tempRotation <= MathHelper.Pi) ||
+			(tempRotation <= -2 * MathHelper.Pi && tempRotation >= -MathHelper.Pi)))
+			{
+				rotation = -0.1f;
+			}
+			else if (currentKeyboardState.IsKeyDown(Keys.Down) &&
+				((tempRotation >= MathHelper.Pi && tempRotation <= 2 * MathHelper.Pi) ||
+				(tempRotation <= 0 && tempRotation >= -MathHelper.Pi)))
+			{
+				rotation = 0.1f;
+			}
 			else rotation = 0;
+			#endregion
 
 
 #else
@@ -143,6 +179,8 @@ namespace HockeySlam
 			/*position = new Vector2(position.X + (float)gameTime.ElapsedGameTime.TotalSeconds * velocity.X,
 			    position.Y + (float)gameTime.ElapsedGameTime.TotalSeconds * velocity.Y);*/
 
+			tempRotation = (tempRotation + rotation) % MathHelper.TwoPi;
+			System.Console.WriteLine("rotation -> " + tempRotation);
 			Matrix oldWorld = world;
 
 			world = Matrix.Identity;
