@@ -113,7 +113,7 @@ namespace HockeySlam.Class.GameEntities.Models
 			}
 			else if (currentKeyboardState.IsKeyDown(Keys.Up) &&
 				((tempRotation >= 0.0f && tempRotation <= MathHelper.Pi) ||
-				(tempRotation <= -2*MathHelper.Pi && tempRotation >= -MathHelper.Pi)))
+				(tempRotation >= -2 * MathHelper.Pi && tempRotation <= -MathHelper.Pi)))
 			{
 				rotation = 0.1f;
 			}
@@ -125,7 +125,7 @@ namespace HockeySlam.Class.GameEntities.Models
 			}
 			else if (currentKeyboardState.IsKeyDown(Keys.Down) &&
 			((tempRotation >= 0.0f && tempRotation <= MathHelper.Pi) ||
-			(tempRotation <= -2 * MathHelper.Pi && tempRotation >= -MathHelper.Pi)))
+			(tempRotation >= -2 * MathHelper.Pi && tempRotation <= -MathHelper.Pi)))
 			{
 				rotation = -0.1f;
 			}
