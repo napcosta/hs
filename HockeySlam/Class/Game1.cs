@@ -9,6 +9,10 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
 
+using HockeySlam.Class.Screens;
+using HockeySlam.Class.GameState;
+using HockeySlam.Class.GameEntities;
+
 namespace HockeySlam
 {
 	/// <summary>
@@ -18,6 +22,7 @@ namespace HockeySlam
 	{
 		GraphicsDeviceManager graphics;
 		SpriteBatch spriteBatch;
+		ScreenManager screenManager;
 
 		public Camera camera
 		{
@@ -28,8 +33,19 @@ namespace HockeySlam
 		{
 			graphics = new GraphicsDeviceManager(this);
 			Content.RootDirectory = "Content";
-			graphics.PreferredBackBufferHeight = 600;
-			graphics.PreferredBackBufferWidth = 800;
+			graphics.PreferredBackBufferHeight = 800;
+			graphics.PreferredBackBufferWidth = 1200;
+
+			screenManager = new ScreenManager(this);
+			Components.Add(screenManager);
+
+			AddInitialScreens();
+		}
+
+		public void AddInitialScreens()
+		{
+			screenManager.AddScreen(new BackgroundScreen(), null);
+			screenManager.AddScreen(new MainMenuScreen(), null);
 		}
 
 		/// <summary>
@@ -41,10 +57,10 @@ namespace HockeySlam
 		protected override void Initialize()
 		{
 			// TODO: Add your initialization logic here
-			camera = new Camera(this, new Vector3(85, 85, 0), Vector3.Zero, new Vector3(0,1,0));
+			/*camera = new Camera(this, new Vector3(85, 85, 0), Vector3.Zero, new Vector3(0,1,0));
 			Components.Add(camera);
 			Components.Add(new Court(this));
-			Components.Add(new Player(this));
+			Components.Add(new Player(this));*/
 			base.Initialize();
 		}
 
@@ -91,7 +107,7 @@ namespace HockeySlam
 		/// <param name="gameTime">Provides a snapshot of timing values.</param>
 		protected override void Draw(GameTime gameTime)
 		{
-			GraphicsDevice.Clear(Color.CornflowerBlue);
+			GraphicsDevice.Clear(Color.Black);
 
 			// TODO: Add your drawing code here
 

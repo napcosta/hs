@@ -5,13 +5,13 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 
-namespace HockeySlam
+namespace HockeySlam.Class.GameEntities.Models
 {
 	class Court : BaseModel
 	{
 		Matrix rotation = Matrix.Identity;
 
-		public Court(Game game) : base(game)
+		public Court(Game game, Camera camera) : base(game, camera)
 		{
 			model = game.Content.Load<Model>(@"Models\court2");
 		}

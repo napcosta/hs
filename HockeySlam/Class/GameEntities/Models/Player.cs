@@ -8,9 +8,10 @@ using Microsoft.Xna.Framework.GamerServices;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
+using HockeySlam.Class.GameEntities;
 
 
-namespace HockeySlam
+namespace HockeySlam.Class.GameEntities.Models
 {
 	/// <summary>
 	/// This is a game component that implements IUpdateable.
@@ -23,7 +24,7 @@ namespace HockeySlam
 		float tempRotation = 0.0f;
 
 
-		public Player(Game game) : base(game)
+		public Player(Game game, Camera camera) : base(game, camera)
 		{
 			model = game.Content.Load<Model>(@"Models\player");
 		}
@@ -40,7 +41,6 @@ namespace HockeySlam
 			Matrix pos = Matrix.CreateTranslation(0, 0, -2f);
 			Matrix scale = Matrix.CreateScale(1.5f);
 			world = world * scale * pos;
-			base.Initialize();
 		}
 
 		/// <summary>

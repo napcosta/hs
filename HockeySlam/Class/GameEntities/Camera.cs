@@ -12,10 +12,10 @@ using Microsoft.Xna.Framework.Net;
 using Microsoft.Xna.Framework.Storage;
 
 
-namespace HockeySlam
+namespace HockeySlam.Class.GameEntities
 {
 
-	public class Camera : Microsoft.Xna.Framework.GameComponent
+	public class Camera : GameEntity
 	{
 		//Camera matrices
 		public Matrix view
@@ -30,29 +30,19 @@ namespace HockeySlam
 		}
 
 		public Camera(Game game, Vector3 pos, Vector3 target, Vector3 up)
-			: base(game)
 		{
 			view = Matrix.CreateLookAt(pos, target, up);
 
 			projection = Matrix.CreatePerspectiveFieldOfView(
 			    MathHelper.PiOver4,
-			    (float)Game.Window.ClientBounds.Width /
-			    (float)Game.Window.ClientBounds.Height,
+			    (float)game.Window.ClientBounds.Width /
+			    (float)game.Window.ClientBounds.Height,
 			    1, 3000);
 		}
 
-		public override void Initialize()
-		{
-			// TODO: Add your initialization code here
-
-			base.Initialize();
-		}
-
-		public override void Update(GameTime gameTime)
-		{
-			// TODO: Add your update code here
-
-			base.Update(gameTime);
-		}
+		public void Update(GameTime gameTime) { }
+		public void Draw(GameTime gameTime) { }
+		public void Initialize() { }
+		public void LoadContent() { }
 	}
 }

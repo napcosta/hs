@@ -4,12 +4,15 @@ using System.Linq;
 using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using HockeySlam.Class.GameEntities;
+using HockeySlam.Class;
 
-namespace HockeySlam
+namespace HockeySlam.Class.GameEntities.Models
 {
-	class BaseModel : DrawableGameComponent
+	class BaseModel : GameEntity
 	{
 		Camera camera;
+		Game game;
 
 		public Model model
 		{
@@ -18,12 +21,13 @@ namespace HockeySlam
 		}
 		protected Matrix world = Matrix.Identity;
 
-		public BaseModel(Game game): base (game)
+		public BaseModel(Game game, Camera camera)
 		{
-			camera = ((Game1)Game).camera;
+			this.camera = camera;
+			this.game = game;
 		}
 
-		protected override void LoadContent()
+		public virtual void LoadContent()
 		{
 			foreach (ModelMesh mesh in model.Meshes)
 			{
@@ -37,10 +41,9 @@ namespace HockeySlam
 				}
 			}
 
-			base.LoadContent();
 		}
 
-        public override void Update(GameTime gameTime)
+        public virtual void Update(GameTime gameTime)
 		{
 		}
 
@@ -75,12 +78,12 @@ namespace HockeySlam
 						iem.World = world * GetParentTransform(mm.ParentBone);
 						iem.Projection = camera.projection;
 						iem.View = camera.view;
-						GraphicsDevice.SetVertexBuffer(mmp.VertexBuffer, mmp.VertexOffset);
-						GraphicsDevice.Indices = mmp.IndexBuffer;
+						game.GraphicsDevice.SetVertexBuffer(mmp.VertexBuffer, mmp.VertexOffset);
+						game.GraphicsDevice.Indices = mmp.IndexBuffer;
 						foreach (EffectPass ep in mmp.Effect.CurrentTechnique.Passes)
 						{
 							ep.Apply();
-							GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0,
+							game.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0,
 								mmp.NumVertices, mmp.StartIndex, mmp.PrimitiveCount);
 						}
 					}
@@ -110,15 +113,16 @@ namespace HockeySlam
 			}
 		}
 
-		public override void  Draw(GameTime gameTime)
+		public virtual void Draw(GameTime gameTime)
 		{
 			DrawModelViaVertexBuffer();
-			base.Draw(gameTime);
 		}
 
 		public virtual Matrix GetWorld()
 		{
 			return world;
 		}
+
+		public virtual void Initialize() { }
 	}
 }
