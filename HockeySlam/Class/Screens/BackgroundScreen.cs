@@ -30,7 +30,7 @@ namespace HockeySlam.Class.Screens
 				if (content == null)
 					content = new ContentManager(ScreenManager.Game.Services, "Content");
 
-				backgroudTexture = content.Load<Texture2D>("Screens/OpenScreen");
+				backgroudTexture = content.Load<Texture2D>("Screens/OpenScreen3");
 			}
 		}
 

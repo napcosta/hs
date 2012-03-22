@@ -180,7 +180,6 @@ namespace HockeySlam.Class.GameEntities.Models
 			    position.Y + (float)gameTime.ElapsedGameTime.TotalSeconds * velocity.Y);*/
 
 			tempRotation = (tempRotation + rotation) % MathHelper.TwoPi;
-			System.Console.WriteLine("rotation -> " + tempRotation);
 			Matrix oldWorld = world;
 
 			world = Matrix.Identity;

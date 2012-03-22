@@ -12,7 +12,7 @@ using Microsoft.Xna.Framework.Media;
 using HockeySlam.Class.GameEntities;
 using HockeySlam.Class.GameEntities.Models;
 
-namespace HockeySlam.Class
+namespace HockeySlam.Class.GameState
 {
 	class GameManager
 	{
@@ -21,6 +21,7 @@ namespace HockeySlam.Class
 		Dictionary<string, GameEntity> activeEntities = new Dictionary<string, GameEntity>();
 		Dictionary<string, GameEntity> allEntities = new Dictionary<string, GameEntity>();
 		Camera camera;
+		Game game;
 
 		#endregion
 
@@ -28,6 +29,7 @@ namespace HockeySlam.Class
 
 		public GameManager(Game game)
 		{
+			this.game = game;
 			camera = new Camera(game, new Vector3(85, 85, 0), Vector3.Zero, new Vector3(0, 1, 0));
 			AddEntity("camera1", camera);
 			AddEntity("court", new Court(game, camera));
@@ -90,8 +92,17 @@ namespace HockeySlam.Class
 
 		public void Draw(GameTime gameTime)
 		{
+			BlendState lastBlend = game.GraphicsDevice.BlendState;
+			DepthStencilState lastDepth = game.GraphicsDevice.DepthStencilState;
+
+			game.GraphicsDevice.BlendState = BlendState.Opaque;
+			game.GraphicsDevice.DepthStencilState = DepthStencilState.Default;
+
 			foreach (KeyValuePair<string, GameEntity> pair in activeEntities)
 				pair.Value.Draw(gameTime);
+
+			game.GraphicsDevice.BlendState = lastBlend;
+			game.GraphicsDevice.DepthStencilState = lastDepth;
 		}
 
 		#endregion
