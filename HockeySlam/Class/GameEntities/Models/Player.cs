@@ -22,6 +22,8 @@ namespace HockeySlam.Class.GameEntities.Models
 		Vector2 velocity;
         Matrix position = Matrix.Identity;
 		float tempRotation = 0.0f;
+		List<Boolean> arrowKeysPressed;
+		List<Keys> lastArrowKeysPressed;
 
 
 		public Player(Game game, Camera camera) : base(game, camera)
@@ -41,6 +43,11 @@ namespace HockeySlam.Class.GameEntities.Models
 			Matrix pos = Matrix.CreateTranslation(0, 0, -2f);
 			Matrix scale = Matrix.CreateScale(1.5f);
 			world = world * scale * pos;
+
+			arrowKeysPressed = new List<Boolean>();
+			for(int i = 0; i < 4; i++)
+				arrowKeysPressed.Add(false);
+			lastArrowKeysPressed = new List<Keys>();
 		}
 
 		/// <summary>
@@ -83,57 +90,113 @@ namespace HockeySlam.Class.GameEntities.Models
 			#endregion
 
 			#region Rotation
-			if (currentKeyboardState.IsKeyDown(Keys.Left) && 
-				((tempRotation >= 0.0f && tempRotation <= MathHelper.PiOver2) ||
-				(tempRotation <= -3*MathHelper.PiOver2 && tempRotation >= -2*MathHelper.Pi) ||
-				(tempRotation >= 3*MathHelper.PiOver2 && tempRotation<= 2*MathHelper.Pi) ||
-				(tempRotation <= 0.0f && tempRotation >= -MathHelper.PiOver2)))
+
+			Keys keyToConsider;
+
+			if (currentKeyboardState.IsKeyDown(Keys.Left) && !arrowKeysPressed[0])
 			{
-				rotation = 0.1f;
+				arrowKeysPressed[0] = true;
+				lastArrowKeysPressed.Add(Keys.Left);
 			}
-			else if (currentKeyboardState.IsKeyDown(Keys.Left) &&
-				((tempRotation >= MathHelper.PiOver2 && tempRotation <= 3*MathHelper.PiOver2) ||
-				(tempRotation <= -MathHelper.PiOver2 && tempRotation >= -3*MathHelper.Pi)))
+			if (currentKeyboardState.IsKeyDown(Keys.Right) && !arrowKeysPressed[1])
 			{
-				rotation = -0.1f;
+				arrowKeysPressed[1] = true;
+				lastArrowKeysPressed.Add(Keys.Right);
 			}
-			else if (currentKeyboardState.IsKeyDown(Keys.Right) &&
-				((tempRotation >= 0.0f && tempRotation <= MathHelper.PiOver2) ||
-				(tempRotation <= -3 * MathHelper.PiOver2 && tempRotation >= -2 * MathHelper.Pi) ||
-				(tempRotation >= 3 * MathHelper.PiOver2 && tempRotation <= 2 * MathHelper.Pi) ||
-				(tempRotation <= 0.0f && tempRotation >= -MathHelper.PiOver2)))
+			if (currentKeyboardState.IsKeyDown(Keys.Up) && !arrowKeysPressed[2])
 			{
-				rotation = -0.1f;
+				arrowKeysPressed[2] = true;
+				lastArrowKeysPressed.Add(Keys.Up);
 			}
-			else if (currentKeyboardState.IsKeyDown(Keys.Right) &&
-				((tempRotation >= MathHelper.PiOver2 && tempRotation <= 3 * MathHelper.PiOver2) ||
-				(tempRotation <= -MathHelper.PiOver2 && tempRotation >= -3 * MathHelper.Pi)))
+			if (currentKeyboardState.IsKeyDown(Keys.Down) && !arrowKeysPressed[3])
 			{
-				rotation = 0.1f;
+				arrowKeysPressed[3] = true;
+				lastArrowKeysPressed.Add(Keys.Down);
 			}
-			else if (currentKeyboardState.IsKeyDown(Keys.Up) &&
+
+			if (currentKeyboardState.IsKeyUp(Keys.Left) && arrowKeysPressed[0])
+			{
+				arrowKeysPressed[0] = false;
+				lastArrowKeysPressed.Remove(Keys.Left);
+			}
+			if (currentKeyboardState.IsKeyUp(Keys.Right) && arrowKeysPressed[1])
+			{
+				arrowKeysPressed[1] = false;
+				lastArrowKeysPressed.Remove(Keys.Right);
+			}
+			if (currentKeyboardState.IsKeyUp(Keys.Up) && arrowKeysPressed[2])
+			{
+				arrowKeysPressed[2] = false;
+				lastArrowKeysPressed.Remove(Keys.Up);
+			}
+			if (currentKeyboardState.IsKeyUp(Keys.Down) && arrowKeysPressed[3])
+			{
+				arrowKeysPressed[3] = false;
+				lastArrowKeysPressed.Remove(Keys.Down);
+			}
+
+			System.Console.WriteLine("-----------------------------------");
+			foreach (Keys key in lastArrowKeysPressed)
+				System.Console.WriteLine(key.ToString());
+
+			if (lastArrowKeysPressed.Count != 0)
+			{
+				keyToConsider = lastArrowKeysPressed[lastArrowKeysPressed.Count - 1];
+
+				if (keyToConsider == Keys.Left &&
+					((tempRotation >= 0.0f && tempRotation <= MathHelper.PiOver2) ||
+					(tempRotation <= -3 * MathHelper.PiOver2 && tempRotation >= -2 * MathHelper.Pi) ||
+					(tempRotation >= 3 * MathHelper.PiOver2 && tempRotation <= 2 * MathHelper.Pi) ||
+					(tempRotation <= 0.0f && tempRotation >= -MathHelper.PiOver2)))
+				{
+					rotation = 0.1f;
+				}
+				else if (keyToConsider == Keys.Left &&
+					((tempRotation >= MathHelper.PiOver2 && tempRotation <= 3 * MathHelper.PiOver2) ||
+					(tempRotation <= -MathHelper.PiOver2 && tempRotation >= -3 * MathHelper.Pi)))
+				{
+					rotation = -0.1f;
+				}
+				else if (keyToConsider == Keys.Right &&
+					((tempRotation >= 0.0f && tempRotation <= MathHelper.PiOver2) ||
+					(tempRotation <= -3 * MathHelper.PiOver2 && tempRotation >= -2 * MathHelper.Pi) ||
+					(tempRotation >= 3 * MathHelper.PiOver2 && tempRotation <= 2 * MathHelper.Pi) ||
+					(tempRotation <= 0.0f && tempRotation >= -MathHelper.PiOver2)))
+				{
+					rotation = -0.1f;
+				}
+				else if (keyToConsider == Keys.Right &&
+					((tempRotation >= MathHelper.PiOver2 && tempRotation <= 3 * MathHelper.PiOver2) ||
+					(tempRotation <= -MathHelper.PiOver2 && tempRotation >= -3 * MathHelper.Pi)))
+				{
+					rotation = 0.1f;
+				}
+				else if (keyToConsider == Keys.Up &&
+					((tempRotation >= 0.0f && tempRotation <= MathHelper.Pi) ||
+					(tempRotation >= -2 * MathHelper.Pi && tempRotation <= -MathHelper.Pi)))
+				{
+					rotation = 0.1f;
+				}
+				else if (keyToConsider == Keys.Up &&
+					((tempRotation >= MathHelper.Pi && tempRotation <= 2 * MathHelper.Pi) ||
+					(tempRotation <= 0 && tempRotation >= -MathHelper.Pi)))
+				{
+					rotation = -0.1f;
+				}
+				else if (keyToConsider == Keys.Down &&
 				((tempRotation >= 0.0f && tempRotation <= MathHelper.Pi) ||
 				(tempRotation >= -2 * MathHelper.Pi && tempRotation <= -MathHelper.Pi)))
-			{
-				rotation = 0.1f;
-			}
-			else if (currentKeyboardState.IsKeyDown(Keys.Up) &&
-				((tempRotation >= MathHelper.Pi && tempRotation <=  2* MathHelper.Pi) ||
-				(tempRotation <= 0 && tempRotation >= -MathHelper.Pi)))
-			{
-				rotation = -0.1f;
-			}
-			else if (currentKeyboardState.IsKeyDown(Keys.Down) &&
-			((tempRotation >= 0.0f && tempRotation <= MathHelper.Pi) ||
-			(tempRotation >= -2 * MathHelper.Pi && tempRotation <= -MathHelper.Pi)))
-			{
-				rotation = -0.1f;
-			}
-			else if (currentKeyboardState.IsKeyDown(Keys.Down) &&
-				((tempRotation >= MathHelper.Pi && tempRotation <= 2 * MathHelper.Pi) ||
-				(tempRotation <= 0 && tempRotation >= -MathHelper.Pi)))
-			{
-				rotation = 0.1f;
+				{
+					rotation = -0.1f;
+				}
+				else if (keyToConsider == Keys.Down &&
+					((tempRotation >= MathHelper.Pi && tempRotation <= 2 * MathHelper.Pi) ||
+					(tempRotation <= 0 && tempRotation >= -MathHelper.Pi)))
+				{
+					rotation = 0.1f;
+				}
+				else rotation = 0.0f;
+
 			}
 			else rotation = 0;
 			#endregion
