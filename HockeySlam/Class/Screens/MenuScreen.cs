@@ -67,6 +67,7 @@ namespace HockeySlam.Class.Screens
 		{
 			PlayerIndex playerIndex;
 
+			System.Console.WriteLine(selectedEntry);
 			if (menuUp.Evaluate(input, ControllingPlayer, out playerIndex))
 			{
 				selectedEntry--;
@@ -77,7 +78,7 @@ namespace HockeySlam.Class.Screens
 			if (menuDown.Evaluate(input, ControllingPlayer, out playerIndex))
 			{
 				selectedEntry++;
-				if (selectedEntry > menuEntries.Count)
+				if (selectedEntry >= menuEntries.Count)
 					selectedEntry = 0;
 			}
 
@@ -119,7 +120,7 @@ namespace HockeySlam.Class.Screens
 
 			Vector2 position = new Vector2(0f, 380f);
 
-			for(int i =0; i< menuEntries.Count; i++)
+			for(int i = 0; i < menuEntries.Count; i++)
 			{
 				MenuEntry menuEntry = menuEntries[i];
 
