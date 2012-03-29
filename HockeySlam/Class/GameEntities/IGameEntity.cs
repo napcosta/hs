@@ -5,7 +5,7 @@ using System.Text;
 
 namespace HockeySlam.Class.GameEntities
 {
-	public interface GameEntity
+	public interface IGameEntity
 	{
 		void Update(GameTime gameTime);
 		void Draw(GameTime gameTime);

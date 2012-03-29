@@ -18,8 +18,8 @@ namespace HockeySlam.Class.GameState
 	{
 		#region Fields
 
-		Dictionary<string, GameEntity> activeEntities = new Dictionary<string, GameEntity>();
-		Dictionary<string, GameEntity> allEntities = new Dictionary<string, GameEntity>();
+		Dictionary<string, IGameEntity> activeEntities = new Dictionary<string, IGameEntity>();
+		Dictionary<string, IGameEntity> allEntities = new Dictionary<string, IGameEntity>();
 		Camera camera;
 		Game game;
 
@@ -41,13 +41,13 @@ namespace HockeySlam.Class.GameState
 
 		public void Initialize()
 		{
-			foreach (KeyValuePair<string, GameEntity> pair in allEntities)
+			foreach (KeyValuePair<string, IGameEntity> pair in allEntities)
 				pair.Value.Initialize();
 		}
 
 		protected void LoadContent()
 		{
-			foreach (KeyValuePair<string, GameEntity> pair in allEntities)
+			foreach (KeyValuePair<string, IGameEntity> pair in allEntities)
 				pair.Value.LoadContent();
 		}
 
@@ -55,7 +55,7 @@ namespace HockeySlam.Class.GameState
 
 		#region Methods
 
-		protected void AddEntity(string name, GameEntity entity)
+		protected void AddEntity(string name, IGameEntity entity)
 		{
 			allEntities.Add(name, entity);
 		}
@@ -64,7 +64,7 @@ namespace HockeySlam.Class.GameState
 		{
 			activeEntities.Clear();
 
-			foreach (KeyValuePair<string, GameEntity> pair in allEntities)
+			foreach (KeyValuePair<string, IGameEntity> pair in allEntities)
 				activeEntities.Add(pair.Key, pair.Value);
 		}
 
@@ -86,7 +86,7 @@ namespace HockeySlam.Class.GameState
 
 		public void Update(GameTime gameTime)
 		{
-			foreach (KeyValuePair<string, GameEntity> pair in activeEntities)
+			foreach (KeyValuePair<string, IGameEntity> pair in activeEntities)
 				pair.Value.Update(gameTime);
 		}
 
@@ -98,7 +98,7 @@ namespace HockeySlam.Class.GameState
 			game.GraphicsDevice.BlendState = BlendState.Opaque;
 			game.GraphicsDevice.DepthStencilState = DepthStencilState.Default;
 
-			foreach (KeyValuePair<string, GameEntity> pair in activeEntities)
+			foreach (KeyValuePair<string, IGameEntity> pair in activeEntities)
 				pair.Value.Draw(gameTime);
 
 			game.GraphicsDevice.BlendState = lastBlend;

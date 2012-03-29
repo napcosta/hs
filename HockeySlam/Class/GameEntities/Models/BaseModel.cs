@@ -9,7 +9,7 @@ using HockeySlam.Class;
 
 namespace HockeySlam.Class.GameEntities.Models
 {
-	class BaseModel : GameEntity
+	class BaseModel : IGameEntity
 	{
 		Camera camera;
 		Game game;

@@ -15,7 +15,7 @@ using Microsoft.Xna.Framework.Storage;
 namespace HockeySlam.Class.GameEntities
 {
 
-	public class Camera : GameEntity
+	public class Camera : IGameEntity
 	{
 		//Camera matrices
 		public Matrix view

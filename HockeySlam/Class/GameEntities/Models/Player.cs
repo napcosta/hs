@@ -18,7 +18,6 @@ namespace HockeySlam.Class.GameEntities.Models
 	/// </summary>
 	class Player : BaseModel
 	{
-
 		Vector2 velocity;
         Matrix position = Matrix.Identity;
 		float tempRotation = 0.0f;
@@ -134,10 +133,6 @@ namespace HockeySlam.Class.GameEntities.Models
 				arrowKeysPressed[3] = false;
 				lastArrowKeysPressed.Remove(Keys.Down);
 			}
-
-			System.Console.WriteLine("-----------------------------------");
-			foreach (Keys key in lastArrowKeysPressed)
-				System.Console.WriteLine(key.ToString());
 
 			if (lastArrowKeysPressed.Count != 0)
 			{
