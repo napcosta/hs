@@ -75,7 +75,7 @@ namespace HockeySlam.Class.GameEntities.Models
 					IEffectMatrices iem = mmp.Effect as IEffectMatrices;
 					if ((mmp.Effect != null) && (iem != null))
 					{
-						iem.World = world * GetParentTransform(mm.ParentBone);
+						iem.World = GetParentTransform(mm.ParentBone) * world;
 						iem.Projection = camera.projection;
 						iem.View = camera.view;
 						game.GraphicsDevice.SetVertexBuffer(mmp.VertexBuffer, mmp.VertexOffset);

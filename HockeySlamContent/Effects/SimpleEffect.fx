@@ -3,6 +3,8 @@ float4x4 View;
 float4x4 Projection;
 
 // TODO: add effect parameters here.
+float3 AmbientLightColor;
+float3 DiffuseColor;
 
 struct VertexShaderInput
 {
@@ -37,7 +39,8 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 {
     // TODO: add your pixel shader code here.
-
+    float3 finalColor = float3(0, 0, 0);
+    finalColor += AmbientLightColor*DiffuseColor;
     return float4(1, 0, 0, 1);
 }
 
