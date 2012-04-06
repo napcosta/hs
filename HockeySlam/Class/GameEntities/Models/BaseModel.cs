@@ -13,7 +13,11 @@ namespace HockeySlam.Class.GameEntities.Models
 	{
 		Camera camera;
 		Game game;
-
+		Vector3 ambientLightColor;
+		Vector3[] diffuseColor;
+		Vector3 lightDirection;
+		Vector3 diffuseLightColor;
+		Matrix[] modelTransforms;
 		public Model model
 		{
 			get;
@@ -25,6 +29,18 @@ namespace HockeySlam.Class.GameEntities.Models
 		{
 			this.camera = camera;
 			this.game = game;
+		}
+
+		public virtual void Initialize()
+		{
+			modelTransforms = new Matrix[model.Bones.Count];
+			model.CopyAbsoluteBoneTransformsTo(modelTransforms);
+			ambientLightColor = new Vector3(0.4f, 0.4f, 0.4f);
+			diffuseColor = new Vector3[4];
+			diffuseColor[0] = new Vector3(1, 0.25f, 0.25f);
+			diffuseColor[1] = new Vector3(0.25f, 1, 0.25f);
+			diffuseColor[2] = new Vector3(0.25f, 0.25f, 1);
+			diffuseColor[3] = new Vector3(0.5f, 0.5f, 0.5f);
 		}
 
 		public virtual void LoadContent()
@@ -64,6 +80,24 @@ namespace HockeySlam.Class.GameEntities.Models
 		{
 			return (mb == model.Root) ? mb.Transform :
 				mb.Transform * GetParentTransform(mb.Parent);
+		}
+
+		protected void DrawEffect(Effect effect)
+		{
+			int diffuseIndex = 0;
+			effect.Parameters["View"].SetValue(camera.view);
+			effect.Parameters["Projection"].SetValue(camera.projection);
+			effect.Parameters["AmbientLightColor"].SetValue(ambientLightColor);
+			foreach (ModelMesh mesh in model.Meshes) {
+				effect.Parameters["World"].SetValue(modelTransforms[mesh.ParentBone.Index] * world);
+				foreach (ModelMeshPart meshPart in mesh.MeshParts) {
+					game.GraphicsDevice.SetVertexBuffer(meshPart.VertexBuffer, meshPart.VertexOffset);
+					game.GraphicsDevice.Indices = meshPart.IndexBuffer;
+					effect.Parameters["DiffuseColor"].SetValue(diffuseColor[diffuseIndex++]);
+					effect.CurrentTechnique.Passes[0].Apply();
+					game.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, meshPart.NumVertices, meshPart.StartIndex, meshPart.PrimitiveCount);
+				}
+			}
 		}
 
 		private void DrawModelViaVertexBuffer()
@@ -123,6 +157,5 @@ namespace HockeySlam.Class.GameEntities.Models
 			return world;
 		}
 
-		public virtual void Initialize() { }
 	}
 }
