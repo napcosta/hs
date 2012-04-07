@@ -67,7 +67,7 @@ namespace HockeySlam.Class.Screens
 		{
 			PlayerIndex playerIndex;
 
-			System.Console.WriteLine(selectedEntry);
+			//System.Console.WriteLine(selectedEntry);
 			if (menuUp.Evaluate(input, ControllingPlayer, out playerIndex))
 			{
 				selectedEntry--;

@@ -24,8 +24,6 @@ namespace HockeySlam.Class.GameEntities.Models
 		Effect effect;
 		Camera camera;
 		Game game;
-		Vector3[] diffuseColor;
-
 		#endregion
 
 		public Player(Game game, Camera camera) : base(game, camera)
@@ -76,28 +74,28 @@ namespace HockeySlam.Class.GameEntities.Models
 #if WINDOWS
 			KeyboardState currentKeyboardState = Keyboard.GetState();
 			#region Position
-			if (currentKeyboardState.IsKeyDown(Keys.S) && velocity.X < 30) {
-				velocity.X += 1;
-			} else if (currentKeyboardState.IsKeyUp(Keys.S) && velocity.X > 0) {
-				velocity.X -= (float)0.5;
+			if (currentKeyboardState.IsKeyDown(Keys.S) && velocity.Y < 30) {
+				velocity.Y += 1;
+			} else if (currentKeyboardState.IsKeyUp(Keys.S) && velocity.Y > 0) {
+				velocity.Y -= (float)0.5;
 			}
 
-			if (currentKeyboardState.IsKeyDown(Keys.W) && velocity.X > -30) {
-				velocity.X -= 1;
-			} else if (currentKeyboardState.IsKeyUp(Keys.W) && velocity.X < 0) {
-				velocity.X += (float)0.5;
-			}
-
-			if (currentKeyboardState.IsKeyDown(Keys.D) && velocity.Y > -30) {
+			if (currentKeyboardState.IsKeyDown(Keys.W) && velocity.Y > -30) {
 				velocity.Y -= 1;
-			} else if (currentKeyboardState.IsKeyUp(Keys.D) && velocity.Y < 0) {
+			} else if (currentKeyboardState.IsKeyUp(Keys.W) && velocity.Y < 0) {
 				velocity.Y += (float)0.5;
 			}
 
-			if (currentKeyboardState.IsKeyDown(Keys.A) && velocity.Y < 30) {
-				velocity.Y += 1;
-			} else if (currentKeyboardState.IsKeyUp(Keys.A) && velocity.Y > 0) {
-				velocity.Y -= (float)0.5;
+			if (currentKeyboardState.IsKeyDown(Keys.D) && velocity.X > -30) {
+				velocity.X -= 1;
+			} else if (currentKeyboardState.IsKeyUp(Keys.D) && velocity.X < 0) {
+				velocity.X += (float)0.5;
+			}
+
+			if (currentKeyboardState.IsKeyDown(Keys.A) && velocity.X < 30) {
+				velocity.X += 1;
+			} else if (currentKeyboardState.IsKeyUp(Keys.A) && velocity.X > 0) {
+				velocity.X -= (float)0.5;
 			}
 			#endregion
 			#region Rotation
@@ -246,15 +244,34 @@ namespace HockeySlam.Class.GameEntities.Models
 #endif
 			tempRotation = (tempRotation + rotation) % MathHelper.TwoPi;
 			Matrix oldWorld = world;
-
 			world = Matrix.Identity;
 			world *= Matrix.CreateRotationY(rotation);
 			world *= oldWorld;
-
-			position = Matrix.CreateTranslation((float)gameTime.ElapsedGameTime.TotalSeconds * velocity.X, 
-			0,
-			(float)gameTime.ElapsedGameTime.TotalSeconds * velocity.Y);
+			Vector2 normalizedVelocity = normalizeVelocity(velocity);
+			float time = (float)gameTime.ElapsedGameTime.TotalSeconds;
+			position = Matrix.CreateTranslation(time * velocity.Y*normalizedVelocity.Y, 0, time * velocity.X*normalizedVelocity.X);
 			world = world * position;
+		}
+		private float abs(float num)
+		{
+			if (num > 0)
+				return num;
+			else if (num < 0)
+				return -num;
+			else
+				return 0;
+		}
+		private Vector2 normalizeVelocity(Vector2 velocity)
+		{
+			//Console.WriteLine(velocity.X + " <-> " + velocity.Y);
+			if (velocity.X != 0 && velocity.Y != 0) {
+				double degree = Math.Atan2(abs(velocity.Y), abs(velocity.X));
+				velocity.X = (float)Math.Cos(degree);
+				velocity.Y = (float)Math.Sin(degree);
+				return velocity;
+			}
+			Vector2 vec = new Vector2(1,1);
+			return vec;
 		}
 	}
 }
