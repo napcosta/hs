@@ -12,6 +12,7 @@ namespace HockeySlam.Class.GameEntities.Models
 		Matrix rotation = Matrix.Identity;
 		Effect effect;
 		Game game;
+		Vector3[] diffuseColor;
 
 		public Court(Game game, Camera camera) : base(game, camera)
 		{
@@ -27,7 +28,9 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		public override void Draw(GameTime gameTime)
 		{
-			base.DrawEffect(effect);
+			Vector3 diffuseColor;
+			diffuseColor = new Vector3(0.75f, 0.75f, 0.8f);
+			base.DrawEffect(effect, diffuseColor);
 		}
 
 		public override void Update(GameTime gameTime)

@@ -24,6 +24,7 @@ namespace HockeySlam.Class.GameEntities.Models
 		Effect effect;
 		Camera camera;
 		Game game;
+		Vector3[] diffuseColor;
 
 		#endregion
 
@@ -58,8 +59,12 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		public override void Draw(GameTime gameTime)
 		{
-			base.DrawEffect(effect);
-
+			Vector3 diffuseColor;
+			diffuseColor = new Vector3(1, 0.25f, 0.25f);
+			//diffuseColor[1] = new Vector3(0.25f, 1, 0.25f);
+			//diffuseColor[2] = new Vector3(0.25f, 0.25f, 1);
+			//diffuseColor[3] = new Vector3(0.5f, 0.5f, 0.5f);
+			base.DrawEffect(effect, diffuseColor);
 			//base.Draw(gameTime);
 		}
 
