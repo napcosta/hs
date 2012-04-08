@@ -15,11 +15,9 @@ using HockeySlam.GameState;
 
 namespace HockeySlam.GameEntities.Models
 {
-	/// <summary>
-	/// This is a game component that implements IUpdateable.
-	/// </summary>
 	class Player : BaseModel, ICollidable, IDebugEntity
 	{
+		#region fields
 		Vector2 velocity;
 		Matrix position;
 		Vector3 positionVector;
@@ -31,10 +29,13 @@ namespace HockeySlam.GameEntities.Models
 		Game game;
 		Camera camera;
 		BoundingSphere stick;
+		Effect effect;
+		Camera camera;
+		Game game;
 		BoundingSphere upBody;
 		BoundingSphere downBody;
 		GameManager gameManager;
-
+		#endregion
 		public Player(GameManager gameManager, Game game, Camera camera) : base(game, camera)
 		{
 			model = game.Content.Load<Model>(@"Models\player");
@@ -42,13 +43,15 @@ namespace HockeySlam.GameEntities.Models
 			this.camera = camera;
 			this.gameManager = gameManager;
 		}
-
-		/// <summary>
-		/// Allows the game component to perform any initialization it needs to before starting
-		/// to run. This is where it can query for any required services and load content.
-		/// </summary>
-		public override void Initialize()
+		
+		public override void LoadContent()
 		{
+			effect = game.Content.Load<Effect>(@"Effects\SimpleEffect");
+			base.LoadContent();
+		}
+		
+		public override void Initialize()
+		{	
 			// TODO: Add your initialization code here
 			position = Matrix.Identity;
 			positionVector = Vector3.Zero;
@@ -57,7 +60,7 @@ namespace HockeySlam.GameEntities.Models
 
 			velocity = Vector2.Zero;
 
-			Matrix pos = Matrix.CreateTranslation(0, 0, -1.5f);
+			Matrix pos = Matrix.CreateTranslation(0, 2f, 0);
 			Matrix scale = Matrix.CreateScale(1.5f);
 			world = world * scale * pos;
 
@@ -75,48 +78,53 @@ namespace HockeySlam.GameEntities.Models
 			DebugManager dm = (DebugManager)gameManager.getGameEntity("debugManager");
 			cm.registre(this);
 			dm.registreDebugEntities(this);
+			base.Initialize();
 		}
 
-		/// <summary>
-		/// Allows the game component to update itself.
-		/// </summary>
-		/// <param name="gameTime">Provides a snapshot of timing values.</param>
-        public override void Update(GameTime gameTime)
+		public override void Draw(GameTime gameTime)
+		{
+			Vector3 diffuseColor;
+			diffuseColor = new Vector3(1, 0.25f, 0.25f);
+			//diffuseColor[1] = new Vector3(0.25f, 1, 0.25f);
+			//diffuseColor[2] = new Vector3(0.25f, 0.25f, 1);
+			//diffuseColor[3] = new Vector3(0.5f, 0.5f, 0.5f);
+			base.DrawEffect(effect, diffuseColor);
+			//base.Draw(gameTime);
+		}
+
+		public override void Update(GameTime gameTime)
 		{
 			base.Update(gameTime);
 			// TODO: Add your update code here
 			float rotation = 0;
-
 #if WINDOWS
 			KeyboardState currentKeyboardState = Keyboard.GetState();
 			float lastTempRotation = tempRotation;
-
 			#region Position
-			if (currentKeyboardState.IsKeyDown(Keys.S) && velocity.X > -30) {
-				velocity.X -= 1;
-			} else if (currentKeyboardState.IsKeyUp(Keys.S) && velocity.X < 0) {
-				velocity.X += (float)0.5;
-			}
-
-			if (currentKeyboardState.IsKeyDown(Keys.W) && velocity.X < 30) {
-				velocity.X += 1;
-			} else if (currentKeyboardState.IsKeyUp(Keys.W) && velocity.X > 0) {
-				velocity.X -= (float)0.5;
-			}
-
-			if (currentKeyboardState.IsKeyDown(Keys.D) && velocity.Y < 30) {
+			if (currentKeyboardState.IsKeyDown(Keys.S) && velocity.Y < 30) {
 				velocity.Y += 1;
-			} else if (currentKeyboardState.IsKeyUp(Keys.D) && velocity.Y > 0) {
+			} else if (currentKeyboardState.IsKeyUp(Keys.S) && velocity.Y > 0) {
 				velocity.Y -= (float)0.5;
 			}
 
-			if (currentKeyboardState.IsKeyDown(Keys.A) && velocity.Y > -30) {
+			if (currentKeyboardState.IsKeyDown(Keys.W) && velocity.Y > -30) {
 				velocity.Y -= 1;
-			} else if (currentKeyboardState.IsKeyUp(Keys.A) && velocity.Y < 0) {
+			} else if (currentKeyboardState.IsKeyUp(Keys.W) && velocity.Y < 0) {
 				velocity.Y += (float)0.5;
 			}
-			#endregion
 
+			if (currentKeyboardState.IsKeyDown(Keys.D) && velocity.X > -30) {
+				velocity.X -= 1;
+			} else if (currentKeyboardState.IsKeyUp(Keys.D) && velocity.X < 0) {
+				velocity.X += (float)0.5;
+			}
+
+			if (currentKeyboardState.IsKeyDown(Keys.A) && velocity.X < 30) {
+				velocity.X += 1;
+			} else if (currentKeyboardState.IsKeyUp(Keys.A) && velocity.X > 0) {
+				velocity.X -= (float)0.5;
+			}
+			#endregion
 			#region Rotation
 
 			Keys keyToConsider;
@@ -173,13 +181,13 @@ namespace HockeySlam.GameEntities.Models
 					(tempRotation >= 3 * MathHelper.PiOver2 && tempRotation <= 2 * MathHelper.Pi) ||
 					(tempRotation <= 0.0f && tempRotation >= -MathHelper.PiOver2)))
 				{
-					rotation = 0.1f;
+					rotation = -0.1f;
 				}
 				else if (keyToConsider == Keys.Left &&
 					((tempRotation >= MathHelper.PiOver2 && tempRotation <= 3 * MathHelper.PiOver2) ||
 					(tempRotation <= -MathHelper.PiOver2 && tempRotation >= -3 * MathHelper.Pi)))
 				{
-					rotation = -0.1f;
+					rotation = 0.1f;
 				}
 				else if (keyToConsider == Keys.Right &&
 					((tempRotation >= 0.0f && tempRotation <= MathHelper.PiOver2) ||
@@ -187,13 +195,13 @@ namespace HockeySlam.GameEntities.Models
 					(tempRotation >= 3 * MathHelper.PiOver2 && tempRotation <= 2 * MathHelper.Pi) ||
 					(tempRotation <= 0.0f && tempRotation >= -MathHelper.PiOver2)))
 				{
-					rotation = -0.1f;
+					rotation = 0.1f;
 				}
 				else if (keyToConsider == Keys.Right &&
 					((tempRotation >= MathHelper.PiOver2 && tempRotation <= 3 * MathHelper.PiOver2) ||
 					(tempRotation <= -MathHelper.PiOver2 && tempRotation >= -3 * MathHelper.Pi)))
 				{
-					rotation = 0.1f;
+					rotation = -0.1f;
 				}
 				else if (keyToConsider == Keys.Up &&
 					((tempRotation >= 0.0f && tempRotation <= MathHelper.Pi) ||
@@ -224,7 +232,6 @@ namespace HockeySlam.GameEntities.Models
 			}
 			else rotation = 0;
 			#endregion
-
 
 #else
             GamePadState currentGamePadState = GamePad.GetState(PlayerIndex.One);
@@ -262,10 +269,6 @@ namespace HockeySlam.GameEntities.Models
             }
             else velocity.X = 0;
 #endif
-
-			/*position = new Vector2(position.X + (float)gameTime.ElapsedGameTime.TotalSeconds * velocity.X,
-			    position.Y + (float)gameTime.ElapsedGameTime.TotalSeconds * velocity.Y);*/
-
 			updateMeshWorld(gameTime, rotation);
 
 			updatePositionVector(gameTime);
@@ -275,17 +278,35 @@ namespace HockeySlam.GameEntities.Models
 		private void updateMeshWorld(GameTime gameTime, float rotation) {
 			tempRotation = (tempRotation + rotation) % MathHelper.TwoPi;
 			Matrix oldWorld = world;
-
 			world = Matrix.Identity;
-			world *= Matrix.CreateRotationZ(rotation);
+			world *= Matrix.CreateRotationY(rotation);
 			world *= oldWorld;
-
-			position = Matrix.CreateTranslation((float)gameTime.ElapsedGameTime.TotalSeconds * velocity.X,
-				(float)gameTime.ElapsedGameTime.TotalSeconds * velocity.Y,
-				0);
+			Vector2 normalizedVelocity = normalizeVelocity(velocity);
+			float time = (float)gameTime.ElapsedGameTime.TotalSeconds;
+			position = Matrix.CreateTranslation(time * velocity.Y*normalizedVelocity.Y, 0, time * velocity.X*normalizedVelocity.X);
 
 			world = world * position;
 		}
+		private float abs(float num)
+		{
+			if (num > 0)
+				return num;
+			else if (num < 0)
+				return -num;
+			else
+				return 0;
+		}
+		private Vector2 normalizeVelocity(Vector2 velocity)
+		{
+			//Console.WriteLine(velocity.X + " <-> " + velocity.Y);
+			if (velocity.X != 0 && velocity.Y != 0) {
+				double degree = Math.Atan2(abs(velocity.Y), abs(velocity.X));
+				velocity.X = (float)Math.Cos(degree);
+				velocity.Y = (float)Math.Sin(degree);
+				return velocity;
+			}
+			Vector2 vec = new Vector2(1,1);
+			return vec;
 
 		private void updatePositionVector(GameTime gameTime) {
 			positionVector += new Vector3((float)gameTime.ElapsedGameTime.TotalSeconds * velocity.X,

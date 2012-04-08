@@ -13,7 +13,10 @@ namespace HockeySlam.GameEntities.Models
 	{
 		Camera camera;
 		Game game;
-
+		Vector3 ambientLightColor;
+		Vector3 lightDirection;
+		Vector3 diffuseLightColor;
+		Matrix[] modelTransforms;
 		public Model model
 		{
 			get;
@@ -25,6 +28,19 @@ namespace HockeySlam.GameEntities.Models
 		{
 			this.camera = camera;
 			this.game = game;
+		}
+
+		public virtual void Initialize()
+		{
+			modelTransforms = new Matrix[model.Bones.Count];
+			model.CopyAbsoluteBoneTransformsTo(modelTransforms);
+			ambientLightColor = new Vector3(0.4f, 0.4f, 0.4f);
+			
+
+			
+			lightDirection = new Vector3(-1.0f, -1.0f, 0);
+			lightDirection.Normalize();
+			diffuseLightColor = new Vector3(0.7f, 0.7f, 0.7f);
 		}
 
 		public virtual void LoadContent()
@@ -66,6 +82,25 @@ namespace HockeySlam.GameEntities.Models
 				mb.Transform * GetParentTransform(mb.Parent);
 		}
 
+		protected void DrawEffect(Effect effect, Vector3 diffuseColor)
+		{
+			effect.Parameters["View"].SetValue(camera.view);
+			effect.Parameters["Projection"].SetValue(camera.projection);
+			effect.Parameters["AmbientLightColor"].SetValue(ambientLightColor);
+			effect.Parameters["LightDirection"].SetValue(-lightDirection);
+			effect.Parameters["DiffuseLightColor"].SetValue(diffuseLightColor);
+			foreach (ModelMesh mesh in model.Meshes) {
+				effect.Parameters["World"].SetValue(modelTransforms[mesh.ParentBone.Index] * world);
+				foreach (ModelMeshPart meshPart in mesh.MeshParts) {
+					game.GraphicsDevice.SetVertexBuffer(meshPart.VertexBuffer, meshPart.VertexOffset);
+					game.GraphicsDevice.Indices = meshPart.IndexBuffer;
+					effect.Parameters["DiffuseColor"].SetValue(diffuseColor);
+					effect.CurrentTechnique.Passes[0].Apply();
+					game.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, meshPart.NumVertices, meshPart.StartIndex, meshPart.PrimitiveCount);
+				}
+			}
+		}
+
 		private void DrawModelViaVertexBuffer()
 		{
 			foreach (ModelMesh mm in model.Meshes)
@@ -75,7 +110,7 @@ namespace HockeySlam.GameEntities.Models
 					IEffectMatrices iem = mmp.Effect as IEffectMatrices;
 					if ((mmp.Effect != null) && (iem != null))
 					{
-						iem.World = world * GetParentTransform(mm.ParentBone);
+						iem.World = GetParentTransform(mm.ParentBone) * world;
 						iem.Projection = camera.projection;
 						iem.View = camera.view;
 						game.GraphicsDevice.SetVertexBuffer(mmp.VertexBuffer, mmp.VertexOffset);
@@ -123,6 +158,5 @@ namespace HockeySlam.GameEntities.Models
 			return world;
 		}
 
-		public virtual void Initialize() { }
 	}
 }

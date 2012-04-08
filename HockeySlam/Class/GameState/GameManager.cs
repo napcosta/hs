@@ -22,6 +22,7 @@ namespace HockeySlam.GameState
 		Dictionary<string, IGameEntity> allEntities = new Dictionary<string, IGameEntity>();
 		Camera camera;
 		Game game;
+		
 
 		#endregion
 
@@ -114,6 +115,9 @@ namespace HockeySlam.GameState
 
 			game.GraphicsDevice.BlendState = lastBlend;
 			game.GraphicsDevice.DepthStencilState = lastDepth;
+
+			/************/
+
 		}
 
 		#endregion
