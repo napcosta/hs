@@ -40,7 +40,7 @@ namespace HockeySlam.GameEntities.Models
 
 			world = world * rotation * scale * pos;
 
-			collisionArea = new BoundingSphere(new Vector3(0,1,0), 0.5f);
+			collisionArea = new BoundingSphere(new Vector3(4,1,0), 0.45f);
 
 			CollisionManager cm = (CollisionManager)gameManager.getGameEntity("collisionManager");
 			DebugManager dm = (DebugManager)gameManager.getGameEntity("debugManager");

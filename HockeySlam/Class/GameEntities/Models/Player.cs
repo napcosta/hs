@@ -22,7 +22,8 @@ namespace HockeySlam.GameEntities.Models
 		Matrix position;
 		Vector3 positionVector;
 		Vector3 lastPositionVector;
-		float tempRotation = 0.0f;
+		float tempRotation;
+		float lastTempRotation;
 		List<Boolean> arrowKeysPressed;
 		List<Keys> lastArrowKeysPressed;
 		Vector3 lastPosition;
@@ -30,12 +31,11 @@ namespace HockeySlam.GameEntities.Models
 		Camera camera;
 		BoundingSphere stick;
 		Effect effect;
-		Camera camera;
-		Game game;
 		BoundingSphere upBody;
 		BoundingSphere downBody;
 		GameManager gameManager;
 		#endregion
+
 		public Player(GameManager gameManager, Game game, Camera camera) : base(game, camera)
 		{
 			model = game.Content.Load<Model>(@"Models\player");
@@ -53,6 +53,9 @@ namespace HockeySlam.GameEntities.Models
 		public override void Initialize()
 		{	
 			// TODO: Add your initialization code here
+			tempRotation = 0;
+			lastTempRotation = tempRotation;
+
 			position = Matrix.Identity;
 			positionVector = Vector3.Zero;
 			positionVector.Z = -1.5f;
@@ -60,7 +63,7 @@ namespace HockeySlam.GameEntities.Models
 
 			velocity = Vector2.Zero;
 
-			Matrix pos = Matrix.CreateTranslation(0, 2f, 0);
+			Matrix pos = Matrix.CreateTranslation(0, 1f, 0);
 			Matrix scale = Matrix.CreateScale(1.5f);
 			world = world * scale * pos;
 
@@ -100,6 +103,7 @@ namespace HockeySlam.GameEntities.Models
 #if WINDOWS
 			KeyboardState currentKeyboardState = Keyboard.GetState();
 			float lastTempRotation = tempRotation;
+
 			#region Position
 			if (currentKeyboardState.IsKeyDown(Keys.S) && velocity.Y < 30) {
 				velocity.Y += 1;
@@ -269,20 +273,21 @@ namespace HockeySlam.GameEntities.Models
             }
             else velocity.X = 0;
 #endif
-			updateMeshWorld(gameTime, rotation);
+			Vector2 normalizedVelocity = normalizeVelocity(velocity);
+			float time = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-			updatePositionVector(gameTime);
-			updateBoundingSpheres(gameTime, lastTempRotation);
+			updateMeshWorld(gameTime, rotation, normalizedVelocity, time);
+			updatePositionVector(gameTime, normalizedVelocity, time);
+			updateBoundingSpheres(gameTime, lastTempRotation, normalizedVelocity, time);
 		}
 
-		private void updateMeshWorld(GameTime gameTime, float rotation) {
+		private void updateMeshWorld(GameTime gameTime, float rotation, Vector2 normalizedVelocity, float time) 
+		{
 			tempRotation = (tempRotation + rotation) % MathHelper.TwoPi;
 			Matrix oldWorld = world;
 			world = Matrix.Identity;
 			world *= Matrix.CreateRotationY(rotation);
 			world *= oldWorld;
-			Vector2 normalizedVelocity = normalizeVelocity(velocity);
-			float time = (float)gameTime.ElapsedGameTime.TotalSeconds;
 			position = Matrix.CreateTranslation(time * velocity.Y*normalizedVelocity.Y, 0, time * velocity.X*normalizedVelocity.X);
 
 			world = world * position;
@@ -296,6 +301,7 @@ namespace HockeySlam.GameEntities.Models
 			else
 				return 0;
 		}
+
 		private Vector2 normalizeVelocity(Vector2 velocity)
 		{
 			//Console.WriteLine(velocity.X + " <-> " + velocity.Y);
@@ -305,34 +311,32 @@ namespace HockeySlam.GameEntities.Models
 				velocity.Y = (float)Math.Sin(degree);
 				return velocity;
 			}
-			Vector2 vec = new Vector2(1,1);
+			Vector2 vec = new Vector2(1, 1);
 			return vec;
+		}
 
-		private void updatePositionVector(GameTime gameTime) {
-			positionVector += new Vector3((float)gameTime.ElapsedGameTime.TotalSeconds * velocity.X,
-						 (float)gameTime.ElapsedGameTime.TotalSeconds * velocity.Y,
-						 0);
+		private void updatePositionVector(GameTime gameTime, Vector2 normalizedVelocity, float time)
+		{
+			positionVector += new Vector3(time * velocity.Y * normalizedVelocity.Y, 0, time * velocity.X * normalizedVelocity.X);
 
-			if (positionVector != lastPositionVector) {
+			if (positionVector != lastPositionVector || tempRotation != lastTempRotation) {
 				notify();
 				lastPositionVector = positionVector;
+				lastTempRotation = tempRotation;
 			}
 		}
 
-		private void updateBoundingSpheres(GameTime gameTime, float lastTempRotation)
-		{
-			lastPosition = new Vector3(-(float)gameTime.ElapsedGameTime.TotalSeconds * velocity.X,
-						 0,
-						 -(float)gameTime.ElapsedGameTime.TotalSeconds * velocity.Y);
+		private void updateBoundingSpheres(GameTime gameTime, float lastTempRotation, Vector2 normalizedVelocity, float time)
+		{	
+			lastPosition = new Vector3(time * velocity.Y * normalizedVelocity.Y, 0, time * velocity.X * normalizedVelocity.X);
 
 			upBody.Center += lastPosition;
 			downBody.Center += lastPosition;
 
 			if (lastTempRotation != tempRotation) {
 				stick.Center = Vector3.Zero;
-				stick.Center.X -= 2f;
-				stick.Center.X += 2f * ((float)Math.Cos(tempRotation) - (float)Math.Cos(MathHelper.Pi));
-				stick.Center.Z += 2f * ((float)Math.Sin(tempRotation) - (float)Math.Sin(MathHelper.Pi));
+				stick.Center.X += 2f * ((float)Math.Sin(tempRotation + MathHelper.PiOver2));
+				stick.Center.Z += 2f * ((float)Math.Cos(tempRotation + MathHelper.PiOver2));
 				stick.Center += upBody.Center;
 				stick.Center.Y = 1f;
 			}
