@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.Xna.Framework;
 
-namespace HockeySlam.Class.Screens
+namespace HockeySlam.Screens
 {
 	class PlayerIndexEventArgs : EventArgs
 	{

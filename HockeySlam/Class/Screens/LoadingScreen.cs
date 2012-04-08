@@ -1,9 +1,9 @@
 ﻿using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using HockeySlam.Class.GameState;
+using HockeySlam.GameState;
 
-namespace HockeySlam.Class.Screens
+namespace HockeySlam.Screens
 {
 	class LoadingScreen : GameScreen
 	{

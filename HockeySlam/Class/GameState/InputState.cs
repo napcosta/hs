@@ -2,7 +2,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
-namespace HockeySlam.Class.GameState
+namespace HockeySlam.GameState
 {
 	// Helper for reading input from keyboard and gamepad.
 	public class InputState

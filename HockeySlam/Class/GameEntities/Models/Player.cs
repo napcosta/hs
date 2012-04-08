@@ -8,26 +8,39 @@ using Microsoft.Xna.Framework.GamerServices;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
-using HockeySlam.Class.GameEntities;
+using HockeySlam.GameEntities;
+using HockeySlam;
+using HockeySlam.GameState;
 
 
-namespace HockeySlam.Class.GameEntities.Models
+namespace HockeySlam.GameEntities.Models
 {
 	/// <summary>
 	/// This is a game component that implements IUpdateable.
 	/// </summary>
-	class Player : BaseModel
+	class Player : BaseModel, ICollidable, IDebugEntity
 	{
 		Vector2 velocity;
-        Matrix position = Matrix.Identity;
+		Matrix position;
+		Vector3 positionVector;
+		Vector3 lastPositionVector;
 		float tempRotation = 0.0f;
 		List<Boolean> arrowKeysPressed;
 		List<Keys> lastArrowKeysPressed;
+		Vector3 lastPosition;
+		Game game;
+		Camera camera;
+		BoundingSphere stick;
+		BoundingSphere upBody;
+		BoundingSphere downBody;
+		GameManager gameManager;
 
-
-		public Player(Game game, Camera camera) : base(game, camera)
+		public Player(GameManager gameManager, Game game, Camera camera) : base(game, camera)
 		{
 			model = game.Content.Load<Model>(@"Models\player");
+			this.game = game;
+			this.camera = camera;
+			this.gameManager = gameManager;
 		}
 
 		/// <summary>
@@ -37,9 +50,14 @@ namespace HockeySlam.Class.GameEntities.Models
 		public override void Initialize()
 		{
 			// TODO: Add your initialization code here
+			position = Matrix.Identity;
+			positionVector = Vector3.Zero;
+			positionVector.Z = -1.5f;
+			lastPositionVector = positionVector;
+
 			velocity = Vector2.Zero;
 
-			Matrix pos = Matrix.CreateTranslation(0, 0, -2f);
+			Matrix pos = Matrix.CreateTranslation(0, 0, -1.5f);
 			Matrix scale = Matrix.CreateScale(1.5f);
 			world = world * scale * pos;
 
@@ -47,6 +65,16 @@ namespace HockeySlam.Class.GameEntities.Models
 			for(int i = 0; i < 4; i++)
 				arrowKeysPressed.Add(false);
 			lastArrowKeysPressed = new List<Keys>();
+
+			lastPosition = new Vector3(0, 2, 0);
+			stick = new BoundingSphere(new Vector3(2, 1f, 0), 0.5f);
+			upBody = new BoundingSphere(new Vector3(0, 4.5f, 0), 1.2f);
+			downBody = new BoundingSphere(new Vector3(0, 1.05f, -0.03f), 0.05f);
+
+			CollisionManager cm = (CollisionManager)gameManager.getGameEntity("collisionManager");
+			DebugManager dm = (DebugManager)gameManager.getGameEntity("debugManager");
+			cm.registre(this);
+			dm.registreDebugEntities(this);
 		}
 
 		/// <summary>
@@ -61,6 +89,7 @@ namespace HockeySlam.Class.GameEntities.Models
 
 #if WINDOWS
 			KeyboardState currentKeyboardState = Keyboard.GetState();
+			float lastTempRotation = tempRotation;
 
 			#region Position
 			if (currentKeyboardState.IsKeyDown(Keys.S) && velocity.X > -30) {
@@ -237,6 +266,13 @@ namespace HockeySlam.Class.GameEntities.Models
 			/*position = new Vector2(position.X + (float)gameTime.ElapsedGameTime.TotalSeconds * velocity.X,
 			    position.Y + (float)gameTime.ElapsedGameTime.TotalSeconds * velocity.Y);*/
 
+			updateMeshWorld(gameTime, rotation);
+
+			updatePositionVector(gameTime);
+			updateBoundingSpheres(gameTime, lastTempRotation);
+		}
+
+		private void updateMeshWorld(GameTime gameTime, float rotation) {
 			tempRotation = (tempRotation + rotation) % MathHelper.TwoPi;
 			Matrix oldWorld = world;
 
@@ -244,10 +280,82 @@ namespace HockeySlam.Class.GameEntities.Models
 			world *= Matrix.CreateRotationZ(rotation);
 			world *= oldWorld;
 
-            position = Matrix.CreateTranslation((float)gameTime.ElapsedGameTime.TotalSeconds * velocity.X, 
-                (float)gameTime.ElapsedGameTime.TotalSeconds * velocity.Y,
-                0);
-            world = world * position;
+			position = Matrix.CreateTranslation((float)gameTime.ElapsedGameTime.TotalSeconds * velocity.X,
+				(float)gameTime.ElapsedGameTime.TotalSeconds * velocity.Y,
+				0);
+
+			world = world * position;
+		}
+
+		private void updatePositionVector(GameTime gameTime) {
+			positionVector += new Vector3((float)gameTime.ElapsedGameTime.TotalSeconds * velocity.X,
+						 (float)gameTime.ElapsedGameTime.TotalSeconds * velocity.Y,
+						 0);
+
+			if (positionVector != lastPositionVector) {
+				notify();
+				lastPositionVector = positionVector;
+			}
+		}
+
+		private void updateBoundingSpheres(GameTime gameTime, float lastTempRotation)
+		{
+			lastPosition = new Vector3(-(float)gameTime.ElapsedGameTime.TotalSeconds * velocity.X,
+						 0,
+						 -(float)gameTime.ElapsedGameTime.TotalSeconds * velocity.Y);
+
+			upBody.Center += lastPosition;
+			downBody.Center += lastPosition;
+
+			if (lastTempRotation != tempRotation) {
+				stick.Center = Vector3.Zero;
+				stick.Center.X -= 2f;
+				stick.Center.X += 2f * ((float)Math.Cos(tempRotation) - (float)Math.Cos(MathHelper.Pi));
+				stick.Center.Z += 2f * ((float)Math.Sin(tempRotation) - (float)Math.Sin(MathHelper.Pi));
+				stick.Center += upBody.Center;
+				stick.Center.Y = 1f;
+			}
+			else stick.Center += lastPosition;
+		}
+
+		public List<BoundingSphere> getBoundingSpheres()
+		{
+			List<BoundingSphere> bs = new List<BoundingSphere>();
+
+			bs.Add(stick);
+			bs.Add(upBody);
+			bs.Add(downBody);
+
+			return bs;
+		}
+
+		public bool collisionOccured(List<BoundingSphere> bss)
+		{
+			foreach (BoundingSphere bs in bss) {
+				if (bs.Intersects(stick))
+					return true;
+				if (bs.Intersects(upBody))
+					return true;
+				if (bs.Intersects(downBody))
+					return true;
+			}
+
+			return false;
+		}
+
+		public void notify()
+		{
+			CollisionManager cm = (CollisionManager)gameManager.getGameEntity("collisionManager");
+			if (cm.verifyCollision(this).Count != 0)
+				Console.WriteLine("CollisionOcurred");
+			else Console.WriteLine("NOT-CollisionOcurred");
+		}
+
+		public void DrawDebug()
+		{
+			BoundingSphereRender.Render(stick, game.GraphicsDevice, camera.view, camera.projection, Color.Brown);
+			BoundingSphereRender.Render(upBody, game.GraphicsDevice, camera.view, camera.projection, Color.Brown);
+			BoundingSphereRender.Render(downBody, game.GraphicsDevice, camera.view, camera.projection, Color.Brown);
 		}
 	}
 }

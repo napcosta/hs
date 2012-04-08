@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.Xna.Framework;
 
-namespace HockeySlam.Class.Screens
+namespace HockeySlam.Screens
 {
 	class PauseMenuScreen : MenuScreen
 	{

@@ -9,10 +9,10 @@ using Microsoft.Xna.Framework.GamerServices;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
-using HockeySlam.Class.GameEntities;
-using HockeySlam.Class.GameEntities.Models;
+using HockeySlam.GameEntities;
+using HockeySlam.GameEntities.Models;
 
-namespace HockeySlam.Class.GameState
+namespace HockeySlam.GameState
 {
 	class GameManager
 	{
@@ -32,8 +32,11 @@ namespace HockeySlam.Class.GameState
 			this.game = game;
 			camera = new Camera(game, new Vector3(85, 85, 0), Vector3.Zero, new Vector3(0, 1, 0));
 			AddEntity("camera1", camera);
+			AddEntity("debugManager", new DebugManager());
+			AddEntity("collisionManager", new CollisionManager());
 			AddEntity("court", new Court(game, camera));
-			AddEntity("player1", new Player(game, camera));
+			AddEntity("player1", new Player(this, game, camera));
+			AddEntity("disk", new Disk(this, game, camera));
 			ActivateAllEntities();
 			Initialize();
 			LoadContent();
@@ -58,6 +61,14 @@ namespace HockeySlam.Class.GameState
 		protected void AddEntity(string name, IGameEntity entity)
 		{
 			allEntities.Add(name, entity);
+		}
+
+		public IGameEntity getGameEntity(string name)
+		{
+			if (!allEntities.ContainsKey(name))
+				return null;
+
+			return allEntities[name];
 		}
 
 		protected void ActivateAllEntities()

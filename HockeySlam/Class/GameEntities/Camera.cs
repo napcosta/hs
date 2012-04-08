@@ -12,7 +12,7 @@ using Microsoft.Xna.Framework.Net;
 using Microsoft.Xna.Framework.Storage;
 
 
-namespace HockeySlam.Class.GameEntities
+namespace HockeySlam.GameEntities
 {
 
 	public class Camera : IGameEntity
