@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using HockeySlam.GameEntities;
@@ -156,6 +155,29 @@ namespace HockeySlam.GameEntities.Models
 		public virtual Matrix GetWorld()
 		{
 			return world;
+		}
+
+		public Vector2 normalizeVelocity(Vector2 velocity)
+		{
+			//Console.WriteLine(velocity.X + " <-> " + velocity.Y);
+			if (velocity.X != 0 && velocity.Y != 0) {
+				double degree = Math.Atan2(abs(velocity.Y), abs(velocity.X));
+				velocity.X = (float)Math.Cos(degree);
+				velocity.Y = (float)Math.Sin(degree);
+				return velocity;
+			}
+			Vector2 vec = new Vector2(1, 1);
+			return vec;
+		}
+
+		public float abs(float num)
+		{
+			if (num > 0)
+				return num;
+			else if (num < 0)
+				return -num;
+			else
+				return 0;
 		}
 
 	}
