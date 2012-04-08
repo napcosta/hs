@@ -6,31 +6,22 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Content;
 
 
-namespace HockeySlam.GameEntities.Models
+namespace HockeySlam.Class.GameEntities.Models
 {
 	class Court : BaseModel
 	{
 		Matrix rotation = Matrix.Identity;
-		Effect _iceEffect;
+		Effect _effect;
 		Game _game;
 		Vector3[] diffuseColor;
-		ContentManager _content;
-		GraphicsDevice _graphics;
 
 		public Court(Game game, Camera camera)
 			: base(game, camera)
 		{
 			model = game.Content.Load<Model>(@"Models\court2");
 			_game = game;
-			_content = _game.Content;
-			_graphics = _game.GraphicsDevice;
 
-			_iceEffect = _game.Content.Load<Effect>(@"Effects\IceEffect");
-			_iceEffect.Parameters["viewportWidth"].SetValue(_graphics.Viewport.Width);
-			_iceEffect.Parameters["viewportHeight"].SetValue(_graphics.Viewport.Height);
-
-
-			
+			_effect = _game.Content.Load<Effect>(@"Effects\SimpleEffect");
 		}
 
 		public override void LoadContent()
@@ -44,7 +35,7 @@ namespace HockeySlam.GameEntities.Models
 		{
 			Vector3 diffuseColor;
 			diffuseColor = new Vector3(0.75f, 0.75f, 0.8f);
-			base.DrawEffect(iceEffect, diffuseColor);
+			base.DrawEffect(_effect, diffuseColor);
 		}
 
 		public override void Update(GameTime gameTime)

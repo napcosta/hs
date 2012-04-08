@@ -9,9 +9,9 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
 
-using HockeySlam.Screens;
-using HockeySlam.GameState;
-using HockeySlam.GameEntities;
+using HockeySlam.Class.Screens;
+using HockeySlam.Class.GameState;
+using HockeySlam.Class.GameEntities;
 
 namespace HockeySlam
 {

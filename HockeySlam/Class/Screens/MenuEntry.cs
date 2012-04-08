@@ -1,10 +1,10 @@
 ﻿using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using HockeySlam.Screens;
-using HockeySlam.GameState;
+using HockeySlam.Class.Screens;
+using HockeySlam.Class.GameState;
 
-namespace HockeySlam.Screens
+namespace HockeySlam.Class.Screens
 {
 	// Class that represents a single entry in a MenuScreen.
 	class MenuEntry

@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 
-namespace HockeySlam.Screens
+namespace HockeySlam.Class.Screens
 {
 	class MainMenuScreen : MenuScreen
 	{

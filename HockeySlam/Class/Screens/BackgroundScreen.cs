@@ -2,9 +2,9 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
-using HockeySlam.GameState;
+using HockeySlam.Class.GameState;
 
-namespace HockeySlam.Screens
+namespace HockeySlam.Class.Screens
 {
 	class BackgroundScreen : GameScreen
 	{

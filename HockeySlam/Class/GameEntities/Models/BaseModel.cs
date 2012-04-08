@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using HockeySlam.GameEntities;
+using HockeySlam.Class.GameEntities;
 using HockeySlam;
-
-namespace HockeySlam.GameEntities.Models
+using HockeySlam.Interface;
+namespace HockeySlam.Class.GameEntities.Models
 {
 	class BaseModel : IGameEntity
 	{

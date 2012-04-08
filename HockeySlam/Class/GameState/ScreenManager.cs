@@ -8,10 +8,10 @@ using Microsoft.Xna.Framework.GamerServices;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
-using HockeySlam.Screens;
+using HockeySlam.Class.Screens;
 
 
-namespace HockeySlam.GameState
+namespace HockeySlam.Class.GameState
 {
 	/// <summary>
 	/// This is a game component that implements IUpdateable.

@@ -10,9 +10,9 @@ using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
 using Microsoft.Xna.Framework.Net;
 using Microsoft.Xna.Framework.Storage;
+using HockeySlam.Interface;
 
-
-namespace HockeySlam.GameEntities
+namespace HockeySlam.Class.GameEntities
 {
 
 	public class Camera : IGameEntity

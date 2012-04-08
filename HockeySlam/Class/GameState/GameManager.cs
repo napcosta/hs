@@ -9,10 +9,10 @@ using Microsoft.Xna.Framework.GamerServices;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
-using HockeySlam.GameEntities;
-using HockeySlam.GameEntities.Models;
-
-namespace HockeySlam.GameState
+using HockeySlam.Class.GameEntities;
+using HockeySlam.Class.GameEntities.Models;
+using HockeySlam.Interface;
+namespace HockeySlam.Class.GameState
 {
 	class GameManager
 	{

@@ -2,7 +2,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
-namespace HockeySlam.GameState
+namespace HockeySlam.Class.GameState
 {
 	// Defines an action that is designed by some set of buttons and/or keys.
 	class InputAction

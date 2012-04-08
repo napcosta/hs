@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-using HockeySlam.GameEntities;
-
-namespace HockeySlam.GameState
+using HockeySlam.Class.GameEntities;
+using HockeySlam.Interface;
+namespace HockeySlam.Class.GameState
 {
 	class DebugManager : IGameEntity
 	{

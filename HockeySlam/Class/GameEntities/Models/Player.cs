@@ -8,12 +8,13 @@ using Microsoft.Xna.Framework.GamerServices;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
-using HockeySlam.GameEntities;
+using HockeySlam.Class.GameEntities;
 using HockeySlam;
-using HockeySlam.GameState;
+using HockeySlam.Class.GameState;
+using HockeySlam.Interface;
 
 
-namespace HockeySlam.GameEntities.Models
+namespace HockeySlam.Class.GameEntities.Models
 {
 	class Player : BaseModel, ICollidable, IDebugEntity
 	{

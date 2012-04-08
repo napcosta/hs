@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using HockeySlam.GameState;
+using HockeySlam.Class.GameState;
 
-namespace HockeySlam.Screens
+namespace HockeySlam.Class.Screens
 {
 	// Base class for screens that contain menu options.
 	class MenuScreen : GameScreen
