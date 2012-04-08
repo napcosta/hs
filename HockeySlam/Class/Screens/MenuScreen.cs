@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using HockeySlam.Class.GameState;
+using HockeySlam.GameState;
 
-namespace HockeySlam.Class.Screens
+namespace HockeySlam.Screens
 {
 	// Base class for screens that contain menu options.
 	class MenuScreen : GameScreen
@@ -67,7 +67,6 @@ namespace HockeySlam.Class.Screens
 		{
 			PlayerIndex playerIndex;
 
-			//System.Console.WriteLine(selectedEntry);
 			if (menuUp.Evaluate(input, ControllingPlayer, out playerIndex))
 			{
 				selectedEntry--;

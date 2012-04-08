@@ -9,9 +9,9 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
 
-using HockeySlam.Class.Screens;
-using HockeySlam.Class.GameState;
-using HockeySlam.Class.GameEntities;
+using HockeySlam.Screens;
+using HockeySlam.GameState;
+using HockeySlam.GameEntities;
 
 namespace HockeySlam
 {
@@ -61,6 +61,7 @@ namespace HockeySlam
 			Components.Add(camera);
 			Components.Add(new Court(this));
 			Components.Add(new Player(this));*/
+			BoundingSphereRender.InitializeGraphics(GraphicsDevice, 1000);
 			base.Initialize();
 		}
 

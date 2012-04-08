@@ -8,29 +8,40 @@ using Microsoft.Xna.Framework.GamerServices;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
-using HockeySlam.Class.GameEntities;
+using HockeySlam.GameEntities;
+using HockeySlam;
+using HockeySlam.GameState;
 
 
-namespace HockeySlam.Class.GameEntities.Models
+namespace HockeySlam.GameEntities.Models
 {
-	class Player : BaseModel
+	class Player : BaseModel, ICollidable, IDebugEntity
 	{
 		#region fields
 		Vector2 velocity;
-		Matrix position = Matrix.Identity;
-		float tempRotation = 0.0f;
+		Matrix position;
+		Vector3 positionVector;
+		Vector3 lastPositionVector;
+		float tempRotation;
+		float lastTempRotation;
 		List<Boolean> arrowKeysPressed;
 		List<Keys> lastArrowKeysPressed;
-		Effect effect;
-		Camera camera;
+		Vector3 lastPosition;
 		Game game;
+		Camera camera;
+		BoundingSphere stick;
+		Effect effect;
+		BoundingSphere upBody;
+		BoundingSphere downBody;
+		GameManager gameManager;
 		#endregion
 
-		public Player(Game game, Camera camera) : base(game, camera)
+		public Player(GameManager gameManager, Game game, Camera camera) : base(game, camera)
 		{
-			this.camera = camera;
-			this.game = game;
 			model = game.Content.Load<Model>(@"Models\player");
+			this.game = game;
+			this.camera = camera;
+			this.gameManager = gameManager;
 		}
 		
 		public override void LoadContent()
@@ -42,9 +53,17 @@ namespace HockeySlam.Class.GameEntities.Models
 		public override void Initialize()
 		{	
 			// TODO: Add your initialization code here
+			tempRotation = 0;
+			lastTempRotation = tempRotation;
+
+			position = Matrix.Identity;
+			positionVector = Vector3.Zero;
+			positionVector.Z = -1.5f;
+			lastPositionVector = positionVector;
+
 			velocity = Vector2.Zero;
 
-			Matrix pos = Matrix.CreateTranslation(0, 2f, 0);
+			Matrix pos = Matrix.CreateTranslation(0, 1f, 0);
 			Matrix scale = Matrix.CreateScale(1.5f);
 			world = world * scale * pos;
 
@@ -52,6 +71,16 @@ namespace HockeySlam.Class.GameEntities.Models
 			for(int i = 0; i < 4; i++)
 				arrowKeysPressed.Add(false);
 			lastArrowKeysPressed = new List<Keys>();
+
+			lastPosition = new Vector3(0, 2, 0);
+			stick = new BoundingSphere(new Vector3(2, 1f, 0), 0.5f);
+			upBody = new BoundingSphere(new Vector3(0, 4.5f, 0), 1.2f);
+			downBody = new BoundingSphere(new Vector3(0, 1.05f, -0.03f), 0.05f);
+
+			CollisionManager cm = (CollisionManager)gameManager.getGameEntity("collisionManager");
+			DebugManager dm = (DebugManager)gameManager.getGameEntity("debugManager");
+			cm.registre(this);
+			dm.registreDebugEntities(this);
 			base.Initialize();
 		}
 
@@ -73,6 +102,8 @@ namespace HockeySlam.Class.GameEntities.Models
 			float rotation = 0;
 #if WINDOWS
 			KeyboardState currentKeyboardState = Keyboard.GetState();
+			float lastTempRotation = tempRotation;
+
 			#region Position
 			if (currentKeyboardState.IsKeyDown(Keys.S) && velocity.Y < 30) {
 				velocity.Y += 1;
@@ -242,14 +273,23 @@ namespace HockeySlam.Class.GameEntities.Models
             }
             else velocity.X = 0;
 #endif
+			Vector2 normalizedVelocity = normalizeVelocity(velocity);
+			float time = (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+			updateMeshWorld(gameTime, rotation, normalizedVelocity, time);
+			updatePositionVector(gameTime, normalizedVelocity, time);
+			updateBoundingSpheres(gameTime, lastTempRotation, normalizedVelocity, time);
+		}
+
+		private void updateMeshWorld(GameTime gameTime, float rotation, Vector2 normalizedVelocity, float time) 
+		{
 			tempRotation = (tempRotation + rotation) % MathHelper.TwoPi;
 			Matrix oldWorld = world;
 			world = Matrix.Identity;
 			world *= Matrix.CreateRotationY(rotation);
 			world *= oldWorld;
-			Vector2 normalizedVelocity = normalizeVelocity(velocity);
-			float time = (float)gameTime.ElapsedGameTime.TotalSeconds;
 			position = Matrix.CreateTranslation(time * velocity.Y*normalizedVelocity.Y, 0, time * velocity.X*normalizedVelocity.X);
+
 			world = world * position;
 		}
 		private float abs(float num)
@@ -261,6 +301,7 @@ namespace HockeySlam.Class.GameEntities.Models
 			else
 				return 0;
 		}
+
 		private Vector2 normalizeVelocity(Vector2 velocity)
 		{
 			//Console.WriteLine(velocity.X + " <-> " + velocity.Y);
@@ -270,8 +311,76 @@ namespace HockeySlam.Class.GameEntities.Models
 				velocity.Y = (float)Math.Sin(degree);
 				return velocity;
 			}
-			Vector2 vec = new Vector2(1,1);
+			Vector2 vec = new Vector2(1, 1);
 			return vec;
+		}
+
+		private void updatePositionVector(GameTime gameTime, Vector2 normalizedVelocity, float time)
+		{
+			positionVector += new Vector3(time * velocity.Y * normalizedVelocity.Y, 0, time * velocity.X * normalizedVelocity.X);
+
+			if (positionVector != lastPositionVector || tempRotation != lastTempRotation) {
+				notify();
+				lastPositionVector = positionVector;
+				lastTempRotation = tempRotation;
+			}
+		}
+
+		private void updateBoundingSpheres(GameTime gameTime, float lastTempRotation, Vector2 normalizedVelocity, float time)
+		{	
+			lastPosition = new Vector3(time * velocity.Y * normalizedVelocity.Y, 0, time * velocity.X * normalizedVelocity.X);
+
+			upBody.Center += lastPosition;
+			downBody.Center += lastPosition;
+
+			if (lastTempRotation != tempRotation) {
+				stick.Center = Vector3.Zero;
+				stick.Center.X += 2f * ((float)Math.Sin(tempRotation + MathHelper.PiOver2));
+				stick.Center.Z += 2f * ((float)Math.Cos(tempRotation + MathHelper.PiOver2));
+				stick.Center += upBody.Center;
+				stick.Center.Y = 1f;
+			}
+			else stick.Center += lastPosition;
+		}
+
+		public List<BoundingSphere> getBoundingSpheres()
+		{
+			List<BoundingSphere> bs = new List<BoundingSphere>();
+
+			bs.Add(stick);
+			bs.Add(upBody);
+			bs.Add(downBody);
+
+			return bs;
+		}
+
+		public bool collisionOccured(List<BoundingSphere> bss)
+		{
+			foreach (BoundingSphere bs in bss) {
+				if (bs.Intersects(stick))
+					return true;
+				if (bs.Intersects(upBody))
+					return true;
+				if (bs.Intersects(downBody))
+					return true;
+			}
+
+			return false;
+		}
+
+		public void notify()
+		{
+			CollisionManager cm = (CollisionManager)gameManager.getGameEntity("collisionManager");
+			if (cm.verifyCollision(this).Count != 0)
+				Console.WriteLine("CollisionOcurred");
+			else Console.WriteLine("NOT-CollisionOcurred");
+		}
+
+		public void DrawDebug()
+		{
+			BoundingSphereRender.Render(stick, game.GraphicsDevice, camera.view, camera.projection, Color.Brown);
+			BoundingSphereRender.Render(upBody, game.GraphicsDevice, camera.view, camera.projection, Color.Brown);
+			BoundingSphereRender.Render(downBody, game.GraphicsDevice, camera.view, camera.projection, Color.Brown);
 		}
 	}
 }

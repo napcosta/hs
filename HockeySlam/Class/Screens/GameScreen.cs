@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.Xna.Framework;
-using HockeySlam.Class.GameState;
+using HockeySlam.GameState;
 
-namespace HockeySlam.Class.Screens
+namespace HockeySlam.Screens
 {
 	public enum ScreenState
 	{

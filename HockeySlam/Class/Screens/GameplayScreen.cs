@@ -4,9 +4,9 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using HockeySlam.Class.GameState;
+using HockeySlam.GameState;
 
-namespace HockeySlam.Class.Screens
+namespace HockeySlam.Screens
 {
 	class GameplayScreen : GameScreen
 	{

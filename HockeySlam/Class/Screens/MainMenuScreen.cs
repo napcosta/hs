@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 
-namespace HockeySlam.Class.Screens
+namespace HockeySlam.Screens
 {
 	class MainMenuScreen : MenuScreen
 	{
@@ -28,7 +28,7 @@ namespace HockeySlam.Class.Screens
 			LoadingScreen.Load(ScreenManager, true, e.PlayerIndex, new GameplayScreen());
 		}
 
-		protected void OnCancel(object sender, PlayerIndexEventArgs e)
+		protected override void OnCancel(object sender, PlayerIndexEventArgs e)
 		{
 			OnCancel(e.PlayerIndex);
 		}

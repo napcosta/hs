@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using System.Text;
 
-namespace HockeySlam.Class.GameEntities
+namespace HockeySlam.GameEntities
 {
 	public interface IGameEntity
 	{
