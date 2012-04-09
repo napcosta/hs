@@ -34,7 +34,6 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		public override void Initialize()
 		{
-
 			Matrix pos = Matrix.CreateTranslation(4, 1, 0);
 			Matrix rotation = Matrix.CreateRotationX(MathHelper.PiOver2);
 			Matrix scale = Matrix.CreateScale(0.5f);
