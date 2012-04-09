@@ -17,33 +17,37 @@ namespace HockeySlam.Class.GameEntities.Models
 {
 	class Disk : BaseModel, IGameEntity, ICollidable, IDebugEntity
 	{
-		BoundingSphere collisionArea;
-		Game game;
-		Camera camera;
-
-		GameManager gameManager;
+		BoundingSphere _collisionArea;
+		Game _game;
+		Camera _camera;
+		Vector2 _velocity;
+		Vector3 _position;
+		GameManager _gameManager;
 
 		public Disk(GameManager gameManager, Game game, Camera camera)
 			: base(game, camera)
 		{
 			model = game.Content.Load<Model>(@"Models\disk");
-			this.game = game;
-			this.camera = camera;
-			this.gameManager = gameManager;
+			_game = game;
+			_camera = camera;
+			_gameManager = gameManager;
 		}
 
 		public override void Initialize()
 		{
+			_velocity = Vector2.Zero;
+			_position = new Vector3(4, 1, 0);
+
 			Matrix pos = Matrix.CreateTranslation(4, 1, 0);
 			Matrix rotation = Matrix.CreateRotationX(MathHelper.PiOver2);
 			Matrix scale = Matrix.CreateScale(0.5f);
 
 			world = world * rotation * scale * pos;
 
-			collisionArea = new BoundingSphere(new Vector3(4,1,0), 0.45f);
+			_collisionArea = new BoundingSphere(new Vector3(4,1,0), 0.45f);
 
-			CollisionManager cm = (CollisionManager)gameManager.getGameEntity("collisionManager");
-			DebugManager dm = (DebugManager)gameManager.getGameEntity("debugManager");
+			CollisionManager cm = (CollisionManager)_gameManager.getGameEntity("collisionManager");
+			DebugManager dm = (DebugManager)_gameManager.getGameEntity("debugManager");
 			cm.registre(this);
 			dm.registreDebugEntities(this);
 
@@ -54,7 +58,7 @@ namespace HockeySlam.Class.GameEntities.Models
 		{
 			List<BoundingSphere> bs = new List<BoundingSphere>();
 
-			bs.Add(collisionArea);
+			bs.Add(_collisionArea);
 
 			return bs;
 		}
@@ -62,7 +66,7 @@ namespace HockeySlam.Class.GameEntities.Models
 		public bool collisionOccured(List<BoundingSphere> bss)
 		{
 			foreach (BoundingSphere bs in bss) {
-				if(bs.Intersects(collisionArea))
+				if(bs.Intersects(_collisionArea))
 					return true;
 			}
 			return false;
@@ -77,7 +81,44 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		public void DrawDebug()
 		{
-			BoundingSphereRender.Render(collisionArea, game.GraphicsDevice, camera.view, camera.projection, Color.Brown);
+			BoundingSphereRender.Render(_collisionArea, _game.GraphicsDevice, _camera.view, _camera.projection, Color.Brown);
+		}
+
+		public void AddVelocity(Vector2 velocity)
+		{
+			if(_velocity.X >= -30.0f && _velocity.X <= 30.0f && _velocity.Y >= -30.0f && _velocity.Y <= 30.0f)
+				_velocity += velocity;
+		}
+
+		public override void Update(GameTime gameTime)
+		{
+			float drag = 0.5f;
+
+			if (_velocity.X >= drag)
+				_velocity.X -= drag;
+			else if (_velocity.X <= -drag)
+				_velocity.X += drag;
+			else _velocity.X = 0;
+
+			if (_velocity.Y >= drag)
+				_velocity.Y -= drag;
+			else if (_velocity.Y <= -drag)
+				_velocity.Y += drag;
+			else _velocity.Y = 0;
+
+			Vector2 normalizedVelocity = normalizeVelocity(_velocity);
+			float time = (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+			_position.X += time * _velocity.Y * normalizedVelocity.Y;
+			_position.Z += time * _velocity.X * normalizedVelocity.X;
+
+			_collisionArea.Center.X = _position.X;
+			_collisionArea.Center.Z = _position.Z;
+
+			Matrix position = Matrix.CreateTranslation(time * _velocity.Y * normalizedVelocity.Y, 0, time * _velocity.X * normalizedVelocity.X);
+			world *= position;
+
+			base.Update(gameTime);
 		}
 	}
 }

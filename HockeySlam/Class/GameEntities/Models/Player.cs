@@ -293,28 +293,6 @@ namespace HockeySlam.Class.GameEntities.Models
 
 			world = world * position;
 		}
-		private float abs(float num)
-		{
-			if (num > 0)
-				return num;
-			else if (num < 0)
-				return -num;
-			else
-				return 0;
-		}
-
-		private Vector2 normalizeVelocity(Vector2 velocity)
-		{
-			//Console.WriteLine(velocity.X + " <-> " + velocity.Y);
-			if (velocity.X != 0 && velocity.Y != 0) {
-				double degree = Math.Atan2(abs(velocity.Y), abs(velocity.X));
-				velocity.X = (float)Math.Cos(degree);
-				velocity.Y = (float)Math.Sin(degree);
-				return velocity;
-			}
-			Vector2 vec = new Vector2(1, 1);
-			return vec;
-		}
 
 		private void updatePositionVector(GameTime gameTime, Vector2 normalizedVelocity, float time)
 		{
@@ -372,9 +350,16 @@ namespace HockeySlam.Class.GameEntities.Models
 		public void notify()
 		{
 			CollisionManager cm = (CollisionManager)gameManager.getGameEntity("collisionManager");
-			if (cm.verifyCollision(this).Count != 0)
+			List<ICollidable> collidedWith = cm.verifyCollision(this);
+
+			if (collidedWith.Count != 0) {
 				Console.WriteLine("CollisionOcurred");
-			else Console.WriteLine("NOT-CollisionOcurred");
+				foreach(ICollidable collided in collidedWith)
+					if (collided is Disk) {
+						Disk disk = (Disk)collided;
+						disk.AddVelocity(velocity);
+					}	
+			} else Console.WriteLine("NOT-CollisionOcurred");
 		}
 
 		public void DrawDebug()

@@ -169,7 +169,7 @@ namespace HockeySlam.Class.Screens
 
 			float transitionOffset = (float)Math.Pow(TransitionPosition, 2);
 
-			Vector2 titlePosition = new Vector2(graphics.Viewport.Width / 2, 300);
+			Vector2 titlePosition = new Vector2(graphics.Viewport.Width / 2, 270);
 			Vector2 titleOrigin = font.MeasureString(menuTitle) / 2;
 			Color titleColor = Color.Black * TransitionAlpha;
 			float titleScale = 1.25f;
