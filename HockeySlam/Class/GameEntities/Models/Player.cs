@@ -16,7 +16,7 @@ using HockeySlam.Interface;
 
 namespace HockeySlam.Class.GameEntities.Models
 {
-	class Player : BaseModel, ICollidable, IDebugEntity
+	class Player : BaseModel, ICollidable, IDebugEntity, IReflectable
 	{
 		#region fields
 		Vector2 velocity;
@@ -34,15 +34,15 @@ namespace HockeySlam.Class.GameEntities.Models
 		Effect effect;
 		BoundingSphere upBody;
 		BoundingSphere downBody;
-		GameManager gameManager;
+		GameManager _gameManager;
 		#endregion
 
 		public Player(GameManager gameManager, Game game, Camera camera) : base(game, camera)
 		{
-			model = game.Content.Load<Model>(@"Models\player");
+			_model = game.Content.Load<Model>(@"Models\player");
 			this.game = game;
 			this.camera = camera;
-			this.gameManager = gameManager;
+			_gameManager = gameManager;
 		}
 		
 		public override void LoadContent()
@@ -78,10 +78,12 @@ namespace HockeySlam.Class.GameEntities.Models
 			upBody = new BoundingSphere(new Vector3(0, 4.5f, 0), 1.2f);
 			downBody = new BoundingSphere(new Vector3(0, 1.05f, -0.03f), 0.05f);
 
-			CollisionManager cm = (CollisionManager)gameManager.getGameEntity("collisionManager");
-			DebugManager dm = (DebugManager)gameManager.getGameEntity("debugManager");
-			cm.registre(this);
-			dm.registreDebugEntities(this);
+			CollisionManager cm = (CollisionManager)_gameManager.getGameEntity("collisionManager");
+			DebugManager dm = (DebugManager)_gameManager.getGameEntity("debugManager");
+			Ice ice = (Ice)_gameManager.getGameEntity("ice");
+			ice.register(this);
+			cm.register(this);
+			dm.registerDebugEntities(this);
 			base.Initialize();
 		}
 
@@ -349,7 +351,7 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		public void notify()
 		{
-			CollisionManager cm = (CollisionManager)gameManager.getGameEntity("collisionManager");
+			CollisionManager cm = (CollisionManager)_gameManager.getGameEntity("collisionManager");
 			List<ICollidable> collidedWith = cm.verifyCollision(this);
 
 			if (collidedWith.Count != 0) {
@@ -367,6 +369,17 @@ namespace HockeySlam.Class.GameEntities.Models
 			BoundingSphereRender.Render(stick, game.GraphicsDevice, camera.view, camera.projection, Color.Brown);
 			BoundingSphereRender.Render(upBody, game.GraphicsDevice, camera.view, camera.projection, Color.Brown);
 			BoundingSphereRender.Render(downBody, game.GraphicsDevice, camera.view, camera.projection, Color.Brown);
+		}
+
+		void IReflectable.Draw(GameTime gameTime, Camera camera)
+		{
+			_game.GraphicsDevice.DepthStencilState = DepthStencilState.None;
+			base.Draw(gameTime);
+			_game.GraphicsDevice.DepthStencilState = DepthStencilState.Default;
+		}
+
+		void IReflectable.setClipPlane(Vector4? plane)
+		{
 		}
 	}
 }

@@ -24,7 +24,7 @@ namespace HockeySlam.Class.GameState
 			debugKeyPressed = false;
 		}
 
-		public void registreDebugEntities(IDebugEntity debugEntity) 
+		public void registerDebugEntities(IDebugEntity debugEntity) 
 		{
 			debugEntities.Add(debugEntity);
 		}

@@ -10,13 +10,13 @@ namespace HockeySlam.Class.GameEntities.Models
 {
 	class BaseModel : IGameEntity
 	{
-		Camera camera;
-		Game game;
+		protected Camera _camera;
+		protected Game _game;
 		Vector3 ambientLightColor;
 		Vector3 lightDirection;
 		Vector3 diffuseLightColor;
 		Matrix[] modelTransforms;
-		public Model model
+		public Model _model
 		{
 			get;
 			protected set;
@@ -25,14 +25,14 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		public BaseModel(Game game, Camera camera)
 		{
-			this.camera = camera;
-			this.game = game;
+			_camera = camera;
+			_game = game;
 		}
 
 		public virtual void Initialize()
 		{
-			modelTransforms = new Matrix[model.Bones.Count];
-			model.CopyAbsoluteBoneTransformsTo(modelTransforms);
+			modelTransforms = new Matrix[_model.Bones.Count];
+			_model.CopyAbsoluteBoneTransformsTo(modelTransforms);
 			ambientLightColor = new Vector3(0.4f, 0.4f, 0.4f);
 			
 
@@ -44,7 +44,7 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		public virtual void LoadContent()
 		{
-			foreach (ModelMesh mesh in model.Meshes)
+			foreach (ModelMesh mesh in _model.Meshes)
 			{
 				foreach (Effect e in mesh.Effects)
 				{
@@ -58,14 +58,14 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		}
 
-        public virtual void Update(GameTime gameTime)
+		public virtual void Update(GameTime gameTime)
 		{
 		}
 
 		protected float GetMaxMeshRadius()
 		{
 			float radius = 0.0f;
-			foreach (ModelMesh mm in model.Meshes)
+			foreach (ModelMesh mm in _model.Meshes)
 			{
 				if (mm.BoundingSphere.Radius > radius)
 				{
@@ -77,32 +77,32 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		private Matrix GetParentTransform(ModelBone mb)
 		{
-			return (mb == model.Root) ? mb.Transform :
+			return (mb == _model.Root) ? mb.Transform :
 				mb.Transform * GetParentTransform(mb.Parent);
 		}
 
 		protected void DrawEffect(Effect effect, Vector3 diffuseColor)
 		{
-			effect.Parameters["View"].SetValue(camera.view);
-			effect.Parameters["Projection"].SetValue(camera.projection);
+			effect.Parameters["View"].SetValue(_camera.view);
+			effect.Parameters["Projection"].SetValue(_camera.projection);
 			effect.Parameters["AmbientLightColor"].SetValue(ambientLightColor);
 			effect.Parameters["LightDirection"].SetValue(-lightDirection);
 			effect.Parameters["DiffuseLightColor"].SetValue(diffuseLightColor);
-			foreach (ModelMesh mesh in model.Meshes) {
+			foreach (ModelMesh mesh in _model.Meshes) {
 				effect.Parameters["World"].SetValue(modelTransforms[mesh.ParentBone.Index] * world);
 				foreach (ModelMeshPart meshPart in mesh.MeshParts) {
-					game.GraphicsDevice.SetVertexBuffer(meshPart.VertexBuffer, meshPart.VertexOffset);
-					game.GraphicsDevice.Indices = meshPart.IndexBuffer;
+					_game.GraphicsDevice.SetVertexBuffer(meshPart.VertexBuffer, meshPart.VertexOffset);
+					_game.GraphicsDevice.Indices = meshPart.IndexBuffer;
 					effect.Parameters["DiffuseColor"].SetValue(diffuseColor);
 					effect.CurrentTechnique.Passes[0].Apply();
-					game.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, meshPart.NumVertices, meshPart.StartIndex, meshPart.PrimitiveCount);
+					_game.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, meshPart.NumVertices, meshPart.StartIndex, meshPart.PrimitiveCount);
 				}
 			}
 		}
 
 		private void DrawModelViaVertexBuffer()
 		{
-			foreach (ModelMesh mm in model.Meshes)
+			foreach (ModelMesh mm in _model.Meshes)
 			{
 				foreach (ModelMeshPart mmp in mm.MeshParts)
 				{
@@ -110,14 +110,14 @@ namespace HockeySlam.Class.GameEntities.Models
 					if ((mmp.Effect != null) && (iem != null))
 					{
 						iem.World = GetParentTransform(mm.ParentBone) * world;
-						iem.Projection = camera.projection;
-						iem.View = camera.view;
-						game.GraphicsDevice.SetVertexBuffer(mmp.VertexBuffer, mmp.VertexOffset);
-						game.GraphicsDevice.Indices = mmp.IndexBuffer;
+						iem.Projection = _camera.projection;
+						iem.View = _camera.view;
+						_game.GraphicsDevice.SetVertexBuffer(mmp.VertexBuffer, mmp.VertexOffset);
+						_game.GraphicsDevice.Indices = mmp.IndexBuffer;
 						foreach (EffectPass ep in mmp.Effect.CurrentTechnique.Passes)
 						{
 							ep.Apply();
-							game.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0,
+							_game.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0,
 								mmp.NumVertices, mmp.StartIndex, mmp.PrimitiveCount);
 						}
 					}
@@ -127,18 +127,18 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		private void drawModel()
 		{
-			Matrix[] transforms = new Matrix[model.Bones.Count];
-			model.CopyAbsoluteBoneTransformsTo(transforms);
+			Matrix[] transforms = new Matrix[_model.Bones.Count];
+			_model.CopyAbsoluteBoneTransformsTo(transforms);
 
-			foreach (ModelMesh mesh in model.Meshes)
+			foreach (ModelMesh mesh in _model.Meshes)
 			{
 				foreach (Effect e in mesh.Effects)
 				{
 					IEffectMatrices iem = e as IEffectMatrices;
 					if (iem != null)
 					{
-						iem.Projection = camera.projection;
-						iem.View = camera.view;
+						iem.Projection = _camera.projection;
+						iem.View = _camera.view;
 						iem.World = GetWorld() * GetParentTransform(mesh.ParentBone);
 					}
 				}

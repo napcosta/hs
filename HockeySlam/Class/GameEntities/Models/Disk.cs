@@ -15,7 +15,7 @@ using HockeySlam.Interface;
 
 namespace HockeySlam.Class.GameEntities.Models
 {
-	class Disk : BaseModel, IGameEntity, ICollidable, IDebugEntity
+	class Disk : BaseModel, IGameEntity, ICollidable, IDebugEntity, IReflectable
 	{
 		BoundingSphere _collisionArea;
 		Game _game;
@@ -27,7 +27,7 @@ namespace HockeySlam.Class.GameEntities.Models
 		public Disk(GameManager gameManager, Game game, Camera camera)
 			: base(game, camera)
 		{
-			model = game.Content.Load<Model>(@"Models\disk");
+			_model = game.Content.Load<Model>(@"Models\disk");
 			_game = game;
 			_camera = camera;
 			_gameManager = gameManager;
@@ -48,8 +48,10 @@ namespace HockeySlam.Class.GameEntities.Models
 
 			CollisionManager cm = (CollisionManager)_gameManager.getGameEntity("collisionManager");
 			DebugManager dm = (DebugManager)_gameManager.getGameEntity("debugManager");
-			cm.registre(this);
-			dm.registreDebugEntities(this);
+			Ice ice = (Ice)_gameManager.getGameEntity("ice");
+			ice.register(this);
+			cm.register(this);
+			dm.registerDebugEntities(this);
 
 			base.Initialize();
 		}
@@ -119,6 +121,17 @@ namespace HockeySlam.Class.GameEntities.Models
 			world *= position;
 
 			base.Update(gameTime);
+		}
+
+		void IReflectable.Draw(GameTime gameTime, Camera camera)
+		{
+			_game.GraphicsDevice.DepthStencilState = DepthStencilState.None;
+			base.Draw(gameTime);
+			_game.GraphicsDevice.DepthStencilState = DepthStencilState.Default;
+		}
+
+		void IReflectable.setClipPlane(Vector4? plane)
+		{
 		}
 	}
 }

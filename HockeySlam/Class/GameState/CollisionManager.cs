@@ -25,7 +25,7 @@ namespace HockeySlam.Class.GameState
 			collidableObjects = new List<ICollidable>();
 		}
 
-		public void registre(ICollidable collidable)
+		public void register(ICollidable collidable)
 		{
 			collidableObjects.Add(collidable);
 		}

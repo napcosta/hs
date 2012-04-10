@@ -35,9 +35,10 @@ namespace HockeySlam.Class.GameState
 			AddEntity("camera1", camera);
 			AddEntity("debugManager", new DebugManager());
 			AddEntity("collisionManager", new CollisionManager());
-			AddEntity("court", new Court(game, camera));
+			//AddEntity("court", new Court(game, camera));
 			AddEntity("player1", new Player(this, game, camera));
 			AddEntity("disk", new Disk(this, game, camera));
+			AddEntity("ice", new Ice(game, camera));
 			ActivateAllEntities();
 			Initialize();
 			LoadContent();
@@ -109,6 +110,9 @@ namespace HockeySlam.Class.GameState
 
 			game.GraphicsDevice.BlendState = BlendState.Opaque;
 			game.GraphicsDevice.DepthStencilState = DepthStencilState.Default;
+
+			Ice ice = (Ice)getGameEntity("ice");
+			ice.preDraw(gameTime);
 
 			foreach (KeyValuePair<string, IGameEntity> pair in activeEntities)
 				pair.Value.Draw(gameTime);

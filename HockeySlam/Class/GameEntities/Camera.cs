@@ -17,6 +17,8 @@ namespace HockeySlam.Class.GameEntities
 
 	public class Camera : IGameEntity
 	{
+		Vector3 _position;
+		Vector3 _target;
 		//Camera matrices
 		public Matrix view
 		{
@@ -31,6 +33,8 @@ namespace HockeySlam.Class.GameEntities
 
 		public Camera(Game game, Vector3 pos, Vector3 target, Vector3 up)
 		{
+			_position = pos;
+			_target = target;
 			view = Matrix.CreateLookAt(pos, target, up);
 
 			projection = Matrix.CreatePerspectiveFieldOfView(
@@ -40,6 +44,15 @@ namespace HockeySlam.Class.GameEntities
 			    1, 3000);
 		}
 
+		public Vector3 getPosition()
+		{
+			return _position;
+		}
+
+		public Vector3 getTarget()
+		{
+			return _target;
+		}
 		public void Update(GameTime gameTime) { }
 		public void Draw(GameTime gameTime) { }
 		public void Initialize() { }
