@@ -34,12 +34,24 @@ namespace HockeySlam.Class.GameEntities.Models
 			modelTransforms = new Matrix[_model.Bones.Count];
 			_model.CopyAbsoluteBoneTransformsTo(modelTransforms);
 			ambientLightColor = new Vector3(0.4f, 0.4f, 0.4f);
-			
 
+			generateTags();
 			
 			lightDirection = new Vector3(-1.0f, -1.0f, 0);
 			lightDirection.Normalize();
 			diffuseLightColor = new Vector3(0.7f, 0.7f, 0.7f);
+		}
+
+		private void generateTags()
+		{
+			foreach (ModelMesh mesh in _model.Meshes)
+				foreach (ModelMeshPart part in mesh.MeshParts)
+					if (part.Effect is BasicEffect) {
+						BasicEffect effect = (BasicEffect)part.Effect;
+						MeshTag tag = new MeshTag(effect.DiffuseColor,
+							effect.Texture, effect.SpecularPower);
+						part.Tag = tag;
+					}
 		}
 
 		public virtual void LoadContent()
@@ -180,5 +192,88 @@ namespace HockeySlam.Class.GameEntities.Models
 				return 0;
 		}
 
+		public void SetModelEffect(Effect effect, bool CopyEffect)
+		{
+			foreach (ModelMesh mesh in _model.Meshes)
+				foreach (ModelMeshPart part in mesh.MeshParts) {
+					Effect toSet = effect;
+
+					// Copy the effect if necessary
+					if (CopyEffect)
+						toSet = effect.Clone();
+
+					MeshTag tag = ((MeshTag)part.Tag);
+
+					// If this ModelMeshPart has a texture, set it to the effect
+					if (tag.Texture != null) {
+						setEffectParameter(toSet, "BasicTexture", tag.Texture);
+						setEffectParameter(toSet, "TextureEnabled", true);
+					} else
+						setEffectParameter(toSet, "TextureEnabled", false);
+
+					// Set our remaining parameters to the effect
+					setEffectParameter(toSet, "DiffuseColor", tag.Color);
+					setEffectParameter(toSet, "SpecularPower", tag.SpecularPower);
+
+					part.Effect = toSet;
+				}
+		}
+
+		void setEffectParameter(Effect effect, string paramName, object val)
+		{
+			if (effect.Parameters[paramName] == null)
+				return;
+
+			if (val is Vector3)
+				effect.Parameters[paramName].SetValue((Vector3)val);
+			else if (val is bool)
+				effect.Parameters[paramName].SetValue((bool)val);
+			else if (val is Matrix)
+				effect.Parameters[paramName].SetValue((Matrix)val);
+			else if (val is Texture2D)
+				effect.Parameters[paramName].SetValue((Texture2D)val);
+		}
+
+		public void drawWithEffect(GameTime gameTime)
+		{
+			foreach (ModelMesh mesh in _model.Meshes) {
+				Matrix localWorld = modelTransforms[mesh.ParentBone.Index]
+					* world;
+
+				foreach (ModelMeshPart meshPart in mesh.MeshParts) {
+					Effect effect = meshPart.Effect;
+
+					if (effect is BasicEffect) {
+						((BasicEffect)effect).World = localWorld;
+						((BasicEffect)effect).View = _camera.view;
+						((BasicEffect)effect).Projection = _camera.projection;
+						((BasicEffect)effect).EnableDefaultLighting();
+					} else {
+						setEffectParameter(effect, "World", localWorld);
+						setEffectParameter(effect, "View", _camera.view);
+						setEffectParameter(effect, "Projection", _camera.projection);
+						setEffectParameter(effect, "CameraPosition", _camera.getPosition());
+					}
+				}
+
+				mesh.Draw();
+			}
+		}
+
+	}
+
+	public class MeshTag
+	{
+		public Vector3 Color;
+		public Texture2D Texture;
+		public float SpecularPower;
+		public Effect CachedEffect = null;
+
+		public MeshTag(Vector3 Color, Texture2D Texture, float SpecularPower)
+		{
+			this.Color = Color;
+			this.Texture = Texture;
+			this.SpecularPower = SpecularPower;
+		}
 	}
 }

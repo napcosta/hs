@@ -59,12 +59,12 @@ namespace HockeySlam.Class.GameEntities.Models
 
 			position = Matrix.Identity;
 			positionVector = Vector3.Zero;
-			positionVector.Z = -1.5f;
+			positionVector.Y = 0.7f;
 			lastPositionVector = positionVector;
 
 			velocity = Vector2.Zero;
 
-			Matrix pos = Matrix.CreateTranslation(0, 1f, 0);
+			Matrix pos = Matrix.CreateTranslation(0, 0.7f, 0);
 			Matrix scale = Matrix.CreateScale(1.5f);
 			world = world * scale * pos;
 
