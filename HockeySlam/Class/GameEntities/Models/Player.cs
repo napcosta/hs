@@ -19,15 +19,22 @@ namespace HockeySlam.Class.GameEntities.Models
 	class Player : BaseModel, ICollidable, IDebugEntity, IReflectable
 	{
 		#region fields
+
 		Vector2 velocity;
 		Matrix position;
 		Vector3 positionVector;
 		Vector3 lastPositionVector;
+		Vector3 lastPosition;
+		Vector3 _positionOfCollision;
+
 		float tempRotation;
 		float lastTempRotation;
+		float _rotation;
+		float _rotationOfCollision;
+
 		List<Boolean> arrowKeysPressed;
 		List<Keys> lastArrowKeysPressed;
-		Vector3 lastPosition;
+		
 		Game game;
 		Camera camera;
 		BoundingSphere stick;
@@ -102,7 +109,7 @@ namespace HockeySlam.Class.GameEntities.Models
 		{
 			base.Update(gameTime);
 			// TODO: Add your update code here
-			float rotation = 0;
+			_rotation = 0;
 #if WINDOWS
 			KeyboardState currentKeyboardState = Keyboard.GetState();
 			float lastTempRotation = tempRotation;
@@ -188,13 +195,13 @@ namespace HockeySlam.Class.GameEntities.Models
 					(tempRotation >= 3 * MathHelper.PiOver2 && tempRotation <= 2 * MathHelper.Pi) ||
 					(tempRotation <= 0.0f && tempRotation >= -MathHelper.PiOver2)))
 				{
-					rotation = -0.1f;
+					_rotation = -0.1f;
 				}
 				else if (keyToConsider == Keys.Left &&
 					((tempRotation >= MathHelper.PiOver2 && tempRotation <= 3 * MathHelper.PiOver2) ||
 					(tempRotation <= -MathHelper.PiOver2 && tempRotation >= -3 * MathHelper.Pi)))
 				{
-					rotation = 0.1f;
+					_rotation = 0.1f;
 				}
 				else if (keyToConsider == Keys.Right &&
 					((tempRotation >= 0.0f && tempRotation <= MathHelper.PiOver2) ||
@@ -202,42 +209,42 @@ namespace HockeySlam.Class.GameEntities.Models
 					(tempRotation >= 3 * MathHelper.PiOver2 && tempRotation <= 2 * MathHelper.Pi) ||
 					(tempRotation <= 0.0f && tempRotation >= -MathHelper.PiOver2)))
 				{
-					rotation = 0.1f;
+					_rotation = 0.1f;
 				}
 				else if (keyToConsider == Keys.Right &&
 					((tempRotation >= MathHelper.PiOver2 && tempRotation <= 3 * MathHelper.PiOver2) ||
 					(tempRotation <= -MathHelper.PiOver2 && tempRotation >= -3 * MathHelper.Pi)))
 				{
-					rotation = -0.1f;
+					_rotation = -0.1f;
 				}
 				else if (keyToConsider == Keys.Up &&
 					((tempRotation >= 0.0f && tempRotation <= MathHelper.Pi) ||
 					(tempRotation >= -2 * MathHelper.Pi && tempRotation <= -MathHelper.Pi)))
 				{
-					rotation = 0.1f;
+					_rotation = 0.1f;
 				}
 				else if (keyToConsider == Keys.Up &&
 					((tempRotation >= MathHelper.Pi && tempRotation <= 2 * MathHelper.Pi) ||
 					(tempRotation <= 0 && tempRotation >= -MathHelper.Pi)))
 				{
-					rotation = -0.1f;
+					_rotation = -0.1f;
 				}
 				else if (keyToConsider == Keys.Down &&
 				((tempRotation >= 0.0f && tempRotation <= MathHelper.Pi) ||
 				(tempRotation >= -2 * MathHelper.Pi && tempRotation <= -MathHelper.Pi)))
 				{
-					rotation = -0.1f;
+					_rotation = -0.1f;
 				}
 				else if (keyToConsider == Keys.Down &&
 					((tempRotation >= MathHelper.Pi && tempRotation <= 2 * MathHelper.Pi) ||
 					(tempRotation <= 0 && tempRotation >= -MathHelper.Pi)))
 				{
-					rotation = 0.1f;
+					_rotation = 0.1f;
 				}
-				else rotation = 0.0f;
+				else _rotation = 0.0f;
 
 			}
-			else rotation = 0;
+			else _rotation = 0;
 			#endregion
 
 #else
@@ -279,7 +286,7 @@ namespace HockeySlam.Class.GameEntities.Models
 			Vector2 normalizedVelocity = normalizeVelocity(velocity);
 			float time = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-			updateMeshWorld(gameTime, rotation, normalizedVelocity, time);
+			updateMeshWorld(gameTime, _rotation, normalizedVelocity, time);
 			updatePositionVector(gameTime, normalizedVelocity, time);
 			updateBoundingSpheres(gameTime, lastTempRotation, normalizedVelocity, time);
 		}
@@ -354,13 +361,18 @@ namespace HockeySlam.Class.GameEntities.Models
 			CollisionManager cm = (CollisionManager)_gameManager.getGameEntity("collisionManager");
 			List<ICollidable> collidedWith = cm.verifyCollision(this);
 
-			if (collidedWith.Count != 0) {
+			if (collidedWith.Count != 0 && (_positionOfCollision != positionVector || _rotationOfCollision != tempRotation)) {
 				Console.WriteLine("CollisionOcurred");
 				foreach(ICollidable collided in collidedWith)
 					if (collided is Disk) {
 						Disk disk = (Disk)collided;
 						disk.AddVelocity(velocity);
-					}	
+						if (_rotation != 0)
+							disk.AddVelocity(new Vector2(10, 10) * -(new Vector2((float)Math.Sin(tempRotation), (float)Math.Cos(tempRotation))));
+					}
+				_positionOfCollision = positionVector;
+				if (_rotation != 0)
+					_rotationOfCollision = tempRotation;
 			} else Console.WriteLine("NOT-CollisionOcurred");
 		}
 

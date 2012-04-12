@@ -88,6 +88,16 @@ namespace HockeySlam.Class.GameEntities.Models
 		{
 			if(_velocity.X >= -30.0f && _velocity.X <= 30.0f && _velocity.Y >= -30.0f && _velocity.Y <= 30.0f)
 				_velocity += velocity;
+
+			if (_velocity.X > 30)
+				_velocity.X = 30;
+			else if (_velocity.X < -30)
+				_velocity.X = -30;
+
+			if (_velocity.Y > 30)
+				_velocity.Y = 30;
+			else if (_velocity.Y < -30)
+				_velocity.Y = -30;
 		}
 
 		public override void Update(GameTime gameTime)
