@@ -12,8 +12,6 @@ namespace HockeySlam.Class.GameEntities.Models
 	{
 		Matrix rotation = Matrix.Identity;
 		Effect _effect;
-		Game _game;
-		Vector3[] diffuseColor;
 
 		public Court(Game game, Camera camera)
 			: base(game, camera)
