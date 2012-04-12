@@ -18,8 +18,6 @@ namespace HockeySlam.Class.GameEntities.Models
 	class Disk : BaseModel, IGameEntity, ICollidable, IDebugEntity, IReflectable
 	{
 		BoundingSphere _collisionArea;
-		Game _game;
-		Camera _camera;
 		Vector2 _velocity;
 		Vector3 _position;
 		GameManager _gameManager;
@@ -125,9 +123,12 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		void IReflectable.Draw(GameTime gameTime, Camera camera)
 		{
+			Camera lastCamera = _camera;
+			_camera = camera;
 			_game.GraphicsDevice.DepthStencilState = DepthStencilState.None;
 			base.Draw(gameTime);
 			_game.GraphicsDevice.DepthStencilState = DepthStencilState.Default;
+			_camera = lastCamera;
 		}
 
 		void IReflectable.setClipPlane(Vector4? plane)
