@@ -36,6 +36,7 @@ namespace HockeySlam.Class.GameState
 			AddEntity("debugManager", new DebugManager());
 			AddEntity("collisionManager", new CollisionManager());
 			//AddEntity("court", new Court(game, camera));
+			//AddEntity("multiplayerManager", new MultiplayerManager(game));
 			AddEntity("player1", new Player(this, game, camera));
 			AddEntity("disk", new Disk(this, game, camera));
 			AddEntity("ice", new Ice(game, camera));

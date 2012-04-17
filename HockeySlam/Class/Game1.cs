@@ -8,6 +8,7 @@ using Microsoft.Xna.Framework.GamerServices;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
+using Microsoft.Xna.Framework.Net;
 
 using HockeySlam.Class.Screens;
 using HockeySlam.Class.GameState;
@@ -38,6 +39,7 @@ namespace HockeySlam
 
 			screenManager = new ScreenManager(this);
 			Components.Add(screenManager);
+			Components.Add(new GamerServicesComponent(this));
 
 			AddInitialScreens();
 		}

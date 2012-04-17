@@ -84,6 +84,7 @@ namespace HockeySlam.Class.GameState
 
 			foreach (GameScreen screen in screens)
 			{
+				screen.LoadContent();
 				screen.Activate(false);
 			}
 
@@ -164,6 +165,7 @@ namespace HockeySlam.Class.GameState
 			if (isInitialized)
 			{
 				screen.Activate(false);
+				screen.LoadContent();
 			}
 
 			screens.Add(screen);

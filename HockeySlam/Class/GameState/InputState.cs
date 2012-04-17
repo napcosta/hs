@@ -119,5 +119,20 @@ namespace HockeySlam.Class.GameState
 						IsNewButtonPress(button, PlayerIndex.Four, out playerIndex));
 			}
 		}
+
+		public bool IsMenuSelected(PlayerIndex? controllingPlayer, out PlayerIndex playerIndex)
+		{
+			return IsNewKeyPress(Keys.Space, controllingPlayer, out playerIndex) ||
+				   IsNewKeyPress(Keys.Enter, controllingPlayer, out playerIndex) ||
+				   IsNewButtonPress(Buttons.A, controllingPlayer, out playerIndex) ||
+				   IsNewButtonPress(Buttons.Start, controllingPlayer, out playerIndex);
+		}
+
+		internal bool IsMenuCancel(PlayerIndex? controllingPlayer, out PlayerIndex playerIndex)
+		{
+			return IsNewKeyPress(Keys.Escape, controllingPlayer, out playerIndex) ||
+				   IsNewButtonPress(Buttons.B, controllingPlayer, out playerIndex) ||
+				   IsNewButtonPress(Buttons.Back, controllingPlayer, out playerIndex);
+		}
 	}
 }

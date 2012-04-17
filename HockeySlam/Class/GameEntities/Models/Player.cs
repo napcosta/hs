@@ -19,7 +19,6 @@ namespace HockeySlam.Class.GameEntities.Models
 	class Player : BaseModel, ICollidable, IDebugEntity, IReflectable
 	{
 		#region fields
-
 		Vector2 velocity;
 		Matrix position;
 		Vector3 positionVector;

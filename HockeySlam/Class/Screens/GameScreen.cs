@@ -126,6 +126,12 @@ namespace HockeySlam.Class.Screens
 
 		#endregion
 
+		#region Initialization
+
+		public virtual void LoadContent() { }
+
+		#endregion
+
 		#region Abstract Methods
 
 		// Activates the screen

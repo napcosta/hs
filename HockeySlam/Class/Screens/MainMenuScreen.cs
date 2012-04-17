@@ -9,13 +9,16 @@ namespace HockeySlam.Class.Screens
 		public MainMenuScreen()
 			: base("Main Menu")
 		{
-			MenuEntry playGameMenuEntry = new MenuEntry("Play Game");
+			MenuEntry singlePlayerMenuEntry = new MenuEntry("Single Player");
+			MenuEntry multiplayerMenuEntry = new MenuEntry("Multiplayer");
 			MenuEntry exitMenuEntry = new MenuEntry("Exit");
 
-			playGameMenuEntry.Selected += PlayGameMenuEntrySelected;
+			singlePlayerMenuEntry.Selected += SinglePlayerMenuEntrySelected;
+			multiplayerMenuEntry.Selected += MultiplayerMenuEntrySelected;
 			exitMenuEntry.Selected += OnCancel;
 
-			MenuEntries.Add(playGameMenuEntry);
+			MenuEntries.Add(singlePlayerMenuEntry);
+			MenuEntries.Add(multiplayerMenuEntry);
 			MenuEntries.Add(exitMenuEntry);
 		}
 
@@ -23,7 +26,12 @@ namespace HockeySlam.Class.Screens
 
 		#region Handle Input
 
-		void PlayGameMenuEntrySelected(object sender, PlayerIndexEventArgs e)
+		void MultiplayerMenuEntrySelected(object sender, PlayerIndexEventArgs e)
+		{
+			ScreenManager.AddScreen(new MultiplayerMenuScreen(), e.PlayerIndex);
+		}
+
+		void SinglePlayerMenuEntrySelected(object sender, PlayerIndexEventArgs e)
 		{
 			LoadingScreen.Load(ScreenManager, true, e.PlayerIndex, new GameplayScreen());
 		}

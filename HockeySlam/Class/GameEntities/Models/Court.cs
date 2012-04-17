@@ -12,16 +12,14 @@ namespace HockeySlam.Class.GameEntities.Models
 	{
 		Matrix rotation = Matrix.Identity;
 		Effect _effect;
-		Game _game;
 		Vector3[] diffuseColor;
 
 		public Court(Game game, Camera camera)
 			: base(game, camera)
 		{
 			_model = game.Content.Load<Model>(@"Models\court2");
-			_game = game;
 
-			_effect = _game.Content.Load<Effect>(@"Effects\SimpleEffect");
+			_effect = game.Content.Load<Effect>(@"Effects\SimpleEffect");
 		}
 
 		public override void LoadContent()
