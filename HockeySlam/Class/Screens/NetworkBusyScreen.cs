@@ -85,7 +85,7 @@ namespace HockeySlam.Class.Screens
 				_timer = 0;
 			}
 
-			_sourceRect = new Rectangle(_currentFrame*_spriteWidth, 0, 400, 300);
+			_sourceRect = new Rectangle(_currentFrame*_spriteWidth, 0, _spriteWidth, _spriteHeigth);
 			_origin = new Vector2(_sourceRect.Width/2, _sourceRect.Height/2);
 		}
 
@@ -124,7 +124,7 @@ namespace HockeySlam.Class.Screens
 
 			Vector2 playerPosition = new Vector2(textPosition.X + textSize.X / 2, textPosition.Y + textSize.Y - playerSize.Y / 2);
 
-			spriteBatch.Draw(_playerSprite, playerPosition, _sourceRect, color, 0f, playerSize / 2, 1, SpriteEffects.None, 0);
+			spriteBatch.Draw(_playerSprite, playerPosition, _sourceRect, color, 0f, playerSize / 2, 0.5f, SpriteEffects.None, 0);
 
 			spriteBatch.End();
 
