@@ -15,7 +15,6 @@ namespace HockeySlam
 	class BoundingSphereRender
 	{
 		static VertexBuffer vertBuffer;
-		static VertexDeclaration vertDecl;
 		static BasicEffect effect;
 		static int sphereResolution;
 
