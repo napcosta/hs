@@ -20,8 +20,7 @@ namespace HockeySlam.Class.GameState
 
 		Dictionary<string, IGameEntity> activeEntities = new Dictionary<string, IGameEntity>();
 		Dictionary<string, IGameEntity> allEntities = new Dictionary<string, IGameEntity>();
-		Camera camera;
-		Game game;
+		Game _game;
 		
 
 		#endregion
@@ -30,16 +29,11 @@ namespace HockeySlam.Class.GameState
 
 		public GameManager(Game game)
 		{
-			this.game = game;
-			camera = new Camera(game, new Vector3(85, 85, 0), Vector3.Zero, new Vector3(0, 1, 0));
-			AddEntity("camera1", camera);
-			AddEntity("debugManager", new DebugManager());
-			AddEntity("collisionManager", new CollisionManager());
-			//AddEntity("court", new Court(game, camera));
-			//AddEntity("multiplayerManager", new MultiplayerManager(game));
-			AddEntity("player1", new Player(this, game, camera));
-			AddEntity("disk", new Disk(this, game, camera));
-			AddEntity("ice", new Ice(game, camera));
+			_game = game;
+		}
+
+		public void startGame()
+		{
 			ActivateAllEntities();
 			Initialize();
 			LoadContent();
@@ -61,7 +55,7 @@ namespace HockeySlam.Class.GameState
 
 		#region Methods
 
-		protected void AddEntity(string name, IGameEntity entity)
+		public void AddEntity(string name, IGameEntity entity)
 		{
 			allEntities.Add(name, entity);
 		}
@@ -106,11 +100,11 @@ namespace HockeySlam.Class.GameState
 
 		public void Draw(GameTime gameTime)
 		{
-			BlendState lastBlend = game.GraphicsDevice.BlendState;
-			DepthStencilState lastDepth = game.GraphicsDevice.DepthStencilState;
+			BlendState lastBlend = _game.GraphicsDevice.BlendState;
+			DepthStencilState lastDepth = _game.GraphicsDevice.DepthStencilState;
 
-			game.GraphicsDevice.BlendState = BlendState.Opaque;
-			game.GraphicsDevice.DepthStencilState = DepthStencilState.Default;
+			_game.GraphicsDevice.BlendState = BlendState.Opaque;
+			_game.GraphicsDevice.DepthStencilState = DepthStencilState.Default;
 
 			Ice ice = (Ice)getGameEntity("ice");
 			ice.preDraw(gameTime);
@@ -118,8 +112,8 @@ namespace HockeySlam.Class.GameState
 			foreach (KeyValuePair<string, IGameEntity> pair in activeEntities)
 				pair.Value.Draw(gameTime);
 
-			game.GraphicsDevice.BlendState = lastBlend;
-			game.GraphicsDevice.DepthStencilState = lastDepth;
+			_game.GraphicsDevice.BlendState = lastBlend;
+			_game.GraphicsDevice.DepthStencilState = lastDepth;
 
 			/************/
 

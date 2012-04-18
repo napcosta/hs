@@ -19,7 +19,7 @@ namespace HockeySlam.Class.GameEntities.Models
 	class Player : BaseModel, ICollidable, IDebugEntity, IReflectable
 	{
 		#region fields
-		Vector2 velocity;
+		Vector2 _velocity;
 		Matrix position;
 		Vector3 positionVector;
 		Vector3 lastPositionVector;
@@ -41,14 +41,17 @@ namespace HockeySlam.Class.GameEntities.Models
 		BoundingSphere upBody;
 		BoundingSphere downBody;
 		GameManager _gameManager;
+
+		bool _isRemote;
 		#endregion
 
-		public Player(GameManager gameManager, Game game, Camera camera) : base(game, camera)
+		public Player(GameManager gameManager, Game game, Camera camera, bool isRemote) : base(game, camera)
 		{
 			_model = game.Content.Load<Model>(@"Models\player");
 			this.game = game;
 			this.camera = camera;
 			_gameManager = gameManager;
+			_isRemote = isRemote;
 		}
 		
 		public override void LoadContent()
@@ -68,7 +71,7 @@ namespace HockeySlam.Class.GameEntities.Models
 			positionVector.Y = 0.7f;
 			lastPositionVector = positionVector;
 
-			velocity = Vector2.Zero;
+			_velocity = Vector2.Zero;
 
 			Matrix pos = Matrix.CreateTranslation(0, 0.7f, 0);
 			Matrix scale = Matrix.CreateScale(1.5f);
@@ -114,28 +117,31 @@ namespace HockeySlam.Class.GameEntities.Models
 			float lastTempRotation = tempRotation;
 
 			#region Position
-			if (currentKeyboardState.IsKeyDown(Keys.S) && velocity.Y < 30) {
-				velocity.Y += 1;
-			} else if (currentKeyboardState.IsKeyUp(Keys.S) && velocity.Y > 0) {
-				velocity.Y -= (float)0.5;
-			}
 
-			if (currentKeyboardState.IsKeyDown(Keys.W) && velocity.Y > -30) {
-				velocity.Y -= 1;
-			} else if (currentKeyboardState.IsKeyUp(Keys.W) && velocity.Y < 0) {
-				velocity.Y += (float)0.5;
-			}
+			if (!_isRemote) {
+				if (currentKeyboardState.IsKeyDown(Keys.S) && _velocity.Y < 30) {
+					_velocity.Y += 1;
+				} else if (currentKeyboardState.IsKeyUp(Keys.S) && _velocity.Y > 0) {
+					_velocity.Y -= (float)0.5;
+				}
 
-			if (currentKeyboardState.IsKeyDown(Keys.D) && velocity.X > -30) {
-				velocity.X -= 1;
-			} else if (currentKeyboardState.IsKeyUp(Keys.D) && velocity.X < 0) {
-				velocity.X += (float)0.5;
-			}
+				if (currentKeyboardState.IsKeyDown(Keys.W) && _velocity.Y > -30) {
+					_velocity.Y -= 1;
+				} else if (currentKeyboardState.IsKeyUp(Keys.W) && _velocity.Y < 0) {
+					_velocity.Y += (float)0.5;
+				}
 
-			if (currentKeyboardState.IsKeyDown(Keys.A) && velocity.X < 30) {
-				velocity.X += 1;
-			} else if (currentKeyboardState.IsKeyUp(Keys.A) && velocity.X > 0) {
-				velocity.X -= (float)0.5;
+				if (currentKeyboardState.IsKeyDown(Keys.D) && _velocity.X > -30) {
+					_velocity.X -= 1;
+				} else if (currentKeyboardState.IsKeyUp(Keys.D) && _velocity.X < 0) {
+					_velocity.X += (float)0.5;
+				}
+
+				if (currentKeyboardState.IsKeyDown(Keys.A) && _velocity.X < 30) {
+					_velocity.X += 1;
+				} else if (currentKeyboardState.IsKeyUp(Keys.A) && _velocity.X > 0) {
+					_velocity.X -= (float)0.5;
+				}
 			}
 			#endregion
 			#region Rotation
@@ -254,35 +260,35 @@ namespace HockeySlam.Class.GameEntities.Models
             maxVelocity.X = 100 * Math.Abs(leftThumStick.Y);
             maxVelocity.Y = 100 * Math.Abs(leftThumStick.X);
 
-            if (leftThumStick.X != 0 && velocity.Y > -maxVelocity.Y && velocity.Y < maxVelocity.Y)
+            if (leftThumStick.X != 0 && _velocity.Y > -maxVelocity.Y && _velocity.Y < maxVelocity.Y)
             {
-                velocity.Y += leftThumStick.X;
+                _velocity.Y += leftThumStick.X;
             }
-			else if (velocity.Y < -(float)0.5)
+			else if (_velocity.Y < -(float)0.5)
             {
-                velocity.Y += (float)0.5;
+                _velocity.Y += (float)0.5;
             }
-			else if (velocity.Y > (float)0.5)
+			else if (_velocity.Y > (float)0.5)
             {
-				velocity.Y -= (float)0.5;
+				_velocity.Y -= (float)0.5;
             }
-            else velocity.Y = 0;
+            else _velocity.Y = 0;
 
-            if (leftThumStick.Y != 0 && velocity.X > -maxVelocity.X && velocity.X < maxVelocity.X)
+            if (leftThumStick.Y != 0 && _velocity.X > -maxVelocity.X && _velocity.X < maxVelocity.X)
             {
-                velocity.X += leftThumStick.Y;
+                _velocity.X += leftThumStick.Y;
             }
-			else if (velocity.X < -(float)0.5)
+			else if (_velocity.X < -(float)0.5)
             {
-				velocity.X += (float)0.5;
+				_velocity.X += (float)0.5;
             }
-			else if (velocity.X > (float)0.5)
+			else if (_velocity.X > (float)0.5)
             {
-				velocity.X -= (float)0.5;
+				_velocity.X -= (float)0.5;
             }
-            else velocity.X = 0;
+            else _velocity.X = 0;
 #endif
-			Vector2 normalizedVelocity = normalizeVelocity(velocity);
+			Vector2 normalizedVelocity = normalizeVelocity(_velocity);
 			float time = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
 			updateMeshWorld(gameTime, _rotation, normalizedVelocity, time);
@@ -297,14 +303,14 @@ namespace HockeySlam.Class.GameEntities.Models
 			world = Matrix.Identity;
 			world *= Matrix.CreateRotationY(rotation);
 			world *= oldWorld;
-			position = Matrix.CreateTranslation(time * velocity.Y*normalizedVelocity.Y, 0, time * velocity.X*normalizedVelocity.X);
+			position = Matrix.CreateTranslation(time * _velocity.Y*normalizedVelocity.Y, 0, time * _velocity.X*normalizedVelocity.X);
 
 			world = world * position;
 		}
 
 		private void updatePositionVector(GameTime gameTime, Vector2 normalizedVelocity, float time)
 		{
-			positionVector += new Vector3(time * velocity.Y * normalizedVelocity.Y, 0, time * velocity.X * normalizedVelocity.X);
+			positionVector += new Vector3(time * _velocity.Y * normalizedVelocity.Y, 0, time * _velocity.X * normalizedVelocity.X);
 
 			if (positionVector != lastPositionVector || tempRotation != lastTempRotation) {
 				notify();
@@ -315,7 +321,7 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		private void updateBoundingSpheres(GameTime gameTime, float lastTempRotation, Vector2 normalizedVelocity, float time)
 		{	
-			lastPosition = new Vector3(time * velocity.Y * normalizedVelocity.Y, 0, time * velocity.X * normalizedVelocity.X);
+			lastPosition = new Vector3(time * _velocity.Y * normalizedVelocity.Y, 0, time * _velocity.X * normalizedVelocity.X);
 
 			upBody.Center += lastPosition;
 			downBody.Center += lastPosition;
@@ -365,7 +371,7 @@ namespace HockeySlam.Class.GameEntities.Models
 				foreach(ICollidable collided in collidedWith)
 					if (collided is Disk) {
 						Disk disk = (Disk)collided;
-						disk.AddVelocity(velocity);
+						disk.AddVelocity(_velocity);
 						if (_rotation != 0)
 							disk.AddVelocity(new Vector2(10, 10) * -(new Vector2((float)Math.Sin(tempRotation), (float)Math.Cos(tempRotation))));
 					}
@@ -394,6 +400,23 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		void IReflectable.setClipPlane(Vector4? plane)
 		{
+		}
+
+		public void updateVelocity(Vector2 velocity)
+		{
+			_velocity = velocity;
+		}
+
+		public Vector2 getVelocity()
+		{
+			if(_velocity != null)
+				return _velocity;
+			return Vector2.Zero;
+		}
+
+		public bool positionHasChandeg()
+		{
+			return lastPosition != positionVector;
 		}
 	}
 }

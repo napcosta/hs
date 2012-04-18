@@ -48,8 +48,7 @@ namespace HockeySlam.Class.Screens
 
 			if (!IsExiting) {
 				if (_networkSession.SessionState == NetworkSessionState.Playing)
-					Console.WriteLine("The Game Will Start");
-				//LoadingScreen.Load(ScreenManager, true, null, new MultiplayerGameplayScreen(_networkSession));
+					LoadingScreen.Load(ScreenManager, true, null, new MultiplayerGameplayScreen(_networkSession));
 				else if (_networkSession.IsHost && _networkSession.IsEveryoneReady)
 					_networkSession.StartGame();
 			}
