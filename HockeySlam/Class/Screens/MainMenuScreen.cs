@@ -33,7 +33,7 @@ namespace HockeySlam.Class.Screens
 
 		void SinglePlayerMenuEntrySelected(object sender, PlayerIndexEventArgs e)
 		{
-			LoadingScreen.Load(ScreenManager, true, e.PlayerIndex, new SinglePlayerGameScreen());
+			LoadingScreen.Load(ScreenManager, true, e.PlayerIndex, new GameplayScreen(null));
 		}
 
 		protected override void OnCancel(object sender, PlayerIndexEventArgs e)

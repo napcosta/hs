@@ -19,6 +19,7 @@ namespace HockeySlam.Class.Screens
 
 		NetworkSession _networkSession;
 		Texture2D _isReadyTexture;
+		Texture2D _gradient;
 
 		#endregion
 
@@ -36,6 +37,7 @@ namespace HockeySlam.Class.Screens
 			ContentManager content = ScreenManager.Game.Content;
 
 			_isReadyTexture = content.Load<Texture2D>("Textures/ready");
+			_gradient = content.Load<Texture2D>("Screens/gradient");
 		}
 
 		#endregion
@@ -48,7 +50,7 @@ namespace HockeySlam.Class.Screens
 
 			if (!IsExiting) {
 				if (_networkSession.SessionState == NetworkSessionState.Playing)
-					LoadingScreen.Load(ScreenManager, true, null, new MultiplayerGameplayScreen(_networkSession));
+					LoadingScreen.Load(ScreenManager, true, null, new GameplayScreen(_networkSession));
 				else if (_networkSession.IsHost && _networkSession.IsEveryoneReady)
 					_networkSession.StartGame();
 			}
@@ -122,6 +124,12 @@ namespace HockeySlam.Class.Screens
 			spriteBatch.Begin();
 
 			int gamerCount = 0;
+
+			Viewport viewport = ScreenManager.GraphicsDevice.Viewport;
+			Rectangle rec = new Rectangle((int)(0.1*viewport.Width), (int)(0.1*viewport.Height), 
+										  (int)(viewport.Width - 0.2 * viewport.Width), (int)(viewport.Height - 0.2 * viewport.Height));
+
+			spriteBatch.Draw(_gradient, rec, Color.White);
 
 			foreach (NetworkGamer gamer in _networkSession.AllGamers) {
 				drawGamer(gamer, position);

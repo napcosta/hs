@@ -124,7 +124,7 @@ namespace HockeySlam.Class.Screens
 
 			Vector2 playerPosition = new Vector2(textPosition.X + textSize.X / 2, textPosition.Y + textSize.Y - playerSize.Y / 2);
 
-			spriteBatch.Draw(_playerSprite, playerPosition, _sourceRect, color, 0f, playerSize / 2, 0.5f, SpriteEffects.None, 0);
+			spriteBatch.Draw(_playerSprite, playerPosition, _sourceRect, color, 0f, playerSize / 2, 0.6f, SpriteEffects.None, 0);
 
 			spriteBatch.End();
 

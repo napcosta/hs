@@ -4,6 +4,8 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework.Net;
+
 using HockeySlam.Class.GameState;
 using HockeySlam.Class.GameEntities;
 using HockeySlam.Class.GameEntities.Models;
@@ -22,11 +24,13 @@ namespace HockeySlam.Class.Screens
 
 		InputAction _pauseAction;
 
+		NetworkSession _networkSession;
+
 		#endregion
 
 		#region Initialization
 
-		public GameplayScreen()
+		public GameplayScreen(NetworkSession networkSession)
 		{
 			TransitionOnTime = TimeSpan.FromSeconds(1.5);
 			TransitionOffTime = TimeSpan.FromSeconds(0.5);
@@ -37,6 +41,7 @@ namespace HockeySlam.Class.Screens
 				true);
 
 			_gameManager = null;
+			_networkSession = networkSession;
 		}
 
 		public void addGameManager()
@@ -46,7 +51,20 @@ namespace HockeySlam.Class.Screens
 			_gameManager.startGame();
 		}
 
-		public virtual void addGameEntities() { }
+		public virtual void addGameEntities() 
+		{
+			Camera camera = new Camera(ScreenManager.Game, new Vector3(85, 85, 0), Vector3.Zero, new Vector3(0, 1, 0));
+			_gameManager.AddEntity("camera1", camera);
+			_gameManager.AddEntity("debugManager", new DebugManager());
+			_gameManager.AddEntity("collisionManager", new CollisionManager());
+			//_gameManager.AddEntity("court", new Court(ScreenManager.Game, camera));
+			Player localPlayer = new Player(_gameManager, ScreenManager.Game, camera, false);
+			_gameManager.AddEntity("player1", localPlayer);
+			if (_networkSession != null)
+				_gameManager.AddEntity("multiplayerManager", new MultiplayerManager(ScreenManager.Game, camera, _gameManager, _networkSession, localPlayer));
+			_gameManager.AddEntity("disk", new Disk(_gameManager, ScreenManager.Game, camera));
+			_gameManager.AddEntity("ice", new Ice(ScreenManager.Game, camera));
+		}
 
 		public override void Activate(bool instancePreserved)
 		{
@@ -86,7 +104,17 @@ namespace HockeySlam.Class.Screens
 		}
 
 		public override void HandleInput(GameTime gameTime, InputState input)
-		{ }
+		{
+			if (_networkSession != null) {
+				foreach (LocalNetworkGamer gamer in _networkSession.LocalGamers) {
+					if (!HandlePlayerInput(gameTime, input, gamer.SignedInGamer.PlayerIndex))
+						break;
+				}
+			} else
+				HandlePlayerInput(gameTime, input, ControllingPlayer.Value);
+
+		
+		}
 
 		protected bool HandlePlayerInput(GameTime gameTime, InputState input, PlayerIndex playerIndex)
 		{
