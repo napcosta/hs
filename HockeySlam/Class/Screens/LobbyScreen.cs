@@ -9,6 +9,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Content;
 
 using HockeySlam.Class.Networking;
+using HockeySlam.Class.GameEntities.Models;
 
 
 namespace HockeySlam.Class.Screens
@@ -30,6 +31,7 @@ namespace HockeySlam.Class.Screens
 			_networkSession = networkSession;
 			TransitionOnTime = TimeSpan.FromSeconds(0.5);
 			TransitionOffTime = TimeSpan.FromSeconds(0.5);
+
 		}
 
 		public override void LoadContent()

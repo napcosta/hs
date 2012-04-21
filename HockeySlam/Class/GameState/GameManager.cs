@@ -14,7 +14,7 @@ using HockeySlam.Class.GameEntities.Models;
 using HockeySlam.Interface;
 namespace HockeySlam.Class.GameState
 {
-	class GameManager
+	public class GameManager
 	{
 		#region Fields
 

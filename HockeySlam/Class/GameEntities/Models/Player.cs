@@ -16,16 +16,15 @@ using HockeySlam.Interface;
 
 namespace HockeySlam.Class.GameEntities.Models
 {
-	class Player : BaseModel, ICollidable, IDebugEntity, IReflectable
+	public class Player : BaseModel, ICollidable, IDebugEntity, IReflectable
 	{
 		#region fields
 		Vector2 _velocity;
 		Matrix position;
-		Vector3 positionVector;
 		Vector3 lastPositionVector;
 		Vector3 lastPosition;
 		Vector3 _positionOfCollision;
-
+		
 		float tempRotation;
 		float lastTempRotation;
 		float _rotation;
@@ -41,6 +40,29 @@ namespace HockeySlam.Class.GameEntities.Models
 		BoundingSphere upBody;
 		BoundingSphere downBody;
 		GameManager _gameManager;
+		Vector3 _positionVector;
+
+		public float Rotation
+		{
+			get;
+			set;
+		}
+		
+		/* RotationInput and PositionInput are two parameters 
+		 * that will be set by the MultiplayerManager */
+		public Vector4 RotationInput
+		{
+			get;
+			set;
+		}
+
+		public Vector2 PositionInput
+		{
+			get;
+			set;
+		}
+		/***************************************************/
+
 
 		bool _isRemote;
 		#endregion
@@ -53,7 +75,17 @@ namespace HockeySlam.Class.GameEntities.Models
 			_gameManager = gameManager;
 			_isRemote = isRemote;
 		}
-		
+
+		public Vector3 getPositionVector()
+		{
+			return _positionVector;
+		}
+
+		public void setPositionVector(Vector3 vec)
+		{
+			_positionVector = vec;
+		}
+
 		public override void LoadContent()
 		{
 			effect = game.Content.Load<Effect>(@"Effects\SimpleEffect");
@@ -67,9 +99,9 @@ namespace HockeySlam.Class.GameEntities.Models
 			lastTempRotation = tempRotation;
 
 			position = Matrix.Identity;
-			positionVector = Vector3.Zero;
-			positionVector.Y = 0.7f;
-			lastPositionVector = positionVector;
+			_positionVector = Vector3.Zero;
+			_positionVector.Y = 0.7f;
+			lastPositionVector = _positionVector;
 
 			_velocity = Vector2.Zero;
 
@@ -118,138 +150,94 @@ namespace HockeySlam.Class.GameEntities.Models
 
 			#region Position
 
-			if (!_isRemote) {
-				if (currentKeyboardState.IsKeyDown(Keys.S) && _velocity.Y < 30) {
+				if (PositionInput.Y == 2 && _velocity.Y < 30) {
 					_velocity.Y += 1;
-				} else if (currentKeyboardState.IsKeyUp(Keys.S) && _velocity.Y > 0) {
+				} else if (PositionInput.Y == 0 && _velocity.Y > 0) {
 					_velocity.Y -= (float)0.5;
 				}
 
-				if (currentKeyboardState.IsKeyDown(Keys.W) && _velocity.Y > -30) {
+				if (PositionInput.Y == 1 && _velocity.Y > -30) {
 					_velocity.Y -= 1;
-				} else if (currentKeyboardState.IsKeyUp(Keys.W) && _velocity.Y < 0) {
+				} else if (PositionInput.Y == 0 && _velocity.Y < 0) {
 					_velocity.Y += (float)0.5;
 				}
 
-				if (currentKeyboardState.IsKeyDown(Keys.D) && _velocity.X > -30) {
+				if (PositionInput.X == 2 && _velocity.X > -30) {
 					_velocity.X -= 1;
-				} else if (currentKeyboardState.IsKeyUp(Keys.D) && _velocity.X < 0) {
+				} else if (PositionInput.X == 0 && _velocity.X < 0) {
 					_velocity.X += (float)0.5;
 				}
 
-				if (currentKeyboardState.IsKeyDown(Keys.A) && _velocity.X < 30) {
+				if (PositionInput.X == 1 && _velocity.X < 30) {
 					_velocity.X += 1;
-				} else if (currentKeyboardState.IsKeyUp(Keys.A) && _velocity.X > 0) {
+				} else if (PositionInput.X == 0 && _velocity.X > 0) {
 					_velocity.X -= (float)0.5;
 				}
-			}
 			#endregion
 			#region Rotation
 
-			Keys keyToConsider;
+			int indexToConsider;
 
-			if (currentKeyboardState.IsKeyDown(Keys.Left) && !arrowKeysPressed[0])
+			indexToConsider = getPriorityIndex(); //Index from the PriorityVector
+			
+			/* 0 -> UP
+			 * 1 -> DOWN
+			 * 2 -> LEFT
+			 * 3 -> RIGHT */
+			if (indexToConsider == 2 &&
+				((tempRotation >= 0.0f && tempRotation <= MathHelper.PiOver2) ||
+				(tempRotation <= -3 * MathHelper.PiOver2 && tempRotation >= -2 * MathHelper.Pi) ||
+				(tempRotation >= 3 * MathHelper.PiOver2 && tempRotation <= 2 * MathHelper.Pi) ||
+				(tempRotation <= 0.0f && tempRotation >= -MathHelper.PiOver2)))
 			{
-				arrowKeysPressed[0] = true;
-				lastArrowKeysPressed.Add(Keys.Left);
+				_rotation = -0.1f;
 			}
-			if (currentKeyboardState.IsKeyDown(Keys.Right) && !arrowKeysPressed[1])
+			else if (indexToConsider == 2 &&
+				((tempRotation >= MathHelper.PiOver2 && tempRotation <= 3 * MathHelper.PiOver2) ||
+				(tempRotation <= -MathHelper.PiOver2 && tempRotation >= -3 * MathHelper.Pi)))
 			{
-				arrowKeysPressed[1] = true;
-				lastArrowKeysPressed.Add(Keys.Right);
+				_rotation = 0.1f;
 			}
-			if (currentKeyboardState.IsKeyDown(Keys.Up) && !arrowKeysPressed[2])
+			else if (indexToConsider == 3 &&
+				((tempRotation >= 0.0f && tempRotation <= MathHelper.PiOver2) ||
+				(tempRotation <= -3 * MathHelper.PiOver2 && tempRotation >= -2 * MathHelper.Pi) ||
+				(tempRotation >= 3 * MathHelper.PiOver2 && tempRotation <= 2 * MathHelper.Pi) ||
+				(tempRotation <= 0.0f && tempRotation >= -MathHelper.PiOver2)))
 			{
-				arrowKeysPressed[2] = true;
-				lastArrowKeysPressed.Add(Keys.Up);
+				_rotation = 0.1f;
 			}
-			if (currentKeyboardState.IsKeyDown(Keys.Down) && !arrowKeysPressed[3])
+			else if (indexToConsider == 3 &&
+				((tempRotation >= MathHelper.PiOver2 && tempRotation <= 3 * MathHelper.PiOver2) ||
+				(tempRotation <= -MathHelper.PiOver2 && tempRotation >= -3 * MathHelper.Pi)))
 			{
-				arrowKeysPressed[3] = true;
-				lastArrowKeysPressed.Add(Keys.Down);
+				_rotation = -0.1f;
 			}
-
-			if (currentKeyboardState.IsKeyUp(Keys.Left) && arrowKeysPressed[0])
-			{
-				arrowKeysPressed[0] = false;
-				lastArrowKeysPressed.Remove(Keys.Left);
-			}
-			if (currentKeyboardState.IsKeyUp(Keys.Right) && arrowKeysPressed[1])
-			{
-				arrowKeysPressed[1] = false;
-				lastArrowKeysPressed.Remove(Keys.Right);
-			}
-			if (currentKeyboardState.IsKeyUp(Keys.Up) && arrowKeysPressed[2])
-			{
-				arrowKeysPressed[2] = false;
-				lastArrowKeysPressed.Remove(Keys.Up);
-			}
-			if (currentKeyboardState.IsKeyUp(Keys.Down) && arrowKeysPressed[3])
-			{
-				arrowKeysPressed[3] = false;
-				lastArrowKeysPressed.Remove(Keys.Down);
-			}
-
-			if (lastArrowKeysPressed.Count != 0)
-			{
-				keyToConsider = lastArrowKeysPressed[lastArrowKeysPressed.Count - 1];
-
-				if (keyToConsider == Keys.Left &&
-					((tempRotation >= 0.0f && tempRotation <= MathHelper.PiOver2) ||
-					(tempRotation <= -3 * MathHelper.PiOver2 && tempRotation >= -2 * MathHelper.Pi) ||
-					(tempRotation >= 3 * MathHelper.PiOver2 && tempRotation <= 2 * MathHelper.Pi) ||
-					(tempRotation <= 0.0f && tempRotation >= -MathHelper.PiOver2)))
-				{
-					_rotation = -0.1f;
-				}
-				else if (keyToConsider == Keys.Left &&
-					((tempRotation >= MathHelper.PiOver2 && tempRotation <= 3 * MathHelper.PiOver2) ||
-					(tempRotation <= -MathHelper.PiOver2 && tempRotation >= -3 * MathHelper.Pi)))
-				{
-					_rotation = 0.1f;
-				}
-				else if (keyToConsider == Keys.Right &&
-					((tempRotation >= 0.0f && tempRotation <= MathHelper.PiOver2) ||
-					(tempRotation <= -3 * MathHelper.PiOver2 && tempRotation >= -2 * MathHelper.Pi) ||
-					(tempRotation >= 3 * MathHelper.PiOver2 && tempRotation <= 2 * MathHelper.Pi) ||
-					(tempRotation <= 0.0f && tempRotation >= -MathHelper.PiOver2)))
-				{
-					_rotation = 0.1f;
-				}
-				else if (keyToConsider == Keys.Right &&
-					((tempRotation >= MathHelper.PiOver2 && tempRotation <= 3 * MathHelper.PiOver2) ||
-					(tempRotation <= -MathHelper.PiOver2 && tempRotation >= -3 * MathHelper.Pi)))
-				{
-					_rotation = -0.1f;
-				}
-				else if (keyToConsider == Keys.Up &&
-					((tempRotation >= 0.0f && tempRotation <= MathHelper.Pi) ||
-					(tempRotation >= -2 * MathHelper.Pi && tempRotation <= -MathHelper.Pi)))
-				{
-					_rotation = 0.1f;
-				}
-				else if (keyToConsider == Keys.Up &&
-					((tempRotation >= MathHelper.Pi && tempRotation <= 2 * MathHelper.Pi) ||
-					(tempRotation <= 0 && tempRotation >= -MathHelper.Pi)))
-				{
-					_rotation = -0.1f;
-				}
-				else if (keyToConsider == Keys.Down &&
+			else if (indexToConsider == 0 &&
 				((tempRotation >= 0.0f && tempRotation <= MathHelper.Pi) ||
 				(tempRotation >= -2 * MathHelper.Pi && tempRotation <= -MathHelper.Pi)))
-				{
-					_rotation = -0.1f;
-				}
-				else if (keyToConsider == Keys.Down &&
-					((tempRotation >= MathHelper.Pi && tempRotation <= 2 * MathHelper.Pi) ||
-					(tempRotation <= 0 && tempRotation >= -MathHelper.Pi)))
-				{
-					_rotation = 0.1f;
-				}
-				else _rotation = 0.0f;
-
+			{
+				_rotation = 0.1f;
 			}
-			else _rotation = 0;
+			else if (indexToConsider == 0 &&
+				((tempRotation >= MathHelper.Pi && tempRotation <= 2 * MathHelper.Pi) ||
+				(tempRotation <= 0 && tempRotation >= -MathHelper.Pi)))
+			{
+				_rotation = -0.1f;
+			}
+			else if (indexToConsider == 1 &&
+			((tempRotation >= 0.0f && tempRotation <= MathHelper.Pi) ||
+			(tempRotation >= -2 * MathHelper.Pi && tempRotation <= -MathHelper.Pi)))
+			{
+				_rotation = -0.1f;
+			}
+			else if (indexToConsider == 1 &&
+				((tempRotation >= MathHelper.Pi && tempRotation <= 2 * MathHelper.Pi) ||
+				(tempRotation <= 0 && tempRotation >= -MathHelper.Pi)))
+			{
+				_rotation = 0.1f;
+			}
+			else _rotation = 0.0f;
+			//Console.WriteLine("RotationInput -> " + RotationInput + " Rotation -> " + _rotation);
 			#endregion
 
 #else
@@ -296,6 +284,30 @@ namespace HockeySlam.Class.GameEntities.Models
 			updateBoundingSpheres(gameTime, lastTempRotation, normalizedVelocity, time);
 		}
 
+		private int getPriorityIndex()
+		{
+			float temp = 0;
+			int indexTemp = -1;
+
+			if (temp < RotationInput.X) {
+				temp = RotationInput.X;
+				indexTemp = 0;
+			}
+			if (temp < RotationInput.Y) {
+				temp = RotationInput.Y;
+				indexTemp = 1;
+			}
+			if (temp < RotationInput.Z) {
+				temp = RotationInput.Z;
+				indexTemp = 2;
+			}
+			if (temp < RotationInput.W) {
+				temp = RotationInput.W;
+				indexTemp = 3;
+			}	
+			return indexTemp;
+		}
+
 		private void updateMeshWorld(GameTime gameTime, float rotation, Vector2 normalizedVelocity, float time) 
 		{
 			tempRotation = (tempRotation + rotation) % MathHelper.TwoPi;
@@ -310,11 +322,11 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		private void updatePositionVector(GameTime gameTime, Vector2 normalizedVelocity, float time)
 		{
-			positionVector += new Vector3(time * _velocity.Y * normalizedVelocity.Y, 0, time * _velocity.X * normalizedVelocity.X);
+			_positionVector += new Vector3(time * _velocity.Y * normalizedVelocity.Y, 0, time * _velocity.X * normalizedVelocity.X);
 
-			if (positionVector != lastPositionVector || tempRotation != lastTempRotation) {
+			if (_positionVector != lastPositionVector || tempRotation != lastTempRotation) {
 				notify();
-				lastPositionVector = positionVector;
+				lastPositionVector = _positionVector;
 				lastTempRotation = tempRotation;
 			}
 		}
@@ -366,7 +378,7 @@ namespace HockeySlam.Class.GameEntities.Models
 			CollisionManager cm = (CollisionManager)_gameManager.getGameEntity("collisionManager");
 			List<ICollidable> collidedWith = cm.verifyCollision(this);
 
-			if (collidedWith.Count != 0 && (_positionOfCollision != positionVector || _rotationOfCollision != tempRotation)) {
+			if (collidedWith.Count != 0 && (_positionOfCollision != _positionVector || _rotationOfCollision != tempRotation)) {
 				Console.WriteLine("CollisionOcurred");
 				foreach(ICollidable collided in collidedWith)
 					if (collided is Disk) {
@@ -375,7 +387,7 @@ namespace HockeySlam.Class.GameEntities.Models
 						if (_rotation != 0)
 							disk.AddVelocity(new Vector2(10, 10) * -(new Vector2((float)Math.Sin(tempRotation), (float)Math.Cos(tempRotation))));
 					}
-				_positionOfCollision = positionVector;
+				_positionOfCollision = _positionVector;
 				if (_rotation != 0)
 					_rotationOfCollision = tempRotation;
 			} else Console.WriteLine("NOT-CollisionOcurred");
@@ -416,7 +428,7 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		public bool positionHasChandeg()
 		{
-			return lastPosition != positionVector;
+			return lastPosition != _positionVector;
 		}
 	}
 }
