@@ -210,7 +210,7 @@ namespace HockeySlam.Class.GameState
 		{
 			while (gamer.IsDataAvailable) {
 				NetworkGamer sender;
-
+				
 				gamer.ReceiveData(_packetReader, out sender);
 
 				while (_packetReader.Position < _packetReader.Length) {
@@ -223,7 +223,6 @@ namespace HockeySlam.Class.GameState
 
 					if (remoteGamer != null) {
 						Player player = remoteGamer.Tag as Player;
-
 						player.setPositionVector(position);
 						player.Rotation = rotation;
 					}

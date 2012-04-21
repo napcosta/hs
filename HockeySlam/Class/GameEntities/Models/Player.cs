@@ -135,6 +135,7 @@ namespace HockeySlam.Class.GameEntities.Models
 			//diffuseColor[1] = new Vector3(0.25f, 1, 0.25f);
 			//diffuseColor[2] = new Vector3(0.25f, 0.25f, 1);
 			//diffuseColor[3] = new Vector3(0.5f, 0.5f, 0.5f);
+			updateMeshWorld(gameTime);
 			base.DrawEffect(effect, diffuseColor);
 			//base.Draw(gameTime);
 		}
@@ -185,54 +186,54 @@ namespace HockeySlam.Class.GameEntities.Models
 			 * 2 -> LEFT
 			 * 3 -> RIGHT */
 			if (indexToConsider == 2 &&
-				((tempRotation >= 0.0f && tempRotation <= MathHelper.PiOver2) ||
-				(tempRotation <= -3 * MathHelper.PiOver2 && tempRotation >= -2 * MathHelper.Pi) ||
-				(tempRotation >= 3 * MathHelper.PiOver2 && tempRotation <= 2 * MathHelper.Pi) ||
-				(tempRotation <= 0.0f && tempRotation >= -MathHelper.PiOver2)))
+				((Rotation >= 0.0f && Rotation <= MathHelper.PiOver2) ||
+				(Rotation <= -3 * MathHelper.PiOver2 && Rotation >= -2 * MathHelper.Pi) ||
+				(Rotation >= 3 * MathHelper.PiOver2 && Rotation <= 2 * MathHelper.Pi) ||
+				(Rotation <= 0.0f && Rotation >= -MathHelper.PiOver2)))
 			{
 				_rotation = -0.1f;
 			}
 			else if (indexToConsider == 2 &&
-				((tempRotation >= MathHelper.PiOver2 && tempRotation <= 3 * MathHelper.PiOver2) ||
-				(tempRotation <= -MathHelper.PiOver2 && tempRotation >= -3 * MathHelper.Pi)))
+				((Rotation >= MathHelper.PiOver2 && Rotation <= 3 * MathHelper.PiOver2) ||
+				(Rotation <= -MathHelper.PiOver2 && Rotation >= -3 * MathHelper.Pi)))
 			{
 				_rotation = 0.1f;
 			}
 			else if (indexToConsider == 3 &&
-				((tempRotation >= 0.0f && tempRotation <= MathHelper.PiOver2) ||
-				(tempRotation <= -3 * MathHelper.PiOver2 && tempRotation >= -2 * MathHelper.Pi) ||
-				(tempRotation >= 3 * MathHelper.PiOver2 && tempRotation <= 2 * MathHelper.Pi) ||
-				(tempRotation <= 0.0f && tempRotation >= -MathHelper.PiOver2)))
+				((Rotation >= 0.0f && Rotation <= MathHelper.PiOver2) ||
+				(Rotation <= -3 * MathHelper.PiOver2 && Rotation >= -2 * MathHelper.Pi) ||
+				(Rotation >= 3 * MathHelper.PiOver2 && Rotation <= 2 * MathHelper.Pi) ||
+				(Rotation <= 0.0f && Rotation >= -MathHelper.PiOver2)))
 			{
 				_rotation = 0.1f;
 			}
 			else if (indexToConsider == 3 &&
-				((tempRotation >= MathHelper.PiOver2 && tempRotation <= 3 * MathHelper.PiOver2) ||
-				(tempRotation <= -MathHelper.PiOver2 && tempRotation >= -3 * MathHelper.Pi)))
+				((Rotation >= MathHelper.PiOver2 && Rotation <= 3 * MathHelper.PiOver2) ||
+				(Rotation <= -MathHelper.PiOver2 && Rotation >= -3 * MathHelper.Pi)))
 			{
 				_rotation = -0.1f;
 			}
 			else if (indexToConsider == 0 &&
-				((tempRotation >= 0.0f && tempRotation <= MathHelper.Pi) ||
-				(tempRotation >= -2 * MathHelper.Pi && tempRotation <= -MathHelper.Pi)))
+				((Rotation >= 0.0f && Rotation <= MathHelper.Pi) ||
+				(Rotation >= -2 * MathHelper.Pi && Rotation <= -MathHelper.Pi)))
 			{
 				_rotation = 0.1f;
 			}
 			else if (indexToConsider == 0 &&
-				((tempRotation >= MathHelper.Pi && tempRotation <= 2 * MathHelper.Pi) ||
-				(tempRotation <= 0 && tempRotation >= -MathHelper.Pi)))
+				((Rotation >= MathHelper.Pi && Rotation <= 2 * MathHelper.Pi) ||
+				(Rotation <= 0 && Rotation >= -MathHelper.Pi)))
 			{
 				_rotation = -0.1f;
 			}
 			else if (indexToConsider == 1 &&
-			((tempRotation >= 0.0f && tempRotation <= MathHelper.Pi) ||
-			(tempRotation >= -2 * MathHelper.Pi && tempRotation <= -MathHelper.Pi)))
+			((Rotation >= 0.0f && Rotation <= MathHelper.Pi) ||
+			(Rotation >= -2 * MathHelper.Pi && Rotation <= -MathHelper.Pi)))
 			{
 				_rotation = -0.1f;
 			}
 			else if (indexToConsider == 1 &&
-				((tempRotation >= MathHelper.Pi && tempRotation <= 2 * MathHelper.Pi) ||
-				(tempRotation <= 0 && tempRotation >= -MathHelper.Pi)))
+				((Rotation >= MathHelper.Pi && Rotation <= 2 * MathHelper.Pi) ||
+				(Rotation <= 0 && Rotation >= -MathHelper.Pi)))
 			{
 				_rotation = 0.1f;
 			}
@@ -279,7 +280,7 @@ namespace HockeySlam.Class.GameEntities.Models
 			Vector2 normalizedVelocity = normalizeVelocity(_velocity);
 			float time = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-			updateMeshWorld(gameTime, _rotation, normalizedVelocity, time);
+			Rotation = (Rotation + _rotation) % MathHelper.TwoPi;
 			updatePositionVector(gameTime, normalizedVelocity, time);
 			updateBoundingSpheres(gameTime, lastTempRotation, normalizedVelocity, time);
 		}
@@ -308,14 +309,14 @@ namespace HockeySlam.Class.GameEntities.Models
 			return indexTemp;
 		}
 
-		private void updateMeshWorld(GameTime gameTime, float rotation, Vector2 normalizedVelocity, float time) 
+		private void updateMeshWorld(GameTime gameTime) 
 		{
-			tempRotation = (tempRotation + rotation) % MathHelper.TwoPi;
 			Matrix oldWorld = world;
 			world = Matrix.Identity;
-			world *= Matrix.CreateRotationY(rotation);
-			world *= oldWorld;
-			position = Matrix.CreateTranslation(time * _velocity.Y*normalizedVelocity.Y, 0, time * _velocity.X*normalizedVelocity.X);
+			world *= Matrix.CreateRotationY(Rotation);
+			//world *= oldWorld;
+			Console.WriteLine(tempRotation);
+			position = Matrix.CreateTranslation(_positionVector.X, _positionVector.Y, _positionVector.Z);
 
 			world = world * position;
 		}
