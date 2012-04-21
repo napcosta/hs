@@ -22,7 +22,6 @@ namespace HockeySlam.Class.GameState
 		Camera _camera;
 		GameManager _gameManager;
 		Game _game;
-		Player _localPlayer;
 		const int _maxLocalGamers = 4;
 		const int _maxGamers = 8;
 		NetworkSession _networkSession;
@@ -31,7 +30,6 @@ namespace HockeySlam.Class.GameState
 		Vector2 _lastPositionInput; // A temporary vector to avoid WASD conflicts (like pressing A & D at the same time)
 		Vector4 _rotationInput;
 		int _priority;
-		//string _errorMessage;
 
 		public MultiplayerManager(Game game, Camera camera, GameManager gameManager, NetworkSession networkSession)
 		{
