@@ -49,6 +49,7 @@ namespace HockeySlam.Class.Screens
 			_gameManager = new GameManager(ScreenManager.Game);
 			addGameEntities();
 			_gameManager.startGame();
+			CreateAllPlayers((Camera)_gameManager.getGameEntity("camera1"));
 		}
 
 		public virtual void addGameEntities() 
@@ -58,12 +59,11 @@ namespace HockeySlam.Class.Screens
 			_gameManager.AddEntity("debugManager", new DebugManager());
 			_gameManager.AddEntity("collisionManager", new CollisionManager());
 			//_gameManager.AddEntity("court", new Court(ScreenManager.Game, camera));
-			Player localPlayer = new Player(_gameManager, ScreenManager.Game, camera, false);
-			_gameManager.AddEntity("player1", localPlayer);
-			if (_networkSession != null)
-				_gameManager.AddEntity("multiplayerManager", new MultiplayerManager(ScreenManager.Game, camera, _gameManager, _networkSession, localPlayer));
-			_gameManager.AddEntity("disk", new Disk(_gameManager, ScreenManager.Game, camera));
 			_gameManager.AddEntity("ice", new Ice(ScreenManager.Game, camera));
+			if (_networkSession != null) {
+				_gameManager.AddEntity("multiplayerManager", new MultiplayerManager(ScreenManager.Game, camera, _gameManager, _networkSession));
+			}
+			_gameManager.AddEntity("disk", new Disk(_gameManager, ScreenManager.Game, camera));
 		}
 
 		public override void Activate(bool instancePreserved)
@@ -154,6 +154,21 @@ namespace HockeySlam.Class.Screens
 				float alpha = MathHelper.Lerp(1f - TransitionAlpha, 1f, _pauseAlpha / 2);
 
 				ScreenManager.FadeBackBufferToBlack(alpha);
+			}
+		}
+
+		#endregion
+
+		#region Methods
+
+		void CreateAllPlayers(Camera camera)
+		{
+			foreach (NetworkGamer gamer in _networkSession.AllGamers) {
+				Player newPlayer = new Player(_gameManager, ScreenManager.Game, camera, true);
+				newPlayer.Initialize();
+				newPlayer.LoadContent();
+
+				gamer.Tag = newPlayer;
 			}
 		}
 

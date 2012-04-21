@@ -8,7 +8,7 @@ using HockeySlam;
 using HockeySlam.Interface;
 namespace HockeySlam.Class.GameEntities.Models
 {
-	class BaseModel : IGameEntity
+	public class BaseModel : IGameEntity
 	{
 		protected Camera _camera;
 		protected Game _game;
