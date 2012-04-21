@@ -405,7 +405,7 @@ namespace HockeySlam.Class.GameEntities.Models
 			Camera lastCamera = _camera;
 			_camera = camera;
 			_game.GraphicsDevice.DepthStencilState = DepthStencilState.None;
-			base.Draw(gameTime);
+			Draw(gameTime);
 			_game.GraphicsDevice.DepthStencilState = DepthStencilState.Default;
 			_camera = lastCamera;
 		}
