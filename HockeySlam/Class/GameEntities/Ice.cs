@@ -5,7 +5,9 @@ using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Content;
+
 using HockeySlam.Class.GameEntities.Models;
+using HockeySlam.Class.GameState;
 using HockeySlam.Interface;
 
 namespace HockeySlam.Class.GameEntities
@@ -20,7 +22,9 @@ namespace HockeySlam.Class.GameEntities
 		RenderTarget2D _reflectionTarg;
 		public List<IReflectable> _reflectedObjects = new List<IReflectable>();
 
-		public Ice(Game game, Camera camera)
+		GameManager _gameManager;
+
+		public Ice(Game game, Camera camera, GameManager gameManager)
 			: base(game, camera)
 		{
 			_content = game.Content;
@@ -30,6 +34,7 @@ namespace HockeySlam.Class.GameEntities
 			_iceEffect.Parameters["IceSurfaceTexture"].SetValue(_content.Load<Texture2D>("Textures/IceSurface2"));
 			_reflectionTarg = new RenderTarget2D(_graphics, _graphics.Viewport.Width,
 			_graphics.Viewport.Height, false, SurfaceFormat.Color, DepthFormat.Depth24);
+			_gameManager = gameManager;
 		}
 
 		public override void Initialize()
@@ -48,7 +53,7 @@ namespace HockeySlam.Class.GameEntities
 			reflectedCameraPosition.Y = -reflectedCameraPosition.Y;
 			reflectedCameraTarget.Y = -reflectedCameraTarget.Y;
 
-			Camera reflectionCamera = new Camera(_game, reflectedCameraPosition, reflectedCameraTarget, Vector3.Up);
+			Camera reflectionCamera = new Camera(_game, reflectedCameraPosition, reflectedCameraTarget, Vector3.Up, _gameManager);
 			_iceEffect.Parameters["ReflectedView"].SetValue(reflectionCamera.view);
 
 			Vector4 clipPlane = new Vector4(0, 1, 0, 0);
