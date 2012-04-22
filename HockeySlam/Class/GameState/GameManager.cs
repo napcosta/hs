@@ -9,9 +9,12 @@ using Microsoft.Xna.Framework.GamerServices;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
+using Microsoft.Xna.Framework.Net;
+
 using HockeySlam.Class.GameEntities;
 using HockeySlam.Class.GameEntities.Models;
 using HockeySlam.Interface;
+
 namespace HockeySlam.Class.GameState
 {
 	public class GameManager
@@ -21,22 +24,39 @@ namespace HockeySlam.Class.GameState
 		Dictionary<string, IGameEntity> activeEntities = new Dictionary<string, IGameEntity>();
 		Dictionary<string, IGameEntity> allEntities = new Dictionary<string, IGameEntity>();
 		Game _game;
-		
+		NetworkSession _networkSession;
 
 		#endregion
 
 		#region Initialization
 
-		public GameManager(Game game)
+		public GameManager(Game game, NetworkSession netwokSession)
 		{
 			_game = game;
+			_networkSession = netwokSession;
+		}
+
+		private void addEntities()
+		{
+			Camera camera = new Camera(_game, new Vector3(85, 85, 0), Vector3.Zero, new Vector3(0, 1, 0), this);
+			AddEntity("camera", camera);
+			AddEntity("debugManager", new DebugManager());
+			AddEntity("collisionManager", new CollisionManager());
+			AddEntity("court", new Court(_game, camera, this));
+			if (_networkSession != null) {
+				AddEntity("multiplayerManager", new MultiplayerManager(_game, camera, this, _networkSession));
+			}
+			AddEntity("disk", new Disk(this, _game, camera));
+			AddEntity("ice", new Ice(_game, camera, this));
 		}
 
 		public void startGame()
 		{
+			addEntities();
 			ActivateAllEntities();
 			Initialize();
 			LoadContent();
+			CreateAllPlayers((Camera)getGameEntity("camera"));
 		}
 
 		public void Initialize()
@@ -54,6 +74,17 @@ namespace HockeySlam.Class.GameState
 		#endregion
 
 		#region Methods
+
+		void CreateAllPlayers(Camera camera)
+		{
+			foreach (NetworkGamer gamer in _networkSession.AllGamers) {
+				Player newPlayer = new Player(this, _game, camera, true);
+				newPlayer.Initialize();
+				newPlayer.LoadContent();
+
+				gamer.Tag = newPlayer;
+			}
+		}
 
 		public void AddEntity(string name, IGameEntity entity)
 		{
