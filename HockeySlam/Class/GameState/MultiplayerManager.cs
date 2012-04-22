@@ -51,7 +51,8 @@ namespace HockeySlam.Class.GameState
 			_lastPositionInput = Vector2.Zero;
 			_rotationInput = Vector4.Zero;
 			_priority = 0;
-			_disk = (Disk)_gameManager.getGameEntity("disk");
+			_disk = new Disk(_gameManager, _game, _camera);
+			_disk.Initialize();
 		}
 
 		public void Draw(GameTime gameTime)
@@ -62,6 +63,7 @@ namespace HockeySlam.Class.GameState
 
 				player.Draw(gameTime);
 			}
+			_disk.Draw(gameTime);
 		}
 
 		public void Update(GameTime gameTime)
@@ -173,7 +175,9 @@ namespace HockeySlam.Class.GameState
 		/* Updates the server and sends the packets to the clients */
 		void UpdateServer(GameTime gameTime)
 		{
+			_disk.Update(gameTime);
 			Vector3 diskPosition = _disk.getPosition();
+			Console.WriteLine(_disk.getPosition());
 			_packetWriter.Write(diskPosition);
 			foreach (NetworkGamer gamer in _networkSession.AllGamers) {
 

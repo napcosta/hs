@@ -149,9 +149,10 @@ namespace HockeySlam.Class.GameEntities.Models
 			base.Update(gameTime);
 			// TODO: Add your update code here
 			_rotation = 0;
+			float lastRotation = Rotation;
 #if WINDOWS
 			KeyboardState currentKeyboardState = Keyboard.GetState();
-			float lastRotation = Rotation;
+			
 
 			UpdatePosition();
 			UpdateRotation();

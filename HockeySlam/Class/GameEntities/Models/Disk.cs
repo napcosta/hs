@@ -131,6 +131,7 @@ namespace HockeySlam.Class.GameEntities.Models
 			base.Update(gameTime);
 		}
 
+		/* This draw is used for the ice reflection */
 		void IReflectable.Draw(GameTime gameTime, Camera camera)
 		{
 			Camera lastCamera = _camera;
