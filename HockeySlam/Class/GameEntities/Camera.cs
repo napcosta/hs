@@ -21,7 +21,10 @@ namespace HockeySlam.Class.GameEntities
 	{
 		Vector3 _position;
 		Vector3 _target;
-		GameManager _gameManager;
+		Vector3 _up;
+
+		Vector3 _diskPosition;
+		Vector3 _localPlayerPosition;
 
 		//Camera matrices
 		public Matrix view
@@ -35,11 +38,15 @@ namespace HockeySlam.Class.GameEntities
 			protected set;
 		}
 
-		public Camera(Game game, Vector3 pos, Vector3 target, Vector3 up, GameManager gameManager)
+		public Camera(Game game, Vector3 pos, Vector3 target, Vector3 up)
 		{
-			_gameManager = gameManager;
 			_position = pos;
 			_target = target;
+			_up = up;
+
+			_localPlayerPosition = target;
+			_diskPosition = target;
+
 			view = Matrix.CreateLookAt(pos, target, up);
 
 			projection = Matrix.CreatePerspectiveFieldOfView(
@@ -58,12 +65,32 @@ namespace HockeySlam.Class.GameEntities
 		{
 			return _target;
 		}
+
+		public void updateTargetAndPosition()
+		{
+			_target.X = ((Math.Max(_localPlayerPosition.X, _diskPosition.X) - Math.Min(_localPlayerPosition.X, _diskPosition.X)) / 2.0f) +
+						Math.Min(_localPlayerPosition.X, _diskPosition.X);
+			_position.X = _target.X;
+		}
+
 		public void Update(GameTime gameTime) 
 		{
-			
+			updateTargetAndPosition();
+			view = Matrix.CreateLookAt(_position, _target, _up);
 		}
+
 		public void Draw(GameTime gameTime) { }
 		public void Initialize() { }
 		public void LoadContent() { }
+
+		public void updateDiskPosition(Vector3 diskPosition)
+		{
+			_diskPosition = diskPosition;
+		}
+
+		public void updateLocalPlayerPosition(Vector3 localPlayerPosition)
+		{
+			_localPlayerPosition = localPlayerPosition;
+		}
 	}
 }

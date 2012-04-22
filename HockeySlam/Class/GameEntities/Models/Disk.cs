@@ -128,6 +128,7 @@ namespace HockeySlam.Class.GameEntities.Models
 			Matrix position = Matrix.CreateTranslation(time * _velocity.Y * normalizedVelocity.Y, 0, time * _velocity.X * normalizedVelocity.X);
 			world *= position;
 
+			_camera.updateDiskPosition(_position);
 			base.Update(gameTime);
 		}
 

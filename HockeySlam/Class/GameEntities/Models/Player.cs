@@ -129,6 +129,7 @@ namespace HockeySlam.Class.GameEntities.Models
 			ice.register(this);
 			cm.register(this);
 			dm.registerDebugEntities(this);
+
 			base.Initialize();
 		}
 
@@ -419,6 +420,11 @@ namespace HockeySlam.Class.GameEntities.Models
 		public bool positionHasChandeg()
 		{
 			return lastPosition != _positionVector;
+		}
+
+		public void updateCameraPosition()
+		{
+			_camera.updateLocalPlayerPosition(_positionVector);
 		}
 	}
 }
