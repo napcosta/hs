@@ -144,5 +144,15 @@ namespace HockeySlam.Class.GameEntities.Models
 		void IReflectable.setClipPlane(Vector4? plane)
 		{
 		}
+
+		public Vector3 getPosition()
+		{
+			return _position;
+		}
+
+		public void setPosition(Vector3 pos)
+		{
+			_position = pos;
+		}
 	}
 }
