@@ -20,6 +20,10 @@ namespace HockeySlam.Class.GameEntities.Models
 		BoundingSphere _collisionArea;
 		Vector2 _velocity;
 		Vector3 _position;
+
+		Matrix _rotation;
+		Matrix _scale;
+
 		GameManager _gameManager;
 
 		public Disk(GameManager gameManager, Game game, Camera camera)
@@ -37,10 +41,10 @@ namespace HockeySlam.Class.GameEntities.Models
 			_position = new Vector3(4, 1, 0);
 
 			Matrix pos = Matrix.CreateTranslation(4, 1, 0);
-			Matrix rotation = Matrix.CreateRotationX(MathHelper.PiOver2);
-			Matrix scale = Matrix.CreateScale(0.5f);
+			_rotation = Matrix.CreateRotationX(MathHelper.PiOver2);
+			_scale = Matrix.CreateScale(0.5f);
 
-			world = world * rotation * scale * pos;
+			world = world * _rotation * _scale * pos;
 
 			_collisionArea = new BoundingSphere(new Vector3(4,1,0), 0.45f);
 
@@ -125,10 +129,17 @@ namespace HockeySlam.Class.GameEntities.Models
 			_collisionArea.Center.X = _position.X;
 			_collisionArea.Center.Z = _position.Z;
 
-			Matrix position = Matrix.CreateTranslation(time * _velocity.Y * normalizedVelocity.Y, 0, time * _velocity.X * normalizedVelocity.X);
-			world *= position;
-
 			base.Update(gameTime);
+		}
+
+		public override void Draw(GameTime gameTime)
+		{
+			Matrix pos = Matrix.CreateTranslation(_position.X, _position.Y, _position.Z);
+
+			world = Matrix.Identity;
+			world *= _rotation * _scale * pos;
+
+			base.Draw(gameTime);
 		}
 
 		/* This draw is used for the ice reflection */
@@ -137,7 +148,7 @@ namespace HockeySlam.Class.GameEntities.Models
 			Camera lastCamera = _camera;
 			_camera = camera;
 			_game.GraphicsDevice.DepthStencilState = DepthStencilState.None;
-			base.Draw(gameTime);
+			Draw(gameTime);
 			_game.GraphicsDevice.DepthStencilState = DepthStencilState.Default;
 			_camera = lastCamera;
 		}

@@ -31,6 +31,7 @@ namespace HockeySlam.Class.GameState
 		Vector4 _rotationInput;
 		Disk _disk;
 		int _priority;
+		int testCounter = 0;
 
 		public MultiplayerManager(Game game, Camera camera, GameManager gameManager, NetworkSession networkSession)
 		{
@@ -179,12 +180,12 @@ namespace HockeySlam.Class.GameState
 			Vector3 diskPosition = _disk.getPosition();
 			Console.WriteLine(_disk.getPosition());
 			_packetWriter.Write(diskPosition);
+			
 			foreach (NetworkGamer gamer in _networkSession.AllGamers) {
 
 				Player player = gamer.Tag as Player;
 
 				player.Update(gameTime);
-
 				_packetWriter.Write(gamer.Id);
 				_packetWriter.Write(player.getPositionVector());
 				_packetWriter.Write(player.Rotation);
