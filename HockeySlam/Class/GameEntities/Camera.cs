@@ -10,6 +10,8 @@ using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
 using Microsoft.Xna.Framework.Net;
 using Microsoft.Xna.Framework.Storage;
+
+using HockeySlam.Class.GameState;
 using HockeySlam.Interface;
 
 namespace HockeySlam.Class.GameEntities
@@ -19,6 +21,8 @@ namespace HockeySlam.Class.GameEntities
 	{
 		Vector3 _position;
 		Vector3 _target;
+		GameManager _gameManager;
+
 		//Camera matrices
 		public Matrix view
 		{
@@ -31,8 +35,9 @@ namespace HockeySlam.Class.GameEntities
 			protected set;
 		}
 
-		public Camera(Game game, Vector3 pos, Vector3 target, Vector3 up)
+		public Camera(Game game, Vector3 pos, Vector3 target, Vector3 up, GameManager gameManager)
 		{
+			_gameManager = gameManager;
 			_position = pos;
 			_target = target;
 			view = Matrix.CreateLookAt(pos, target, up);
@@ -53,7 +58,10 @@ namespace HockeySlam.Class.GameEntities
 		{
 			return _target;
 		}
-		public void Update(GameTime gameTime) { }
+		public void Update(GameTime gameTime) 
+		{
+			
+		}
 		public void Draw(GameTime gameTime) { }
 		public void Initialize() { }
 		public void LoadContent() { }

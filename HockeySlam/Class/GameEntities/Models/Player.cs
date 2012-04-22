@@ -16,6 +16,8 @@ using HockeySlam.Interface;
 
 namespace HockeySlam.Class.GameEntities.Models
 {
+	public enum KeyboardKey { NONE, UP, DOWN, LEFT, RIGHT };
+
 	public class Player : BaseModel, ICollidable, IDebugEntity, IReflectable
 	{
 		#region fields
@@ -41,6 +43,8 @@ namespace HockeySlam.Class.GameEntities.Models
 		BoundingSphere downBody;
 		GameManager _gameManager;
 		Vector3 _positionVector;
+
+		Matrix _scale;
 
 		public float Rotation
 		{
@@ -106,8 +110,8 @@ namespace HockeySlam.Class.GameEntities.Models
 			_velocity = Vector2.Zero;
 
 			Matrix pos = Matrix.CreateTranslation(0, 0.7f, 0);
-			Matrix scale = Matrix.CreateScale(1.5f);
-			world = world * scale * pos;
+			_scale = Matrix.CreateScale(1.5f);
+			world = world * _scale * pos;
 
 			arrowKeysPressed = new List<Boolean>();
 			for(int i = 0; i < 4; i++)
@@ -147,99 +151,10 @@ namespace HockeySlam.Class.GameEntities.Models
 			_rotation = 0;
 #if WINDOWS
 			KeyboardState currentKeyboardState = Keyboard.GetState();
-			float lastTempRotation = tempRotation;
+			float lastRotation = Rotation;
 
-			#region Position
-
-				if (PositionInput.Y == 2 && _velocity.Y < 30) {
-					_velocity.Y += 1;
-				} else if (PositionInput.Y == 0 && _velocity.Y > 0) {
-					_velocity.Y -= (float)0.5;
-				}
-
-				if (PositionInput.Y == 1 && _velocity.Y > -30) {
-					_velocity.Y -= 1;
-				} else if (PositionInput.Y == 0 && _velocity.Y < 0) {
-					_velocity.Y += (float)0.5;
-				}
-
-				if (PositionInput.X == 2 && _velocity.X > -30) {
-					_velocity.X -= 1;
-				} else if (PositionInput.X == 0 && _velocity.X < 0) {
-					_velocity.X += (float)0.5;
-				}
-
-				if (PositionInput.X == 1 && _velocity.X < 30) {
-					_velocity.X += 1;
-				} else if (PositionInput.X == 0 && _velocity.X > 0) {
-					_velocity.X -= (float)0.5;
-				}
-			#endregion
-			#region Rotation
-
-			int indexToConsider;
-
-			indexToConsider = getPriorityIndex(); //Index from the PriorityVector
-			
-			/* 0 -> UP
-			 * 1 -> DOWN
-			 * 2 -> LEFT
-			 * 3 -> RIGHT */
-			if (indexToConsider == 2 &&
-				((Rotation >= 0.0f && Rotation <= MathHelper.PiOver2) ||
-				(Rotation <= -3 * MathHelper.PiOver2 && Rotation >= -2 * MathHelper.Pi) ||
-				(Rotation >= 3 * MathHelper.PiOver2 && Rotation <= 2 * MathHelper.Pi) ||
-				(Rotation <= 0.0f && Rotation >= -MathHelper.PiOver2)))
-			{
-				_rotation = -0.1f;
-			}
-			else if (indexToConsider == 2 &&
-				((Rotation >= MathHelper.PiOver2 && Rotation <= 3 * MathHelper.PiOver2) ||
-				(Rotation <= -MathHelper.PiOver2 && Rotation >= -3 * MathHelper.Pi)))
-			{
-				_rotation = 0.1f;
-			}
-			else if (indexToConsider == 3 &&
-				((Rotation >= 0.0f && Rotation <= MathHelper.PiOver2) ||
-				(Rotation <= -3 * MathHelper.PiOver2 && Rotation >= -2 * MathHelper.Pi) ||
-				(Rotation >= 3 * MathHelper.PiOver2 && Rotation <= 2 * MathHelper.Pi) ||
-				(Rotation <= 0.0f && Rotation >= -MathHelper.PiOver2)))
-			{
-				_rotation = 0.1f;
-			}
-			else if (indexToConsider == 3 &&
-				((Rotation >= MathHelper.PiOver2 && Rotation <= 3 * MathHelper.PiOver2) ||
-				(Rotation <= -MathHelper.PiOver2 && Rotation >= -3 * MathHelper.Pi)))
-			{
-				_rotation = -0.1f;
-			}
-			else if (indexToConsider == 0 &&
-				((Rotation >= 0.0f && Rotation <= MathHelper.Pi) ||
-				(Rotation >= -2 * MathHelper.Pi && Rotation <= -MathHelper.Pi)))
-			{
-				_rotation = 0.1f;
-			}
-			else if (indexToConsider == 0 &&
-				((Rotation >= MathHelper.Pi && Rotation <= 2 * MathHelper.Pi) ||
-				(Rotation <= 0 && Rotation >= -MathHelper.Pi)))
-			{
-				_rotation = -0.1f;
-			}
-			else if (indexToConsider == 1 &&
-			((Rotation >= 0.0f && Rotation <= MathHelper.Pi) ||
-			(Rotation >= -2 * MathHelper.Pi && Rotation <= -MathHelper.Pi)))
-			{
-				_rotation = -0.1f;
-			}
-			else if (indexToConsider == 1 &&
-				((Rotation >= MathHelper.Pi && Rotation <= 2 * MathHelper.Pi) ||
-				(Rotation <= 0 && Rotation >= -MathHelper.Pi)))
-			{
-				_rotation = 0.1f;
-			}
-			else _rotation = 0.0f;
-			//Console.WriteLine("RotationInput -> " + RotationInput + " Rotation -> " + _rotation);
-			#endregion
+			UpdatePosition();
+			UpdateRotation();
 
 #else
             GamePadState currentGamePadState = GamePad.GetState(PlayerIndex.One);
@@ -282,29 +197,102 @@ namespace HockeySlam.Class.GameEntities.Models
 
 			Rotation = (Rotation + _rotation) % MathHelper.TwoPi;
 			updatePositionVector(gameTime, normalizedVelocity, time);
-			updateBoundingSpheres(gameTime, lastTempRotation, normalizedVelocity, time);
+			updateBoundingSpheres(gameTime, lastRotation, time);
 		}
 
-		private int getPriorityIndex()
+		private void UpdateRotation()
+		{
+			KeyboardKey indexToConsider;
+
+			indexToConsider = getPriorityIndex(); //Index from the PriorityVector
+
+			if (indexToConsider == KeyboardKey.LEFT &&
+				((Rotation >= 0.0f && Rotation <= MathHelper.PiOver2) ||
+				(Rotation <= -3 * MathHelper.PiOver2 && Rotation >= -2 * MathHelper.Pi) ||
+				(Rotation >= 3 * MathHelper.PiOver2 && Rotation <= 2 * MathHelper.Pi) ||
+				(Rotation <= 0.0f && Rotation >= -MathHelper.PiOver2))) {
+				_rotation = -0.1f;
+			} else if (indexToConsider == KeyboardKey.LEFT &&
+				  ((Rotation >= MathHelper.PiOver2 && Rotation <= 3 * MathHelper.PiOver2) ||
+				  (Rotation <= -MathHelper.PiOver2 && Rotation >= -3 * MathHelper.Pi))) {
+				_rotation = 0.1f;
+			} else if (indexToConsider == KeyboardKey.RIGHT &&
+				  ((Rotation >= 0.0f && Rotation <= MathHelper.PiOver2) ||
+				  (Rotation <= -3 * MathHelper.PiOver2 && Rotation >= -2 * MathHelper.Pi) ||
+				  (Rotation >= 3 * MathHelper.PiOver2 && Rotation <= 2 * MathHelper.Pi) ||
+				  (Rotation <= 0.0f && Rotation >= -MathHelper.PiOver2))) {
+				_rotation = 0.1f;
+			} else if (indexToConsider == KeyboardKey.RIGHT &&
+				  ((Rotation >= MathHelper.PiOver2 && Rotation <= 3 * MathHelper.PiOver2) ||
+				  (Rotation <= -MathHelper.PiOver2 && Rotation >= -3 * MathHelper.Pi))) {
+				_rotation = -0.1f;
+			} else if (indexToConsider == KeyboardKey.UP &&
+				  ((Rotation >= 0.0f && Rotation <= MathHelper.Pi) ||
+				  (Rotation >= -2 * MathHelper.Pi && Rotation <= -MathHelper.Pi))) {
+				_rotation = 0.1f;
+			} else if (indexToConsider == KeyboardKey.UP &&
+				  ((Rotation >= MathHelper.Pi && Rotation <= 2 * MathHelper.Pi) ||
+				  (Rotation <= 0 && Rotation >= -MathHelper.Pi))) {
+				_rotation = -0.1f;
+			} else if (indexToConsider == KeyboardKey.DOWN &&
+			  ((Rotation >= 0.0f && Rotation <= MathHelper.Pi) ||
+			  (Rotation >= -2 * MathHelper.Pi && Rotation <= -MathHelper.Pi))) {
+				_rotation = -0.1f;
+			} else if (indexToConsider == KeyboardKey.DOWN &&
+				  ((Rotation >= MathHelper.Pi && Rotation <= 2 * MathHelper.Pi) ||
+				  (Rotation <= 0 && Rotation >= -MathHelper.Pi))) {
+				_rotation = 0.1f;
+			} else _rotation = 0.0f;
+			//Console.WriteLine("RotationInput -> " + RotationInput + " Rotation -> " + _rotation);
+		}
+
+		private void UpdatePosition()
+		{
+			if (PositionInput.Y == 2 && _velocity.Y < 30) {
+				_velocity.Y += 1;
+			} else if (PositionInput.Y == 0 && _velocity.Y > 0) {
+				_velocity.Y -= (float)0.5;
+			}
+
+			if (PositionInput.Y == 1 && _velocity.Y > -30) {
+				_velocity.Y -= 1;
+			} else if (PositionInput.Y == 0 && _velocity.Y < 0) {
+				_velocity.Y += (float)0.5;
+			}
+
+			if (PositionInput.X == 2 && _velocity.X > -30) {
+				_velocity.X -= 1;
+			} else if (PositionInput.X == 0 && _velocity.X < 0) {
+				_velocity.X += (float)0.5;
+			}
+
+			if (PositionInput.X == 1 && _velocity.X < 30) {
+				_velocity.X += 1;
+			} else if (PositionInput.X == 0 && _velocity.X > 0) {
+				_velocity.X -= (float)0.5;
+			}
+		}
+
+		private KeyboardKey getPriorityIndex()
 		{
 			float temp = 0;
-			int indexTemp = -1;
+			KeyboardKey indexTemp = KeyboardKey.NONE;
 
 			if (temp < RotationInput.X) {
 				temp = RotationInput.X;
-				indexTemp = 0;
+				indexTemp = KeyboardKey.UP;
 			}
 			if (temp < RotationInput.Y) {
 				temp = RotationInput.Y;
-				indexTemp = 1;
+				indexTemp = KeyboardKey.DOWN;
 			}
 			if (temp < RotationInput.Z) {
 				temp = RotationInput.Z;
-				indexTemp = 2;
+				indexTemp = KeyboardKey.LEFT;
 			}
 			if (temp < RotationInput.W) {
 				temp = RotationInput.W;
-				indexTemp = 3;
+				indexTemp = KeyboardKey.RIGHT;
 			}	
 			return indexTemp;
 		}
@@ -318,7 +306,7 @@ namespace HockeySlam.Class.GameEntities.Models
 			Console.WriteLine(tempRotation);
 			position = Matrix.CreateTranslation(_positionVector.X, _positionVector.Y, _positionVector.Z);
 
-			world = world * position;
+			world = world * _scale * position;
 		}
 
 		private void updatePositionVector(GameTime gameTime, Vector2 normalizedVelocity, float time)
@@ -332,21 +320,22 @@ namespace HockeySlam.Class.GameEntities.Models
 			}
 		}
 
-		private void updateBoundingSpheres(GameTime gameTime, float lastTempRotation, Vector2 normalizedVelocity, float time)
-		{	
-			lastPosition = new Vector3(time * _velocity.Y * normalizedVelocity.Y, 0, time * _velocity.X * normalizedVelocity.X);
+		private void updateBoundingSpheres(GameTime gameTime, float lastRotation, float time)
+		{
+			float upBodyY = upBody.Center.Y;
+			float downBodyY = downBody.Center.Y;
 
-			upBody.Center += lastPosition;
-			downBody.Center += lastPosition;
+			upBody.Center = _positionVector;
+			upBody.Center.Y = upBodyY;
 
-			if (lastTempRotation != tempRotation) {
-				stick.Center = Vector3.Zero;
-				stick.Center.X += 2f * ((float)Math.Sin(tempRotation + MathHelper.PiOver2));
-				stick.Center.Z += 2f * ((float)Math.Cos(tempRotation + MathHelper.PiOver2));
-				stick.Center += upBody.Center;
-				stick.Center.Y = 1f;
-			}
-			else stick.Center += lastPosition;
+			downBody.Center = _positionVector;
+			downBody.Center.Y = downBodyY;
+
+			stick.Center = Vector3.Zero;
+			stick.Center.X += 2f * ((float)Math.Sin(Rotation + MathHelper.PiOver2));
+			stick.Center.Z += 2f * ((float)Math.Cos(Rotation + MathHelper.PiOver2));
+			stick.Center += downBody.Center;
+			stick.Center.Y = 1f;
 		}
 
 		public List<BoundingSphere> getBoundingSpheres()

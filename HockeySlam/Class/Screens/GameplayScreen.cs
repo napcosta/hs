@@ -49,17 +49,17 @@ namespace HockeySlam.Class.Screens
 			_gameManager = new GameManager(ScreenManager.Game);
 			addGameEntities();
 			_gameManager.startGame();
-			CreateAllPlayers((Camera)_gameManager.getGameEntity("camera1"));
+			CreateAllPlayers((Camera)_gameManager.getGameEntity("camera"));
 		}
 
 		public virtual void addGameEntities() 
 		{
-			Camera camera = new Camera(ScreenManager.Game, new Vector3(85, 85, 0), Vector3.Zero, new Vector3(0, 1, 0));
-			_gameManager.AddEntity("camera1", camera);
+			Camera camera = new Camera(ScreenManager.Game, new Vector3(85, 85, 0), Vector3.Zero, new Vector3(0, 1, 0), _gameManager);
+			_gameManager.AddEntity("camera", camera);
 			_gameManager.AddEntity("debugManager", new DebugManager());
 			_gameManager.AddEntity("collisionManager", new CollisionManager());
-			//_gameManager.AddEntity("court", new Court(ScreenManager.Game, camera));
-			_gameManager.AddEntity("ice", new Ice(ScreenManager.Game, camera));
+			_gameManager.AddEntity("court", new Court(ScreenManager.Game, camera, _gameManager));
+			_gameManager.AddEntity("ice", new Ice(ScreenManager.Game, camera, _gameManager));
 			if (_networkSession != null) {
 				_gameManager.AddEntity("multiplayerManager", new MultiplayerManager(ScreenManager.Game, camera, _gameManager, _networkSession));
 			}
