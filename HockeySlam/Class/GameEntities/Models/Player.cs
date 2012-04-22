@@ -142,6 +142,8 @@ namespace HockeySlam.Class.GameEntities.Models
 			//diffuseColor[3] = new Vector3(0.5f, 0.5f, 0.5f);
 			updateMeshWorld(gameTime);
 			base.DrawEffect(effect, diffuseColor);
+
+			updateCameraPosition();
 			//base.Draw(gameTime);
 		}
 
@@ -250,25 +252,25 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		private void UpdatePosition()
 		{
-			if (PositionInput.Y == 2 && _velocity.Y < 30) {
+			if (PositionInput.Y == 2 && _velocity.Y < 12) {
 				_velocity.Y += 1;
 			} else if (PositionInput.Y == 0 && _velocity.Y > 0) {
 				_velocity.Y -= (float)0.5;
 			}
 
-			if (PositionInput.Y == 1 && _velocity.Y > -30) {
+			if (PositionInput.Y == 1 && _velocity.Y > -12) {
 				_velocity.Y -= 1;
 			} else if (PositionInput.Y == 0 && _velocity.Y < 0) {
 				_velocity.Y += (float)0.5;
 			}
 
-			if (PositionInput.X == 2 && _velocity.X > -30) {
+			if (PositionInput.X == 2 && _velocity.X > -12) {
 				_velocity.X -= 1;
 			} else if (PositionInput.X == 0 && _velocity.X < 0) {
 				_velocity.X += (float)0.5;
 			}
 
-			if (PositionInput.X == 1 && _velocity.X < 30) {
+			if (PositionInput.X == 1 && _velocity.X < 12) {
 				_velocity.X += 1;
 			} else if (PositionInput.X == 0 && _velocity.X > 0) {
 				_velocity.X -= (float)0.5;
@@ -305,7 +307,6 @@ namespace HockeySlam.Class.GameEntities.Models
 			world = Matrix.Identity;
 			world *= Matrix.CreateRotationY(Rotation);
 			//world *= oldWorld;
-			Console.WriteLine(tempRotation);
 			position = Matrix.CreateTranslation(_positionVector.X, _positionVector.Y, _positionVector.Z);
 
 			world = world * _scale * position;

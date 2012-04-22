@@ -66,11 +66,35 @@ namespace HockeySlam.Class.GameEntities
 			return _target;
 		}
 
+		public float abs(float num)
+		{
+			if (num > 0)
+				return num;
+			else if (num < 0)
+				return -num;
+			else
+				return 0;
+		}
+
 		public void updateTargetAndPosition()
 		{
-			_target.X = ((Math.Max(_localPlayerPosition.X, _diskPosition.X) - Math.Min(_localPlayerPosition.X, _diskPosition.X)) / 2.0f) +
-						Math.Min(_localPlayerPosition.X, _diskPosition.X);
-			_position.X = _target.X;
+			float distanceZ = Math.Max(_localPlayerPosition.Z, _diskPosition.Z) - Math.Min(_localPlayerPosition.Z, _diskPosition.Z);
+			float distanceX = Math.Max(_localPlayerPosition.X, _diskPosition.X) - Math.Min(_localPlayerPosition.X, _diskPosition.X);
+
+			_target.Z = (distanceZ / 2.0f) + Math.Min(_localPlayerPosition.Z, _diskPosition.Z);
+			_target.X = (distanceX / 2.0f) + Math.Min(_localPlayerPosition.X, _diskPosition.X);
+			_position.Z = _target.Z;
+
+			_position.Y = Math.Max(distanceZ,distanceX);
+
+			if (_position.Y < 50)
+				_position.Y = 50;
+			else if (_position.Y > 85)
+				_position.Y = 85;
+
+			_position.X = _target.X + _position.Y;
+
+			//_position.X = _position.Y;
 		}
 
 		public void Update(GameTime gameTime) 
