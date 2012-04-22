@@ -29,6 +29,7 @@ namespace HockeySlam.Class.GameState
 		PacketWriter _packetWriter;
 		Vector2 _lastPositionInput; // A temporary vector to avoid WASD conflicts (like pressing A & D at the same time)
 		Vector4 _rotationInput;
+		Disk _disk;
 		int _priority;
 
 		public MultiplayerManager(Game game, Camera camera, GameManager gameManager, NetworkSession networkSession)
@@ -50,8 +51,8 @@ namespace HockeySlam.Class.GameState
 			_lastPositionInput = Vector2.Zero;
 			_rotationInput = Vector4.Zero;
 			_priority = 0;
+			_disk = (Disk)_gameManager.getGameEntity("disk");
 		}
-
 
 		public void Draw(GameTime gameTime)
 		{
@@ -60,7 +61,6 @@ namespace HockeySlam.Class.GameState
 				Player player = gamer.Tag as Player;
 
 				player.Draw(gameTime);
-
 			}
 		}
 
@@ -170,8 +170,11 @@ namespace HockeySlam.Class.GameState
 			player.RotationInput = _rotationInput;
 		}
 
+		/* Updates the server and sends the packets to the clients */
 		void UpdateServer(GameTime gameTime)
 		{
+			Vector3 diskPosition = _disk.getPosition();
+			_packetWriter.Write(diskPosition);
 			foreach (NetworkGamer gamer in _networkSession.AllGamers) {
 
 				Player player = gamer.Tag as Player;
@@ -182,7 +185,6 @@ namespace HockeySlam.Class.GameState
 				_packetWriter.Write(player.getPositionVector());
 				_packetWriter.Write(player.Rotation);
 			}
-
 			//Send the combined data for all players to everyone in the session.
 			LocalNetworkGamer server = (LocalNetworkGamer)_networkSession.Host;
 			server.SendData(_packetWriter, SendDataOptions.InOrder);
@@ -212,13 +214,16 @@ namespace HockeySlam.Class.GameState
 				NetworkGamer sender;
 				
 				gamer.ReceiveData(_packetReader, out sender);
-
+				Vector3 diskPosition = _packetReader.ReadVector3();
+				_disk.setPosition(diskPosition);
+				Console.WriteLine(_disk.getPosition());
 				while (_packetReader.Position < _packetReader.Length) {
 					//Read the state of one Player from the network packet
+
 					byte gamerId = _packetReader.ReadByte();
 					Vector3 position = _packetReader.ReadVector3();
 					float rotation = _packetReader.ReadSingle();
-
+					
 					NetworkGamer remoteGamer = _networkSession.FindGamerById(gamerId);
 
 					if (remoteGamer != null) {
@@ -227,6 +232,7 @@ namespace HockeySlam.Class.GameState
 						player.Rotation = rotation;
 					}
 				}
+
 			}
 		}
 
