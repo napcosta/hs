@@ -46,24 +46,8 @@ namespace HockeySlam.Class.Screens
 
 		public void addGameManager()
 		{
-			_gameManager = new GameManager(ScreenManager.Game);
-			addGameEntities();
+			_gameManager = new GameManager(ScreenManager.Game, _networkSession);
 			_gameManager.startGame();
-			CreateAllPlayers((Camera)_gameManager.getGameEntity("camera"));
-		}
-
-		public virtual void addGameEntities() 
-		{
-			Camera camera = new Camera(ScreenManager.Game, new Vector3(85, 85, 0), Vector3.Zero, new Vector3(0, 1, 0), _gameManager);
-			_gameManager.AddEntity("camera", camera);
-			_gameManager.AddEntity("debugManager", new DebugManager());
-			_gameManager.AddEntity("collisionManager", new CollisionManager());
-			_gameManager.AddEntity("court", new Court(ScreenManager.Game, camera, _gameManager));
-			_gameManager.AddEntity("ice", new Ice(ScreenManager.Game, camera, _gameManager));
-			if (_networkSession != null) {
-				_gameManager.AddEntity("multiplayerManager", new MultiplayerManager(ScreenManager.Game, camera, _gameManager, _networkSession));
-			}
-			_gameManager.AddEntity("disk", new Disk(_gameManager, ScreenManager.Game, camera));
 		}
 
 		public override void Activate(bool instancePreserved)
@@ -154,21 +138,6 @@ namespace HockeySlam.Class.Screens
 				float alpha = MathHelper.Lerp(1f - TransitionAlpha, 1f, _pauseAlpha / 2);
 
 				ScreenManager.FadeBackBufferToBlack(alpha);
-			}
-		}
-
-		#endregion
-
-		#region Methods
-
-		void CreateAllPlayers(Camera camera)
-		{
-			foreach (NetworkGamer gamer in _networkSession.AllGamers) {
-				Player newPlayer = new Player(_gameManager, ScreenManager.Game, camera, true);
-				newPlayer.Initialize();
-				newPlayer.LoadContent();
-
-				gamer.Tag = newPlayer;
 			}
 		}
 
