@@ -129,6 +129,7 @@ namespace HockeySlam.Class.GameEntities.Models
 			_collisionArea.Center.X = _position.X;
 			_collisionArea.Center.Z = _position.Z;
 
+			_camera.updateDiskPosition(_position);
 			base.Update(gameTime);
 		}
 

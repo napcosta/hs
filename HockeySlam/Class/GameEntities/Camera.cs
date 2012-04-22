@@ -21,7 +21,10 @@ namespace HockeySlam.Class.GameEntities
 	{
 		Vector3 _position;
 		Vector3 _target;
-		GameManager _gameManager;
+		Vector3 _up;
+
+		Vector3 _diskPosition;
+		Vector3 _localPlayerPosition;
 
 		//Camera matrices
 		public Matrix view
@@ -35,11 +38,15 @@ namespace HockeySlam.Class.GameEntities
 			protected set;
 		}
 
-		public Camera(Game game, Vector3 pos, Vector3 target, Vector3 up, GameManager gameManager)
+		public Camera(Game game, Vector3 pos, Vector3 target, Vector3 up)
 		{
-			_gameManager = gameManager;
 			_position = pos;
 			_target = target;
+			_up = up;
+
+			_localPlayerPosition = target;
+			_diskPosition = target;
+
 			view = Matrix.CreateLookAt(pos, target, up);
 
 			projection = Matrix.CreatePerspectiveFieldOfView(
@@ -58,12 +65,56 @@ namespace HockeySlam.Class.GameEntities
 		{
 			return _target;
 		}
+
+		public float abs(float num)
+		{
+			if (num > 0)
+				return num;
+			else if (num < 0)
+				return -num;
+			else
+				return 0;
+		}
+
+		public void updateTargetAndPosition()
+		{
+			float distanceZ = Math.Max(_localPlayerPosition.Z, _diskPosition.Z) - Math.Min(_localPlayerPosition.Z, _diskPosition.Z);
+			float distanceX = Math.Max(_localPlayerPosition.X, _diskPosition.X) - Math.Min(_localPlayerPosition.X, _diskPosition.X);
+
+			_target.Z = (distanceZ / 2.0f) + Math.Min(_localPlayerPosition.Z, _diskPosition.Z);
+			_target.X = (distanceX / 2.0f) + Math.Min(_localPlayerPosition.X, _diskPosition.X);
+			_position.Z = _target.Z;
+
+			_position.Y = Math.Max(distanceZ,distanceX);
+
+			if (_position.Y < 50)
+				_position.Y = 50;
+			else if (_position.Y > 85)
+				_position.Y = 85;
+
+			_position.X = _target.X + _position.Y;
+
+			//_position.X = _position.Y;
+		}
+
 		public void Update(GameTime gameTime) 
 		{
-			
+			updateTargetAndPosition();
+			view = Matrix.CreateLookAt(_position, _target, _up);
 		}
+
 		public void Draw(GameTime gameTime) { }
 		public void Initialize() { }
 		public void LoadContent() { }
+
+		public void updateDiskPosition(Vector3 diskPosition)
+		{
+			_diskPosition = diskPosition;
+		}
+
+		public void updateLocalPlayerPosition(Vector3 localPlayerPosition)
+		{
+			_localPlayerPosition = localPlayerPosition;
+		}
 	}
 }

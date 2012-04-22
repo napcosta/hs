@@ -38,7 +38,7 @@ namespace HockeySlam.Class.GameState
 
 		private void addEntities()
 		{
-			Camera camera = new Camera(_game, new Vector3(85, 85, 0), Vector3.Zero, new Vector3(0, 1, 0), this);
+			Camera camera = new Camera(_game, new Vector3(85, 85, 0), Vector3.Zero, Vector3.Up);
 			AddEntity("camera", camera);
 			AddEntity("debugManager", new DebugManager());
 			AddEntity("collisionManager", new CollisionManager());

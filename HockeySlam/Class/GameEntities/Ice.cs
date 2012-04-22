@@ -53,7 +53,7 @@ namespace HockeySlam.Class.GameEntities
 			reflectedCameraPosition.Y = -reflectedCameraPosition.Y;
 			reflectedCameraTarget.Y = -reflectedCameraTarget.Y;
 
-			Camera reflectionCamera = new Camera(_game, reflectedCameraPosition, reflectedCameraTarget, Vector3.Up, _gameManager);
+			Camera reflectionCamera = new Camera(_game, reflectedCameraPosition, reflectedCameraTarget, Vector3.Up);
 			_iceEffect.Parameters["ReflectedView"].SetValue(reflectionCamera.view);
 
 			Vector4 clipPlane = new Vector4(0, 1, 0, 0);
