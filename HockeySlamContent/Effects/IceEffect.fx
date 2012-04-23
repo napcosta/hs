@@ -49,6 +49,7 @@ float2 halfPixel()
 struct VertexShaderInput
 {
 	float4 Position : POSITION0;
+	float2 UV: TEXCOORD0;
 };
 
 struct VertexShaderOutput
@@ -68,7 +69,7 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 	float4x4 rwvp = mul(World, mul(ReflectedView, Projection));
 	output.ReflectionPosition = mul(input.Position, rwvp);
 
-	output.UV = postProjToScreen(output.Position) + halfPixel();
+	output.UV = input.UV;
 
 	return output;
 }
@@ -102,6 +103,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 	float4 snow = tex2D(iceSurfaceSnowSampler, input.UV);
 	float4 ice = tex2D(iceSurfaceTextureSampler, input.UV);
 	reflection = reflection*0.2 + ice*0.8;
+	reflection = float4(0.3,0.3,0.9,1.0)*0.2 + reflection*0.8;
 
 	//reflection = snow*snow.a + reflection*(1-snow.a);
 	
