@@ -233,6 +233,8 @@ namespace HockeySlam.Class.GameState
 						Player player = remoteGamer.Tag as Player;
 						player.setPositionVector(position);
 						player.Rotation = rotation;
+						if (remoteGamer.IsLocal)
+							player.updateCameraPosition();
 					}
 				}
 

@@ -142,8 +142,6 @@ namespace HockeySlam.Class.GameEntities.Models
 			//diffuseColor[3] = new Vector3(0.5f, 0.5f, 0.5f);
 			updateMeshWorld(gameTime);
 			base.DrawEffect(effect, diffuseColor);
-
-			updateCameraPosition();
 			//base.Draw(gameTime);
 		}
 
