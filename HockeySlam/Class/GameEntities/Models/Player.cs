@@ -35,8 +35,6 @@ namespace HockeySlam.Class.GameEntities.Models
 		List<Boolean> arrowKeysPressed;
 		List<Keys> lastArrowKeysPressed;
 		
-		Game game;
-		Camera camera;
 		BoundingSphere stick;
 		Effect effect;
 		BoundingSphere upBody;
@@ -46,6 +44,9 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		Matrix _scale;
 
+		VertexPositionColor[] _verts;
+		VertexBuffer _vertexBuffer;
+		BasicEffect _basicEffect;
 		public float Rotation
 		{
 			get;
@@ -74,8 +75,6 @@ namespace HockeySlam.Class.GameEntities.Models
 		public Player(GameManager gameManager, Game game, Camera camera, bool isRemote) : base(game, camera)
 		{
 			_model = game.Content.Load<Model>(@"Models\player");
-			this.game = game;
-			this.camera = camera;
 			_gameManager = gameManager;
 			_isRemote = isRemote;
 		}
@@ -92,7 +91,15 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		public override void LoadContent()
 		{
-			effect = game.Content.Load<Effect>(@"Effects\SimpleEffect");
+			effect = _game.Content.Load<Effect>(@"Effects\SimpleEffect");
+			_verts = new VertexPositionColor[3];
+			_verts[0] = new VertexPositionColor(new Vector3(0, 0.8f, -10), Color.Blue);
+			_verts[1] = new VertexPositionColor(new Vector3(10, 0.8f, -10), Color.Red);
+			_verts[2] = new VertexPositionColor(new Vector3(5, 0.8f, 10), Color.Green);
+			_vertexBuffer = new VertexBuffer(_game.GraphicsDevice, typeof(VertexPositionColor),
+				_verts.Length, BufferUsage.None);
+			_vertexBuffer.SetData(_verts);
+			_basicEffect = new BasicEffect(_game.GraphicsDevice);
 			base.LoadContent();
 		}
 		
@@ -135,6 +142,18 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		public override void Draw(GameTime gameTime)
 		{
+			_game.GraphicsDevice.SetVertexBuffer(_vertexBuffer);
+			_basicEffect.World = Matrix.Identity;
+			_basicEffect.View = _camera.view;
+			_basicEffect.Projection = _camera.projection;
+			_basicEffect.VertexColorEnabled = true;
+
+			foreach (EffectPass pass in _basicEffect.CurrentTechnique.Passes) {
+				pass.Apply();
+				_game.GraphicsDevice.DrawUserPrimitives<VertexPositionColor>
+					(PrimitiveType.TriangleStrip, _verts, 0, 1);
+			}
+
 			Vector3 diffuseColor;
 			diffuseColor = new Vector3(1, 0.25f, 0.25f);
 			//diffuseColor[1] = new Vector3(0.25f, 1, 0.25f);
@@ -142,7 +161,7 @@ namespace HockeySlam.Class.GameEntities.Models
 			//diffuseColor[3] = new Vector3(0.5f, 0.5f, 0.5f);
 			updateMeshWorld(gameTime);
 			base.DrawEffect(effect, diffuseColor);
-			//base.Draw(gameTime);
+			
 		}
 
 		public override void Update(GameTime gameTime)
@@ -386,9 +405,9 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		public void DrawDebug()
 		{
-			BoundingSphereRender.Render(stick, game.GraphicsDevice, camera.view, camera.projection, Color.Brown);
-			BoundingSphereRender.Render(upBody, game.GraphicsDevice, camera.view, camera.projection, Color.Brown);
-			BoundingSphereRender.Render(downBody, game.GraphicsDevice, camera.view, camera.projection, Color.Brown);
+			BoundingSphereRender.Render(stick, _game.GraphicsDevice, _camera.view, _camera.projection, Color.Brown);
+			BoundingSphereRender.Render(upBody, _game.GraphicsDevice, _camera.view, _camera.projection, Color.Brown);
+			BoundingSphereRender.Render(downBody, _game.GraphicsDevice, _camera.view, _camera.projection, Color.Brown);
 		}
 
 		void IReflectable.Draw(GameTime gameTime, Camera camera)
