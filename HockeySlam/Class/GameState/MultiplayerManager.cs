@@ -254,16 +254,15 @@ namespace HockeySlam.Class.GameState
 			if (_networkSession == null)
 				return;
 
-			foreach (LocalNetworkGamer gamer in _networkSession.LocalGamers)
-				if (gamer.IsHost) {
+			foreach (LocalNetworkGamer gamer in _networkSession.LocalGamers) {
+				if (gamer.IsHost)
 					ServerReadInputFromClients(gamer);
-					Player player = gamer.Tag as Player;
-					player.updateCameraPosition();
-				} else {
+				else 
 					ClientReadGameStateFromServer(gamer);
-					Player localPlayer = gamer.Tag as Player;
-					localPlayer.updateCameraPosition();
-				}
+
+				Player player = gamer.Tag as Player;
+				player.updateCameraPosition();
+			}
 		}
 	}
 }

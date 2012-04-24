@@ -19,6 +19,7 @@ namespace HockeySlam.Class.GameEntities.Models
 	{
 		BoundingSphere _collisionArea;
 		Vector2 _velocity;
+		int _maxVelocity;
 		Vector3 _position;
 
 		Matrix _rotation;
@@ -38,6 +39,7 @@ namespace HockeySlam.Class.GameEntities.Models
 		public override void Initialize()
 		{
 			_velocity = Vector2.Zero;
+			_maxVelocity = 12;
 			_position = new Vector3(4, 1, 0);
 
 			Matrix pos = Matrix.CreateTranslation(4, 1, 0);
@@ -90,23 +92,23 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		public void AddVelocity(Vector2 velocity)
 		{
-			if(_velocity.X >= -30.0f && _velocity.X <= 30.0f && _velocity.Y >= -30.0f && _velocity.Y <= 30.0f)
+			if (_velocity.X >= -_maxVelocity && _velocity.X <= _maxVelocity && _velocity.Y >= -_maxVelocity && _velocity.Y <= _maxVelocity)
 				_velocity += velocity;
 
-			if (_velocity.X > 30)
-				_velocity.X = 30;
-			else if (_velocity.X < -30)
-				_velocity.X = -30;
+			if (_velocity.X > _maxVelocity)
+				_velocity.X = _maxVelocity;
+			else if (_velocity.X < -_maxVelocity)
+				_velocity.X = -_maxVelocity;
 
-			if (_velocity.Y > 30)
-				_velocity.Y = 30;
-			else if (_velocity.Y < -30)
-				_velocity.Y = -30;
+			if (_velocity.Y > _maxVelocity)
+				_velocity.Y = _maxVelocity;
+			else if (_velocity.Y < -_maxVelocity)
+				_velocity.Y = -_maxVelocity;
 		}
 
 		public override void Update(GameTime gameTime)
 		{
-			float drag = 0.5f;
+			float drag = 0.3f;
 
 			if (_velocity.X >= drag)
 				_velocity.X -= drag;
@@ -129,7 +131,6 @@ namespace HockeySlam.Class.GameEntities.Models
 			_collisionArea.Center.X = _position.X;
 			_collisionArea.Center.Z = _position.Z;
 
-			_camera.updateDiskPosition(_position);
 			base.Update(gameTime);
 		}
 
@@ -139,6 +140,8 @@ namespace HockeySlam.Class.GameEntities.Models
 
 			world = Matrix.Identity;
 			world *= _rotation * _scale * pos;
+
+			_camera.updateDiskPosition(_position);
 
 			base.Draw(gameTime);
 		}

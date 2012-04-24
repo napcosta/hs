@@ -19,7 +19,7 @@ namespace HockeySlam.Class.GameEntities.Models
 		public Court(Game game, Camera camera, GameManager gameManager)
 			: base(game, camera)
 		{
-			_model = game.Content.Load<Model>(@"Models\court");
+			_model = game.Content.Load<Model>(@"Models\court2");
 			_effect = game.Content.Load<Effect>(@"Effects\SimpleEffect");
 			_gameManager = gameManager;
 		}

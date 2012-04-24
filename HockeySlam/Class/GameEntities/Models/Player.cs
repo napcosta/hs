@@ -22,6 +22,7 @@ namespace HockeySlam.Class.GameEntities.Models
 	{
 		#region fields
 		Vector2 _velocity;
+		int _maxVelocity;
 		Matrix position;
 		Vector3 lastPositionVector;
 		Vector3 lastPosition;
@@ -115,6 +116,7 @@ namespace HockeySlam.Class.GameEntities.Models
 			lastPositionVector = _positionVector;
 
 			_velocity = Vector2.Zero;
+			_maxVelocity = 12;
 
 			Matrix pos = Matrix.CreateTranslation(0, 0.7f, 0);
 			_scale = Matrix.CreateScale(1.5f);
@@ -217,7 +219,7 @@ namespace HockeySlam.Class.GameEntities.Models
 			float time = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
 			Rotation = (Rotation + _rotation) % MathHelper.TwoPi;
-			updatePositionVector(gameTime, normalizedVelocity, time);
+			updatePositionVector(gameTime, normalizedVelocity, lastRotation, time);
 			updateBoundingSpheres(gameTime, lastRotation, time);
 		}
 
@@ -269,29 +271,37 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		private void UpdatePosition()
 		{
-			if (PositionInput.Y == 2 && _velocity.Y < 12) {
-				_velocity.Y += 1;
+			if (PositionInput.Y == 2 && _velocity.Y < _maxVelocity) {
+				_velocity.Y += 0.6f;
 			} else if (PositionInput.Y == 0 && _velocity.Y > 0) {
-				_velocity.Y -= (float)0.5;
+				_velocity.Y -= 0.3f;
 			}
 
-			if (PositionInput.Y == 1 && _velocity.Y > -12) {
-				_velocity.Y -= 1;
+			if (PositionInput.Y == 1 && _velocity.Y > -_maxVelocity) {
+				_velocity.Y -= 0.6f;
 			} else if (PositionInput.Y == 0 && _velocity.Y < 0) {
-				_velocity.Y += (float)0.5;
+				_velocity.Y += 0.3f;
 			}
 
-			if (PositionInput.X == 2 && _velocity.X > -12) {
-				_velocity.X -= 1;
+			if (PositionInput.X == 2 && _velocity.X > -_maxVelocity) {
+				_velocity.X -= 0.6f;
 			} else if (PositionInput.X == 0 && _velocity.X < 0) {
-				_velocity.X += (float)0.5;
+				_velocity.X += 0.3f;
 			}
 
-			if (PositionInput.X == 1 && _velocity.X < 12) {
-				_velocity.X += 1;
+			if (PositionInput.X == 1 && _velocity.X < _maxVelocity) {
+				_velocity.X += 0.6f;
 			} else if (PositionInput.X == 0 && _velocity.X > 0) {
-				_velocity.X -= (float)0.5;
+				_velocity.X -= 0.3f;
 			}
+
+			if (_velocity.X >= -0.3f && _velocity.X <= 0.3f)
+				_velocity.X = 0;
+			if (_velocity.Y >= -0.3f && _velocity.Y <= 0.3f)
+				_velocity.Y = 0;
+
+			Console.WriteLine(_velocity);
+
 		}
 
 		private KeyboardKey getPriorityIndex()
@@ -329,11 +339,11 @@ namespace HockeySlam.Class.GameEntities.Models
 			world = world * _scale * position;
 		}
 
-		private void updatePositionVector(GameTime gameTime, Vector2 normalizedVelocity, float time)
+		private void updatePositionVector(GameTime gameTime, Vector2 normalizedVelocity, float lastRotation, float time)
 		{
 			_positionVector += new Vector3(time * _velocity.Y * normalizedVelocity.Y, 0, time * _velocity.X * normalizedVelocity.X);
 
-			if (_positionVector != lastPositionVector || tempRotation != lastTempRotation) {
+			if (_positionVector != lastPositionVector || Rotation != lastRotation) {
 				notify();
 				lastPositionVector = _positionVector;
 				lastTempRotation = tempRotation;
@@ -395,7 +405,7 @@ namespace HockeySlam.Class.GameEntities.Models
 						Disk disk = (Disk)collided;
 						disk.AddVelocity(_velocity);
 						if (_rotation != 0)
-							disk.AddVelocity(new Vector2(10, 10) * -(new Vector2((float)Math.Sin(tempRotation), (float)Math.Cos(tempRotation))));
+							disk.AddVelocity(new Vector2(10, 10) * -(new Vector2((float)Math.Sin(Rotation), (float)Math.Cos(Rotation))));
 					}
 				_positionOfCollision = _positionVector;
 				if (_rotation != 0)

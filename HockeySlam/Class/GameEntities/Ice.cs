@@ -29,7 +29,7 @@ namespace HockeySlam.Class.GameEntities
 		{
 			_content = game.Content;
 			_graphics = game.GraphicsDevice;
-			_model = _content.Load<Model>("Models/Plane");
+			_model = _content.Load<Model>("Models/Plane2");
 			_iceEffect = _content.Load<Effect>("Effects/IceEffect");
 			_iceEffect.Parameters["IceSurfaceTexture"].SetValue(_content.Load<Texture2D>("Textures/IceSurface2"));
 			_reflectionTarg = new RenderTarget2D(_graphics, _graphics.Viewport.Width,
