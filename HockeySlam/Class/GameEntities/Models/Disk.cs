@@ -117,19 +117,12 @@ namespace HockeySlam.Class.GameEntities.Models
 		public override void Update(GameTime gameTime)
 		{
 			float drag = 0.1f;
+			float moreDrag = 0.3f;
 
 			if (!_isColliding) {
-				if (_velocity.X >= drag)
-					_velocity.X -= drag;
-				else if (_velocity.X <= -drag)
-					_velocity.X += drag;
-				else _velocity.X = 0;
 
-				if (_velocity.Y >= drag)
-					_velocity.Y -= drag;
-				else if (_velocity.Y <= -drag)
-					_velocity.Y += drag;
-				else _velocity.Y = 0;
+				UpdateVelocityX(drag, moreDrag);
+				UpdateVelocityY(drag, moreDrag);
 			}
 
 			_isColliding = false;
@@ -144,6 +137,40 @@ namespace HockeySlam.Class.GameEntities.Models
 			_collisionArea.Center.Z = _position.Z;
 
 			base.Update(gameTime);
+		}
+
+		private void UpdateVelocityY(float drag, float moreDrag)
+		{
+			if (Math.Abs(_velocity.Y) > _maxVelocity) {
+				if (_velocity.Y >= moreDrag)
+					_velocity.Y -= moreDrag;
+				else if (_velocity.Y <= -moreDrag)
+					_velocity.Y += moreDrag;
+				else _velocity.Y = 0;
+			} else {
+				if (_velocity.Y >= drag)
+					_velocity.Y -= drag;
+				else if (_velocity.Y <= -drag)
+					_velocity.Y += drag;
+				else _velocity.Y = 0;
+			}
+		}
+
+		private void UpdateVelocityX(float drag, float moreDrag)
+		{
+			if (Math.Abs(_velocity.X) <= _maxVelocity) {
+				if (_velocity.X >= drag)
+					_velocity.X -= drag;
+				else if (_velocity.X <= -drag)
+					_velocity.X += drag;
+				else _velocity.X = 0;
+			} else {
+				if (_velocity.X >= moreDrag)
+					_velocity.X -= moreDrag;
+				else if (_velocity.X <= -moreDrag)
+					_velocity.X += moreDrag;
+				else _velocity.X = 0;
+			}
 		}
 
 		public override void Draw(GameTime gameTime)

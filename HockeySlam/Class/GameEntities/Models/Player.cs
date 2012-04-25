@@ -380,26 +380,28 @@ namespace HockeySlam.Class.GameEntities.Models
 			List<ICollidable> collidedWith = cm.verifyCollision(this);
 
 			if (collidedWith.Count != 0 && (_positionOfCollision != _positionVector || _rotationOfCollision != Rotation)) {
-				//Console.WriteLine("CollisionOcurred");
 				foreach(ICollidable collided in collidedWith)
-					if (collided is Disk) {
-						Disk disk = (Disk)collided;
-						disk.AddVelocity(_velocity);
-						List<BoundingSphere> diskSpheres = disk.getBoundingSpheres();
-						if (_rotation != 0 && diskSpheres[0].Intersects(stick)) {
-							Vector2 goVelocity = new Vector2((float)Math.Cos(Rotation), (float)Math.Sin(Rotation));
-							Console.Write("Rotation -> " + Rotation);
-							Console.WriteLine(" goVelocity -> " + goVelocity);
-							Console.WriteLine("Player Velocity -> " + _velocity);
-							//if(Rotation < 0)
-							//    goVelocity *= -1;
-							disk.AddVelocity(new Vector2(10, 10) * goVelocity);
-						}
-					}
+					VerifyDiskCollision(collided);
 				_positionOfCollision = _positionVector;
 				if (_rotation != 0)
 					_rotationOfCollision = Rotation;
-			} //else Console.WriteLine("NOT-CollisionOcurred");
+			}
+		}
+
+		private void VerifyDiskCollision(ICollidable collided)
+		{
+			int rotationStrength = 7;
+			if (collided is Disk) {
+				Disk disk = (Disk)collided;
+				disk.AddVelocity(_velocity);
+				List<BoundingSphere> diskSpheres = disk.getBoundingSpheres();
+				if (_rotation != 0 && diskSpheres[0].Intersects(stick)) {
+					Vector2 goVelocity = new Vector2((float)Math.Cos(Rotation), (float)Math.Sin(Rotation));
+					if (_rotation > 0)
+						goVelocity *= -1;
+					disk.AddRotationVelocity(new Vector2(rotationStrength, rotationStrength) * goVelocity);
+				}
+			}
 		}
 
 		public void DrawDebug()
