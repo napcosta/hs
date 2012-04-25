@@ -21,6 +21,7 @@ namespace HockeySlam.Class.GameEntities.Models
 		Vector2 _velocity;
 		int _maxVelocity;
 		Vector3 _position;
+		bool _isColliding;
 
 		Matrix _rotation;
 		Matrix _scale;
@@ -41,6 +42,7 @@ namespace HockeySlam.Class.GameEntities.Models
 			_velocity = Vector2.Zero;
 			_maxVelocity = 12;
 			_position = new Vector3(4, 1, 0);
+			_isColliding = false;
 
 			Matrix pos = Matrix.CreateTranslation(4, 1, 0);
 			_rotation = Matrix.CreateRotationX(MathHelper.PiOver2);
@@ -92,8 +94,7 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		public void AddVelocity(Vector2 velocity)
 		{
-			if (_velocity.X >= -_maxVelocity && _velocity.X <= _maxVelocity && _velocity.Y >= -_maxVelocity && _velocity.Y <= _maxVelocity)
-				_velocity += velocity;
+			_velocity += velocity;
 
 			if (_velocity.X > _maxVelocity)
 				_velocity.X = _maxVelocity;
@@ -104,23 +105,34 @@ namespace HockeySlam.Class.GameEntities.Models
 				_velocity.Y = _maxVelocity;
 			else if (_velocity.Y < -_maxVelocity)
 				_velocity.Y = -_maxVelocity;
+
+			_isColliding = true;
+		}
+
+		public void AddRotationVelocity(Vector2 velocity)
+		{
+			_velocity += velocity;
 		}
 
 		public override void Update(GameTime gameTime)
 		{
-			float drag = 0.3f;
+			float drag = 0.1f;
 
-			if (_velocity.X >= drag)
-				_velocity.X -= drag;
-			else if (_velocity.X <= -drag)
-				_velocity.X += drag;
-			else _velocity.X = 0;
+			if (!_isColliding) {
+				if (_velocity.X >= drag)
+					_velocity.X -= drag;
+				else if (_velocity.X <= -drag)
+					_velocity.X += drag;
+				else _velocity.X = 0;
 
-			if (_velocity.Y >= drag)
-				_velocity.Y -= drag;
-			else if (_velocity.Y <= -drag)
-				_velocity.Y += drag;
-			else _velocity.Y = 0;
+				if (_velocity.Y >= drag)
+					_velocity.Y -= drag;
+				else if (_velocity.Y <= -drag)
+					_velocity.Y += drag;
+				else _velocity.Y = 0;
+			}
+
+			_isColliding = false;
 
 			Vector2 normalizedVelocity = normalizeVelocity(_velocity);
 			float time = (float)gameTime.ElapsedGameTime.TotalSeconds;

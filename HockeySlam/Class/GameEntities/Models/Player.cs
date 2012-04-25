@@ -379,19 +379,27 @@ namespace HockeySlam.Class.GameEntities.Models
 			CollisionManager cm = (CollisionManager)_gameManager.getGameEntity("collisionManager");
 			List<ICollidable> collidedWith = cm.verifyCollision(this);
 
-			if (collidedWith.Count != 0 && (_positionOfCollision != _positionVector || _rotationOfCollision != tempRotation)) {
-				Console.WriteLine("CollisionOcurred");
+			if (collidedWith.Count != 0 && (_positionOfCollision != _positionVector || _rotationOfCollision != Rotation)) {
+				//Console.WriteLine("CollisionOcurred");
 				foreach(ICollidable collided in collidedWith)
 					if (collided is Disk) {
 						Disk disk = (Disk)collided;
 						disk.AddVelocity(_velocity);
-						if (_rotation != 0)
-							disk.AddVelocity(new Vector2(10, 10) * -(new Vector2((float)Math.Sin(Rotation), (float)Math.Cos(Rotation))));
+						List<BoundingSphere> diskSpheres = disk.getBoundingSpheres();
+						if (_rotation != 0 && diskSpheres[0].Intersects(stick)) {
+							Vector2 goVelocity = new Vector2((float)Math.Cos(Rotation), (float)Math.Sin(Rotation));
+							Console.Write("Rotation -> " + Rotation);
+							Console.WriteLine(" goVelocity -> " + goVelocity);
+							Console.WriteLine("Player Velocity -> " + _velocity);
+							//if(Rotation < 0)
+							//    goVelocity *= -1;
+							disk.AddVelocity(new Vector2(10, 10) * goVelocity);
+						}
 					}
 				_positionOfCollision = _positionVector;
 				if (_rotation != 0)
-					_rotationOfCollision = tempRotation;
-			} else Console.WriteLine("NOT-CollisionOcurred");
+					_rotationOfCollision = Rotation;
+			} //else Console.WriteLine("NOT-CollisionOcurred");
 		}
 
 		public void DrawDebug()
