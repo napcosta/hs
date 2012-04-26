@@ -10,7 +10,7 @@ using HockeySlam.Class.GameEntities.Models;
 
 namespace HockeySlam.Class.Screens
 {
-	enum MenuSelected {NONE, BLURTYPE, BLUR, TRANSPARECY};
+	enum MenuSelected {NONE, JUST_CHANGED, BLURTYPE, BLUR, TRANSPARECY};
 	enum BlurType { NORMAL, GAUSSION }
 
 	class PropertiesMenuScreen : MenuScreen
@@ -21,10 +21,13 @@ namespace HockeySlam.Class.Screens
 
 		InputAction _upAction;
 		InputAction _downAction;
+		InputAction _deselectAction;
 
 		MenuEntry _blurType;
 		MenuEntry _blur;
 		MenuEntry _iceTransparency;
+
+		Ice _ice;
 
 		public PropertiesMenuScreen(GameManager gameManager)
 			: base("Properties")
@@ -55,6 +58,13 @@ namespace HockeySlam.Class.Screens
 				new Buttons[] { Buttons.DPadDown },
 				new Keys[] { Keys.Left },
 				true);
+
+			_deselectAction = new InputAction(
+				new Buttons[] { Buttons.A },
+				new Keys[] { Keys.Enter },
+				true);
+
+			_ice = (Ice)_gameManager.getGameEntity("ice");
 		}
 
 		void BlurTypeSelected(object sender, PlayerIndexEventArgs e)
@@ -68,14 +78,20 @@ namespace HockeySlam.Class.Screens
 		{
 			if (_menuSelected == (int)MenuSelected.BLUR)
 				_menuSelected = (int)MenuSelected.NONE;
-			else _menuSelected = (int)MenuSelected.BLUR;
+			else {
+				_menuSelected = (int)MenuSelected.BLUR;
+				_blur.Text = "Blur: " + _ice.getBlurAmount();
+			}
 		}
 
 		void TransparacySelected(object sender, PlayerIndexEventArgs e)
 		{
 			if (_menuSelected == (int)MenuSelected.TRANSPARECY)
 				_menuSelected = (int)MenuSelected.NONE;
-			else _menuSelected = (int)MenuSelected.TRANSPARECY;
+			else {
+				_menuSelected = (int)MenuSelected.TRANSPARECY;
+				_iceTransparency.Text = "Ice Transparency: " + _ice.getTransparency();
+			}
 		}
 
 		public override void Update(Microsoft.Xna.Framework.GameTime gameTime, bool otherScreenHasFocus, bool coveredByOtherScreen)
@@ -90,29 +106,45 @@ namespace HockeySlam.Class.Screens
 
 			PlayerIndex player;
 
+			if (_menuSelected == (int)MenuSelected.JUST_CHANGED)
+				_menuSelected = (int)MenuSelected.NONE;
+
 			switch (_menuSelected) {
 				case (int)MenuSelected.BLURTYPE:
-					if (_upAction.Evaluate(input, ControllingPlayer, out player)) {
+					if (_upAction.Evaluate(input, ControllingPlayer, out player))
 						nextBlurType();
-					} else if (_downAction.Evaluate(input, ControllingPlayer, out player)) {
+					else if (_downAction.Evaluate(input, ControllingPlayer, out player))
 						nextBlurType();
-					}
+					else if (_deselectAction.Evaluate(input, ControllingPlayer, out player))
+						_menuSelected = (int)MenuSelected.JUST_CHANGED;
 					break;
 
 				case (int)MenuSelected.BLUR:
-					if (_upAction.Evaluate(input, ControllingPlayer, out player)) {
+					if (_upAction.Evaluate(input, ControllingPlayer, out player))
 						moreBlur();
-					} else if (_downAction.Evaluate(input, ControllingPlayer, out player)) {
+					else if (_downAction.Evaluate(input, ControllingPlayer, out player))
 						lessBlur();
+					else if (_deselectAction.Evaluate(input, ControllingPlayer, out player)) {
+						_blur.Text = "Blur";
+						_menuSelected = (int)MenuSelected.JUST_CHANGED;
 					}
 					break;
 
 				case (int)MenuSelected.TRANSPARECY:
 					if (_upAction.Evaluate(input, ControllingPlayer, out player)) {
 						moreTransparacy();
-					} else if (_downAction.Evaluate(input, ControllingPlayer, out player)) {
-						lessTransparacy();
 					}
+					else if (_downAction.Evaluate(input, ControllingPlayer, out player)) {
+						lessTransparacy();
+					} 
+					else if (_deselectAction.Evaluate(input, ControllingPlayer, out player)) {
+						_iceTransparency.Text = "Ice Transparency";
+						_menuSelected = (int)MenuSelected.JUST_CHANGED;
+					}
+					break;
+
+				case (int)MenuSelected.NONE:
+				default:
 					break;
 			}
 
@@ -122,32 +154,40 @@ namespace HockeySlam.Class.Screens
 
 		private void lessTransparacy()
 		{
-			Ice ice = (Ice)_gameManager.getGameEntity("ice");
-			ice.removeTransparency();
+			float transparency = _ice.removeTransparency();
+
+			_iceTransparency.Text = "Ice Transparency: " + transparency;
 		}
 
 		private void moreTransparacy()
 		{
-			Ice ice = (Ice)_gameManager.getGameEntity("ice");
-			ice.addTransparency();
+			float transparency = _ice.addTransparency();
+
+			_iceTransparency.Text = "Ice Transparency: " + transparency;
 		}
 
 		private void lessBlur()
 		{
-			Ice ice = (Ice)_gameManager.getGameEntity("ice");
-			ice.removeBlur();
+			float blur = _ice.removeBlur();
+
+			_blur.Text = "Blur: " + blur;
 		}
 
 		private void moreBlur()
 		{
-			Ice ice = (Ice)_gameManager.getGameEntity("ice");
-			ice.addBlur();
+			float blur = _ice.addBlur();
+
+			_blur.Text = "Blur: " + blur;
 		}
 
 		private void nextBlurType()
 		{
-			Ice ice = (Ice)_gameManager.getGameEntity("ice");
-			ice.anotherBlurType();
+			int blurType = _ice.anotherBlurType();
+
+			if (blurType == 0)
+				_blurType.Text = "Normal Blur";
+			else if (blurType == 1)
+				_blurType.Text = "Gaussian Blur";
 		}
 
 	}
