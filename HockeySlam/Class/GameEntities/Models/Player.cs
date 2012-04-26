@@ -41,6 +41,7 @@ namespace HockeySlam.Class.GameEntities.Models
 		BoundingSphere upBody;
 		BoundingSphere downBody;
 		GameManager _gameManager;
+		ArrowManager _arrowManager;
 		Vector3 _positionVector;
 		Texture2D _arrow;
 
@@ -50,6 +51,7 @@ namespace HockeySlam.Class.GameEntities.Models
 		VertexBuffer _vertexBuffer;
 		BasicEffect _basicEffect;
 		Disk _disk;
+
 		public float Rotation
 		{
 			get;
@@ -143,12 +145,15 @@ namespace HockeySlam.Class.GameEntities.Models
 			dm.registerDebugEntities(this);
 
 			_disk = ((MultiplayerManager)_gameManager.getGameEntity("multiplayerManager")).getDisk();
+			_arrowManager = (ArrowManager)_gameManager.getGameEntity("arrowManager");
 			base.Initialize();
 		}
 
 		public override void Draw(GameTime gameTime)
 		{
-			isOutOfScreen();
+			if (!isOutOfScreen())
+				_arrowManager.unregister(this);
+
 			Vector3 diffuseColor;
 			diffuseColor = new Vector3(1, 0.25f, 0.25f);
 			//diffuseColor[1] = new Vector3(0.25f, 1, 0.25f);
@@ -478,16 +483,7 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		private void drawLeftTriangle(Vector3 project)
 		{
-			Rectangle src = new Rectangle(0, (int)project.Y, 30, 30);
-
-			SpriteBatch spriteBatch = new SpriteBatch(_game.GraphicsDevice);
-			
-			spriteBatch.Begin(SpriteSortMode.FrontToBack, null);
-			spriteBatch.Draw(_arrow, src, null, Color.White, -MathHelper.PiOver2, Vector2.Zero, SpriteEffects.None, 0);
-			spriteBatch.End();
-
-			_game.GraphicsDevice.BlendState = BlendState.Opaque;
-			_game.GraphicsDevice.DepthStencilState = DepthStencilState.Default;
+			_arrowManager.updatePosition(this, new Vector2(0, project.Y));
 		}
 
 		private void calculateLeftVertex(Vector3 project, out float m, out float b)
