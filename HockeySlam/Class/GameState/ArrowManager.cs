@@ -16,10 +16,11 @@ namespace HockeySlam.Class.GameState
 		Game _game;
 
 		Texture2D _arrow;
-
+		float _rotation;
 		public ArrowManager(Game game)
 		{
 			_game = game;
+			_rotation = MathHelper.PiOver2;
 		}
 
 		public void Update(GameTime gameTime){}
@@ -31,7 +32,7 @@ namespace HockeySlam.Class.GameState
 			spriteBatch.Begin();
 			foreach (KeyValuePair<Player, Vector2> pair in _playerOffScreen) {
 				Rectangle src = new Rectangle((int)pair.Value.X, (int)pair.Value.Y, 30, 30);
-				spriteBatch.Draw(_arrow, src, null, Color.White, -MathHelper.PiOver2, Vector2.Zero, SpriteEffects.None, 0);
+				spriteBatch.Draw(_arrow, src, null, Color.White, -_rotation, Vector2.Zero, SpriteEffects.None, 0);
 			}
 			spriteBatch.End();
 		}
@@ -46,8 +47,9 @@ namespace HockeySlam.Class.GameState
 			_arrow = _game.Content.Load<Texture2D>("Textures/Arrow");
 		}
 
-		public void updatePosition(Player player, Vector2 position)
+		public void updatePosition(Player player, Vector2 position,float rotation)
 		{
+			_rotation = rotation;
 			if(_playerOffScreen.ContainsKey(player))
 				_playerOffScreen[player] = position;
 			else _playerOffScreen.Add(player, position);
