@@ -25,7 +25,7 @@ namespace HockeySlam.Class.GameEntities
 
 		Vector3 _diskPosition;
 		Vector3 _localPlayerPosition;
-
+		Game _game;
 		//Camera matrices
 		public Matrix view
 		{
@@ -43,7 +43,7 @@ namespace HockeySlam.Class.GameEntities
 			_position = pos;
 			_target = target;
 			_up = up;
-
+			_game = game;
 			_localPlayerPosition = target;
 			_diskPosition = target;
 
@@ -53,7 +53,8 @@ namespace HockeySlam.Class.GameEntities
 			    MathHelper.PiOver4,
 			    (float)game.Window.ClientBounds.Width /
 			    (float)game.Window.ClientBounds.Height,
-			    1, 3000);
+			    1, 300);
+
 		}
 
 		public Vector3 getPosition()
@@ -99,7 +100,7 @@ namespace HockeySlam.Class.GameEntities
 
 		public void Update(GameTime gameTime) 
 		{
-			updateTargetAndPosition();
+		//	updateTargetAndPosition();
 			view = Matrix.CreateLookAt(_position, _target, _up);
 		}
 

@@ -15,7 +15,7 @@ using HockeySlam.Interface;
 
 namespace HockeySlam.Class.GameEntities.Models
 {
-	class Disk : BaseModel, IGameEntity, ICollidable, IDebugEntity, IReflectable
+	public class Disk : BaseModel, IGameEntity, ICollidable, IDebugEntity, IReflectable
 	{
 		BoundingSphere _collisionArea;
 		Vector2 _velocity;

@@ -264,5 +264,11 @@ namespace HockeySlam.Class.GameState
 				player.updateCameraPosition();
 			}
 		}
+
+		public Disk getDisk()
+		{
+			return _disk;
+		}
+
 	}
 }
