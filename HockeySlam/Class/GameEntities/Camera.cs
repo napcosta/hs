@@ -100,7 +100,7 @@ namespace HockeySlam.Class.GameEntities
 
 		public void Update(GameTime gameTime) 
 		{
-		//	updateTargetAndPosition();
+			updateTargetAndPosition();
 			view = Matrix.CreateLookAt(_position, _target, _up);
 		}
 

@@ -470,7 +470,20 @@ namespace HockeySlam.Class.GameEntities.Models
 			Vector3 project = _game.GraphicsDevice.Viewport.Project(_positionVector, _camera.projection, _camera.view, Matrix.Identity);
 			//Console.WriteLine(project);
 			if (project.X < 0) {
-				drawLeftTriangle(project);
+				_arrowManager.updatePosition(this, new Vector2(0, project.Y), MathHelper.PiOver2);
+				return true;
+			}
+			if (project.X > _game.GraphicsDevice.Viewport.Width) {
+				Console.WriteLine("NOW!!");
+				_arrowManager.updatePosition(this, new Vector2(_game.GraphicsDevice.Viewport.Width, project.Y), -MathHelper.PiOver2);
+				return true;
+			}
+			if (project.Y < 0) {
+				_arrowManager.updatePosition(this, new Vector2(project.X, 0), 0);
+				return true;
+			}
+			if (project.Y > _game.GraphicsDevice.Viewport.Height) {
+				_arrowManager.updatePosition(this, new Vector2(project.X, _game.GraphicsDevice.Viewport.Height), MathHelper.Pi);
 				return true;
 			}
 			return false;
@@ -479,11 +492,6 @@ namespace HockeySlam.Class.GameEntities.Models
 				if (project.Y < 0 || project.Y > _game.GraphicsDevice.Viewport.Height)
 					return true;
 				return false;*/
-		}
-
-		private void drawLeftTriangle(Vector3 project)
-		{
-			_arrowManager.updatePosition(this, new Vector2(0, project.Y));
 		}
 
 		private void calculateLeftVertex(Vector3 project, out float m, out float b)
