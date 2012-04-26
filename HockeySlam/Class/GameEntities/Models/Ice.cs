@@ -99,40 +99,65 @@ namespace HockeySlam.Class.GameEntities.Models
 			drawWithEffect(gameTime);
 		}
 
-		public void addTransparency()
+		public float addTransparency()
 		{
 			_iceTransparency += 0.1f;
 			if (_iceTransparency > 1)
 				_iceTransparency = 1;
 			_iceEffect.Parameters["iceTransparency"].SetValue(_iceTransparency);
+
+			return _iceTransparency;
 		}
 
-		public void removeTransparency()
+		public float removeTransparency()
 		{
 			_iceTransparency -= 0.1f;
 			if (_iceTransparency < 0)
 				_iceTransparency = 0;
 			_iceEffect.Parameters["iceTransparency"].SetValue(_iceTransparency);
+
+			return _iceTransparency;
 		}
 
-		public void addBlur()
+		public float addBlur()
 		{
 			_blurAmount += 0.001f;
 			_iceEffect.Parameters["blurAmount"].SetValue(_blurAmount);
+
+			return _blurAmount;
 		}
 
-		public void removeBlur()
+		public float removeBlur()
 		{
 			_blurAmount -= 0.001f;
 			if (_blurAmount < 0)
 				_blurAmount = 0;
 			_iceEffect.Parameters["blurAmount"].SetValue(_blurAmount);
+
+			return _blurAmount;
 		}
 
-		public void anotherBlurType()
+		public int anotherBlurType()
 		{
 			_blurType = (_blurType + 1) % 2;
 			_iceEffect.Parameters["blurType"].SetValue(_blurType);
+
+			return _blurType;
+		}
+
+		public int getBlurType()
+		{
+			return _blurType;
+		}
+
+		public float getBlurAmount()
+		{
+			return _blurAmount;
+		}
+
+		public float getTransparency()
+		{
+			return _iceTransparency;
 		}
 	}
 }

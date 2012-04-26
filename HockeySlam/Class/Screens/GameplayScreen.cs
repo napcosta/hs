@@ -27,6 +27,8 @@ namespace HockeySlam.Class.Screens
 
 		NetworkSession _networkSession;
 
+		bool _isPropertiesWindow;
+
 		#endregion
 
 		#region Initialization
@@ -48,6 +50,8 @@ namespace HockeySlam.Class.Screens
 
 			_gameManager = null;
 			_networkSession = networkSession;
+
+			_isPropertiesWindow = false;
 		}
 
 		public void addGameManager()
@@ -82,10 +86,12 @@ namespace HockeySlam.Class.Screens
 			if (_gameManager == null)
 				addGameManager();
 
-			if (coveredByOtherScreen)
-				_pauseAlpha = Math.Min(_pauseAlpha + 1f / 32, 1);
-			else
-				_pauseAlpha = Math.Max(_pauseAlpha - 1f / 32, 0);
+			if (!_isPropertiesWindow) {
+				if (coveredByOtherScreen)
+					_pauseAlpha = Math.Min(_pauseAlpha + 1f / 32, 1);
+				else
+					_pauseAlpha = Math.Max(_pauseAlpha - 1f / 32, 0);
+			} else _pauseAlpha = 0;
 
 			if (IsActive)
 			{
@@ -122,11 +128,13 @@ namespace HockeySlam.Class.Screens
 			PlayerIndex player;
 			if (_pauseAction.Evaluate(input, ControllingPlayer, out player) || gamePadDisconnected) {
 				ScreenManager.AddScreen(new PauseMenuScreen(), ControllingPlayer);
+				_isPropertiesWindow = false;
 				return false;
 			}
 
 			if(_propertiesAction.Evaluate(input, ControllingPlayer, out player)) {
 				ScreenManager.AddScreen(new PropertiesMenuScreen(_gameManager), ControllingPlayer);
+				_isPropertiesWindow = true;
 				return false;
 			}
 
