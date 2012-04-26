@@ -12,6 +12,10 @@ texture IceSurfaceSnow;
 float3 BaseColor = float3(0.2, 0.2, 0.8);
 float BaseColorAmount = 0.3;
 
+int blurType;
+float blurAmount;
+float iceTransparency;
+
 float3 LightDirection = float3(1,1,1);
 
 sampler2D reflectionSampler = sampler_state {
@@ -77,32 +81,59 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 {
 	float2 reflectionUV = postProjToScreen(input.ReflectionPosition) + halfPixel();
+	float4 reflection;
 
-	float4 reflection = tex2D(reflectionSampler, reflectionUV);
-	reflection += tex2D(reflectionSampler, reflectionUV+0.001);
-	reflection += tex2D(reflectionSampler, reflectionUV-0.001);
-	float2 reflectionUVx = reflectionUV;
-	reflectionUVx.x += 0.001;
-	reflection += tex2D(reflectionSampler, reflectionUVx);
-	reflectionUVx.x -= 0.002;
-	reflection += tex2D(reflectionSampler, reflectionUVx);
-	float2 reflectionUVy = reflectionUV;
-	reflectionUVy.y += 0.001;
-	reflection += tex2D(reflectionSampler, reflectionUVy);
-	reflectionUVy.y -= 0.002;
-	reflection += tex2D(reflectionSampler, reflectionUVy);
-	reflectionUVy.y += 0.002;
-	reflectionUVy.x -= 0.001;
-	reflection += tex2D(reflectionSampler, reflectionUVy);
-	reflectionUVx.x += 0.002;
-	reflectionUVx.y -= 0.001;
-	reflection += tex2D(reflectionSampler, reflectionUVx);
+	if (blurType == 0) {
+
+		reflection = tex2D(reflectionSampler, reflectionUV);
+		reflection += tex2D(reflectionSampler, reflectionUV+blurAmount);
+		reflection += tex2D(reflectionSampler, reflectionUV-blurAmount);
+		float2 reflectionUVx = reflectionUV;
+		reflectionUVx.x += blurAmount;
+		reflection += tex2D(reflectionSampler, reflectionUVx);
+		reflectionUVx.x -= 2*blurAmount;
+		reflection += tex2D(reflectionSampler, reflectionUVx);
+		float2 reflectionUVy = reflectionUV;
+		reflectionUVy.y += blurAmount;
+		reflection += tex2D(reflectionSampler, reflectionUVy);
+		reflectionUVy.y -= 2*blurAmount;
+		reflection += tex2D(reflectionSampler, reflectionUVy);
+		reflectionUVy.y += 2*blurAmount;
+		reflectionUVy.x -= blurAmount;
+		reflection += tex2D(reflectionSampler, reflectionUVy);
+		reflectionUVx.x += 2*blurAmount;
+		reflectionUVx.y -= blurAmount;
+		reflection += tex2D(reflectionSampler, reflectionUVx);
+
+	} else if (blurType == 1) {
+
+		reflection = 4*tex2D(reflectionSampler, reflectionUV);
+		reflection += tex2D(reflectionSampler, reflectionUV+blurAmount);
+		reflection += tex2D(reflectionSampler, reflectionUV-blurAmount);
+		float2 reflectionUVx = reflectionUV;
+		reflectionUVx.x += blurAmount;
+		reflection += 2*tex2D(reflectionSampler, reflectionUVx);
+		reflectionUVx.x -= 2*blurAmount;
+		reflection += 2*tex2D(reflectionSampler, reflectionUVx);
+		float2 reflectionUVy = reflectionUV;
+		reflectionUVy.y += blurAmount;
+		reflection += 2*tex2D(reflectionSampler, reflectionUVy);
+		reflectionUVy.y -= 2*blurAmount;
+		reflection += 2*tex2D(reflectionSampler, reflectionUVy);
+		reflectionUVy.y += 2*blurAmount;
+		reflectionUVy.x -= blurAmount;
+		reflection += tex2D(reflectionSampler, reflectionUVy);
+		reflectionUVx.x += 2*blurAmount;
+		reflectionUVx.y -= blurAmount;
+		reflection += tex2D(reflectionSampler, reflectionUVx);
+
+	}
 
 	reflection = reflection/9;
 
 	float4 snow = tex2D(iceSurfaceSnowSampler, input.UV);
 	float4 ice = tex2D(iceSurfaceTextureSampler, input.UV);
-	reflection = reflection*0.2 + ice*0.8;
+	reflection = reflection*(1-iceTransparency) + ice*iceTransparency;
 	reflection = float4(0.3,0.3,0.9,1.0)*0.2 + reflection*0.8;
 
 	//reflection = snow*snow.a + reflection*(1-snow.a);

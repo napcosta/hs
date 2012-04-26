@@ -379,7 +379,7 @@ namespace HockeySlam.Class.GameEntities.Models
 			CollisionManager cm = (CollisionManager)_gameManager.getGameEntity("collisionManager");
 			List<ICollidable> collidedWith = cm.verifyCollision(this);
 
-			if (collidedWith.Count != 0 && (_positionOfCollision != _positionVector || _rotationOfCollision != Rotation)) {
+			if (collidedWith.Count != 0 && (_positionOfCollision != _positionVector)) {
 				foreach(ICollidable collided in collidedWith)
 					VerifyDiskCollision(collided);
 				_positionOfCollision = _positionVector;
@@ -390,7 +390,7 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		private void VerifyDiskCollision(ICollidable collided)
 		{
-			int rotationStrength = 7;
+			int rotationStrength = 15;
 			if (collided is Disk) {
 				Disk disk = (Disk)collided;
 				disk.AddVelocity(_velocity);

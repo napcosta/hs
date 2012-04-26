@@ -23,6 +23,7 @@ namespace HockeySlam.Class.Screens
 		float _pauseAlpha;
 
 		InputAction _pauseAction;
+		InputAction _propertiesAction;
 
 		NetworkSession _networkSession;
 
@@ -38,6 +39,11 @@ namespace HockeySlam.Class.Screens
 			_pauseAction = new InputAction(
 				new Buttons[] { Buttons.Start, Buttons.Back },
 				new Keys[] { Keys.Escape },
+				true);
+
+			_propertiesAction = new InputAction(
+				new Buttons[] { Buttons.Y },
+				new Keys[] { Keys.F1 },
 				true);
 
 			_gameManager = null;
@@ -116,6 +122,11 @@ namespace HockeySlam.Class.Screens
 			PlayerIndex player;
 			if (_pauseAction.Evaluate(input, ControllingPlayer, out player) || gamePadDisconnected) {
 				ScreenManager.AddScreen(new PauseMenuScreen(), ControllingPlayer);
+				return false;
+			}
+
+			if(_propertiesAction.Evaluate(input, ControllingPlayer, out player)) {
+				ScreenManager.AddScreen(new PropertiesMenuScreen(_gameManager), ControllingPlayer);
 				return false;
 			}
 

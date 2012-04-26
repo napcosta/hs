@@ -10,7 +10,7 @@ using HockeySlam.Class.GameEntities.Models;
 using HockeySlam.Class.GameState;
 using HockeySlam.Interface;
 
-namespace HockeySlam.Class.GameEntities
+namespace HockeySlam.Class.GameEntities.Models
 {
 	class Ice : BaseModel, IGameEntity
 	{
@@ -23,6 +23,10 @@ namespace HockeySlam.Class.GameEntities
 		public List<IReflectable> _reflectedObjects = new List<IReflectable>();
 
 		GameManager _gameManager;
+
+		float _iceTransparency;
+		float _blurAmount;
+		int _blurType;
 
 		public Ice(Game game, Camera camera, GameManager gameManager)
 			: base(game, camera)
@@ -43,6 +47,15 @@ namespace HockeySlam.Class.GameEntities
 			SetModelEffect(_iceEffect, false);
 			_iceEffect.Parameters["viewportWidth"].SetValue(_graphics.Viewport.Width);
 			_iceEffect.Parameters["viewportHeight"].SetValue(_graphics.Viewport.Height);
+
+			_blurType = 0;
+			_blurAmount = 0.001f;
+			_iceTransparency = 0.8f;
+
+			_iceEffect.Parameters["blurType"].SetValue(_blurType);
+			_iceEffect.Parameters["blurAmount"].SetValue(_blurAmount);
+			_iceEffect.Parameters["iceTransparency"].SetValue(_iceTransparency);
+
 		}
 
 		public void renderReflection(GameTime gameTime)
@@ -84,6 +97,42 @@ namespace HockeySlam.Class.GameEntities
 		public override void Draw(GameTime gameTime)
 		{
 			drawWithEffect(gameTime);
+		}
+
+		public void addTransparency()
+		{
+			_iceTransparency += 0.1f;
+			if (_iceTransparency > 1)
+				_iceTransparency = 1;
+			_iceEffect.Parameters["iceTransparency"].SetValue(_iceTransparency);
+		}
+
+		public void removeTransparency()
+		{
+			_iceTransparency -= 0.1f;
+			if (_iceTransparency < 0)
+				_iceTransparency = 0;
+			_iceEffect.Parameters["iceTransparency"].SetValue(_iceTransparency);
+		}
+
+		public void addBlur()
+		{
+			_blurAmount += 0.001f;
+			_iceEffect.Parameters["blurAmount"].SetValue(_blurAmount);
+		}
+
+		public void removeBlur()
+		{
+			_blurAmount -= 0.001f;
+			if (_blurAmount < 0)
+				_blurAmount = 0;
+			_iceEffect.Parameters["blurAmount"].SetValue(_blurAmount);
+		}
+
+		public void anotherBlurType()
+		{
+			_blurType = (_blurType + 1) % 2;
+			_iceEffect.Parameters["blurType"].SetValue(_blurType);
 		}
 	}
 }
