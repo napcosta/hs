@@ -42,7 +42,7 @@ namespace HockeySlam.Class.GameState
 			AddEntity("camera", camera);
 			AddEntity("debugManager", new DebugManager());
 			AddEntity("collisionManager", new CollisionManager());
-			AddEntity("court", new Court(_game, camera, this));
+			//AddEntity("court", new Court(_game, camera, this));
 			AddEntity("atmosphere", new Atmosphere(_game, camera));
 			if (_networkSession != null) {
 				AddEntity("multiplayerManager", new MultiplayerManager(_game, camera, this, _networkSession));
@@ -79,7 +79,7 @@ namespace HockeySlam.Class.GameState
 		void CreateAllPlayers(Camera camera)
 		{
 			foreach (NetworkGamer gamer in _networkSession.AllGamers) {
-				Player newPlayer = new Player(this, _game, camera, true);
+				Player newPlayer = new Player(this, _game, camera);
 				newPlayer.Initialize();
 				newPlayer.LoadContent();
 

@@ -27,7 +27,7 @@ namespace HockeySlam.Class.GameEntities.Models
 		Vector3 lastPositionVector;
 		Vector3 lastPosition;
 		Vector3 _positionOfCollision;
-		
+
 		float tempRotation;
 		float lastTempRotation;
 		float _rotation;
@@ -35,24 +35,27 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		List<Boolean> arrowKeysPressed;
 		List<Keys> lastArrowKeysPressed;
-		
-		Game game;
-		Camera camera;
+
 		BoundingSphere stick;
 		Effect effect;
 		BoundingSphere upBody;
 		BoundingSphere downBody;
 		GameManager _gameManager;
 		Vector3 _positionVector;
+		Texture2D _arrow;
 
 		Matrix _scale;
 
+		VertexPositionColor[] _verts;
+		VertexBuffer _vertexBuffer;
+		BasicEffect _basicEffect;
+		Disk _disk;
 		public float Rotation
 		{
 			get;
 			set;
 		}
-		
+
 		/* RotationInput and PositionInput are two parameters 
 		 * that will be set by the MultiplayerManager */
 		public Vector4 RotationInput
@@ -69,16 +72,13 @@ namespace HockeySlam.Class.GameEntities.Models
 		/***************************************************/
 
 
-		bool _isRemote;
 		#endregion
 
-		public Player(GameManager gameManager, Game game, Camera camera, bool isRemote) : base(game, camera)
+		public Player(GameManager gameManager, Game game, Camera camera)
+			: base(game, camera)
 		{
 			_model = game.Content.Load<Model>(@"Models\player");
-			this.game = game;
-			this.camera = camera;
 			_gameManager = gameManager;
-			_isRemote = isRemote;
 		}
 
 		public Vector3 getPositionVector()
@@ -93,12 +93,22 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		public override void LoadContent()
 		{
-			effect = game.Content.Load<Effect>(@"Effects\SimpleEffect");
+			effect = _game.Content.Load<Effect>(@"Effects\SimpleEffect");
+			_verts = new VertexPositionColor[3];
+			_verts[0] = new VertexPositionColor(new Vector3(0, 0.8f, -10), Color.Blue);
+			_verts[1] = new VertexPositionColor(new Vector3(10, 0.8f, -10), Color.Red);
+			_verts[2] = new VertexPositionColor(new Vector3(5, 0.8f, 10), Color.Green);
+			_vertexBuffer = new VertexBuffer(_game.GraphicsDevice, typeof(VertexPositionColor),
+				_verts.Length, BufferUsage.None);
+			_vertexBuffer.SetData(_verts);
+			_basicEffect = new BasicEffect(_game.GraphicsDevice);
+
+			_arrow = _game.Content.Load<Texture2D>("Textures/Arrow");
 			base.LoadContent();
 		}
-		
+
 		public override void Initialize()
-		{	
+		{
 			// TODO: Add your initialization code here
 			tempRotation = 0;
 			lastTempRotation = tempRotation;
@@ -116,7 +126,7 @@ namespace HockeySlam.Class.GameEntities.Models
 			world = world * _scale * pos;
 
 			arrowKeysPressed = new List<Boolean>();
-			for(int i = 0; i < 4; i++)
+			for (int i = 0; i < 4; i++)
 				arrowKeysPressed.Add(false);
 			lastArrowKeysPressed = new List<Keys>();
 
@@ -132,11 +142,13 @@ namespace HockeySlam.Class.GameEntities.Models
 			cm.register(this);
 			dm.registerDebugEntities(this);
 
+			_disk = ((MultiplayerManager)_gameManager.getGameEntity("multiplayerManager")).getDisk();
 			base.Initialize();
 		}
 
 		public override void Draw(GameTime gameTime)
 		{
+			isOutOfScreen();
 			Vector3 diffuseColor;
 			diffuseColor = new Vector3(1, 0.25f, 0.25f);
 			//diffuseColor[1] = new Vector3(0.25f, 1, 0.25f);
@@ -144,7 +156,6 @@ namespace HockeySlam.Class.GameEntities.Models
 			//diffuseColor[3] = new Vector3(0.5f, 0.5f, 0.5f);
 			updateMeshWorld(gameTime);
 			base.DrawEffect(effect, diffuseColor);
-			//base.Draw(gameTime);
 		}
 
 		public override void Update(GameTime gameTime)
@@ -155,11 +166,11 @@ namespace HockeySlam.Class.GameEntities.Models
 			float lastRotation = Rotation;
 #if WINDOWS
 			KeyboardState currentKeyboardState = Keyboard.GetState();
-			
+
 
 			UpdatePosition();
 			UpdateRotation();
-
+			isOutOfScreen();
 #else
             GamePadState currentGamePadState = GamePad.GetState(PlayerIndex.One);
             Vector2 leftThumStick = currentGamePadState.ThumbSticks.Left;
@@ -246,7 +257,8 @@ namespace HockeySlam.Class.GameEntities.Models
 				  ((Rotation >= MathHelper.Pi && Rotation <= 2 * MathHelper.Pi) ||
 				  (Rotation <= 0 && Rotation >= -MathHelper.Pi))) {
 				_rotation = 0.1f;
-			} else _rotation = 0.0f;
+			} else
+				_rotation = 0.0f;
 			//Console.WriteLine("RotationInput -> " + RotationInput + " Rotation -> " + _rotation);
 		}
 
@@ -281,7 +293,7 @@ namespace HockeySlam.Class.GameEntities.Models
 			if (_velocity.Y >= -0.3f && _velocity.Y <= 0.3f)
 				_velocity.Y = 0;
 
-			Console.WriteLine(_velocity);
+			//Console.WriteLine(_velocity);
 
 		}
 
@@ -305,11 +317,11 @@ namespace HockeySlam.Class.GameEntities.Models
 			if (temp < RotationInput.W) {
 				temp = RotationInput.W;
 				indexTemp = KeyboardKey.RIGHT;
-			}	
+			}
 			return indexTemp;
 		}
 
-		private void updateMeshWorld(GameTime gameTime) 
+		private void updateMeshWorld(GameTime gameTime)
 		{
 			Matrix oldWorld = world;
 			world = Matrix.Identity;
@@ -380,7 +392,7 @@ namespace HockeySlam.Class.GameEntities.Models
 			List<ICollidable> collidedWith = cm.verifyCollision(this);
 
 			if (collidedWith.Count != 0 && (_positionOfCollision != _positionVector)) {
-				foreach(ICollidable collided in collidedWith)
+				foreach (ICollidable collided in collidedWith)
 					VerifyDiskCollision(collided);
 				_positionOfCollision = _positionVector;
 				if (_rotation != 0)
@@ -402,13 +414,14 @@ namespace HockeySlam.Class.GameEntities.Models
 					disk.AddRotationVelocity(new Vector2(rotationStrength, rotationStrength) * goVelocity);
 				}
 			}
+
 		}
 
 		public void DrawDebug()
 		{
-			BoundingSphereRender.Render(stick, game.GraphicsDevice, camera.view, camera.projection, Color.Brown);
-			BoundingSphereRender.Render(upBody, game.GraphicsDevice, camera.view, camera.projection, Color.Brown);
-			BoundingSphereRender.Render(downBody, game.GraphicsDevice, camera.view, camera.projection, Color.Brown);
+			BoundingSphereRender.Render(stick, _game.GraphicsDevice, _camera.view, _camera.projection, Color.Brown);
+			BoundingSphereRender.Render(upBody, _game.GraphicsDevice, _camera.view, _camera.projection, Color.Brown);
+			BoundingSphereRender.Render(downBody, _game.GraphicsDevice, _camera.view, _camera.projection, Color.Brown);
 		}
 
 		void IReflectable.Draw(GameTime gameTime, Camera camera)
@@ -432,7 +445,7 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		public Vector2 getVelocity()
 		{
-			if(_velocity != null)
+			if (_velocity != null)
 				return _velocity;
 			return Vector2.Zero;
 		}
@@ -445,6 +458,46 @@ namespace HockeySlam.Class.GameEntities.Models
 		public void updateCameraPosition()
 		{
 			_camera.updateLocalPlayerPosition(_positionVector);
+		}
+
+		private bool isOutOfScreen()
+		{
+			Vector3 project = _game.GraphicsDevice.Viewport.Project(_positionVector, _camera.projection, _camera.view, Matrix.Identity);
+			//Console.WriteLine(project);
+			if (project.X < 0) {
+				drawLeftTriangle(project);
+				return true;
+			}
+			return false;
+			/*	if(project.X > _game.GraphicsDevice.Viewport.Width)
+					return true;
+				if (project.Y < 0 || project.Y > _game.GraphicsDevice.Viewport.Height)
+					return true;
+				return false;*/
+		}
+
+		private void drawLeftTriangle(Vector3 project)
+		{
+			Rectangle src = new Rectangle(0, (int)project.Y, 30, 30);
+
+			SpriteBatch spriteBatch = new SpriteBatch(_game.GraphicsDevice);
+			
+			spriteBatch.Begin(SpriteSortMode.FrontToBack, null);
+			spriteBatch.Draw(_arrow, src, null, Color.White, -MathHelper.PiOver2, Vector2.Zero, SpriteEffects.None, 0);
+			spriteBatch.End();
+
+			_game.GraphicsDevice.BlendState = BlendState.Opaque;
+			_game.GraphicsDevice.DepthStencilState = DepthStencilState.Default;
+		}
+
+		private void calculateLeftVertex(Vector3 project, out float m, out float b)
+		{
+			//float m;
+			//float b;
+			Vector3 diskScreenCoord = _game.GraphicsDevice.Viewport.Project(_disk.getPosition(), _camera.projection, _camera.view, Matrix.Identity);
+			m = (diskScreenCoord.Y - project.Y) / (diskScreenCoord.Y + project.Y);
+			b = project.Y - m * project.X;
+			//return b;
 		}
 	}
 }
