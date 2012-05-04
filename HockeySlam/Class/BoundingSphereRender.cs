@@ -14,6 +14,20 @@ namespace HockeySlam
 {
 	class BoundingSphereRender
 	{
+		public struct VertexPositionColorNormal
+		{
+			public Vector3 Position;
+			public Color Color;
+			public Vector3 Normal;
+
+			public readonly static VertexDeclaration VertexDeclaration = new VertexDeclaration
+			(
+				new VertexElement(0, VertexElementFormat.Vector3, VertexElementUsage.Position, 0),
+				new VertexElement(sizeof(float) * 3, VertexElementFormat.Color, VertexElementUsage.Color, 0),
+				new VertexElement(sizeof(float) * 3 + 4, VertexElementFormat.Vector3, VertexElementUsage.Normal, 0)
+			);
+		}
+
 		static VertexBuffer vertBuffer;
 		static BasicEffect effect;
 		static int sphereResolution;
@@ -200,5 +214,141 @@ namespace HockeySlam
 			}
 
 		}
+
+		public static void Render(BoundingBox box, GraphicsDevice graphicsDevice, Matrix view, Matrix projection, Color color)
+		{
+			VertexPositionColorNormal[] boxVertices = new VertexPositionColorNormal[8];
+			Vector3[] corners  = box.GetCorners();
+
+			for (int i = 0; i < 8; i++) {
+				boxVertices[i].Position = corners[i];
+				boxVertices[i].Color = Color.White;
+				boxVertices[i].Normal = Vector3.Up;
+			}
+
+			/*
+			Vector3 vert0 = box.Min;
+			Vector3 vert1 = new Vector3(box.Max.X, box.Min.Y, box.Min.Z);
+			Vector3 vert2 = new Vector3(box.Max.X, box.Min.Y, box.Max.Z);
+			Vector3 vert3 = new Vector3(box.Min.X, box.Min.Y, box.Max.Z);
+			Vector3 vert4 = new Vector3(box.Min.X, box.Max.Y, box.Max.Z);
+			Vector3 vert5 = box.Max;
+			Vector3 vert6 = new Vector3(box.Max.X, box.Max.Y, box.Min.Z);
+			Vector3 vert7 = new Vector3(box.Min.X, box.Max.Y, box.Min.Z);
+
+			//front face
+			boxVertices[0] = new VertexPositionColorNormal();
+			boxVertices[0].Position = vert0;
+			boxVertices[0].Color = color;
+			boxVertices[0].Normal = Vector3.Backward;
+			boxVertices[1] = new VertexPositionColorNormal();
+			boxVertices[1].Position = vert1;
+			boxVertices[1].Color = color;
+			boxVertices[1].Normal = Vector3.Backward;
+			boxVertices[2] = new VertexPositionColorNormal();
+			boxVertices[2].Position = vert6;
+			boxVertices[2].Color = color;
+			boxVertices[2].Normal = Vector3.Backward;
+			boxVertices[3] = new VertexPositionColorNormal();
+			boxVertices[3].Position = vert7;
+			boxVertices[3].Color = color;
+			boxVertices[3].Normal = Vector3.Backward;
+
+			//left face
+			boxVertices[4] = new VertexPositionColorNormal();
+			boxVertices[4].Position = vert3;
+			boxVertices[4].Color = color;
+			boxVertices[4].Normal = Vector3.Left;
+			boxVertices[5] = new VertexPositionColorNormal();
+			boxVertices[5].Position = vert0;
+			boxVertices[5].Color = color;
+			boxVertices[5].Normal = Vector3.Left;
+			boxVertices[6] = new VertexPositionColorNormal();
+			boxVertices[6].Position = vert7;
+			boxVertices[6].Color = color;
+			boxVertices[6].Normal = Vector3.Left;
+			boxVertices[7] = new VertexPositionColorNormal();
+			boxVertices[7].Position = vert4;
+			boxVertices[7].Color = color;
+			boxVertices[7].Normal = Vector3.Left;
+
+			//back face
+			boxVertices[8] = new VertexPositionColorNormal();
+			boxVertices[8].Position = vert2;
+			boxVertices[8].Color = color;
+			boxVertices[8].Normal = Vector3.Forward;
+			boxVertices[9] = new VertexPositionColorNormal();
+			boxVertices[9].Position = vert3;
+			boxVertices[9].Color = color;
+			boxVertices[9].Normal = Vector3.Forward;
+			boxVertices[10] = new VertexPositionColorNormal();
+			boxVertices[10].Position = vert4;
+			boxVertices[10].Color = color;
+			boxVertices[10].Normal = Vector3.Forward;
+			boxVertices[11] = new VertexPositionColorNormal();
+			boxVertices[11].Position = vert5;
+			boxVertices[11].Color = color;
+			boxVertices[11].Normal = Vector3.Forward;
+
+			//right face
+			boxVertices[12] = new VertexPositionColorNormal();
+			boxVertices[12].Position = vert1;
+			boxVertices[12].Color = color;
+			boxVertices[12].Normal = Vector3.Right;
+			boxVertices[13] = new VertexPositionColorNormal();
+			boxVertices[13].Position = vert3;
+			boxVertices[13].Color = color;
+			boxVertices[13].Normal = Vector3.Right;
+			boxVertices[14] = new VertexPositionColorNormal();
+			boxVertices[14].Position = vert5;
+			boxVertices[14].Color = color;
+			boxVertices[14].Normal = Vector3.Right;
+			boxVertices[15] = new VertexPositionColorNormal();
+			boxVertices[15].Position = vert6;
+			boxVertices[15].Color = color;
+			boxVertices[15].Normal = Vector3.Right;*/
+
+			short[] boxLines = new short[] {
+				0, 1, 
+				1, 2,   
+				2, 3,  
+				3, 0,  
+				0, 4,  
+				1, 5,  
+				2, 6,  
+				3, 7,  
+				4, 5,  
+				5, 6,  
+				6, 7,  
+				7, 4 
+			};
+
+			VertexBuffer buffer = new VertexBuffer(
+				graphicsDevice, 
+				VertexPositionColorNormal.VertexDeclaration, 
+				boxVertices.Length, 
+				BufferUsage.WriteOnly);
+
+			buffer.SetData(boxVertices);
+
+			IndexBuffer indexBuffer = new IndexBuffer(graphicsDevice, typeof(short), boxLines.Length, BufferUsage.WriteOnly);
+
+			indexBuffer.SetData(boxLines);
+
+			graphicsDevice.Indices = indexBuffer;
+			graphicsDevice.SetVertexBuffer(buffer);
+
+			effect.World = Matrix.Identity;
+			effect.View = view;
+			effect.Projection = projection;
+			effect.DiffuseColor = color.ToVector3();
+
+			foreach (EffectPass pass in effect.CurrentTechnique.Passes) {
+				pass.Apply();
+				graphicsDevice.DrawIndexedPrimitives(PrimitiveType.LineList, 0, 0, boxVertices.Length, 0, boxLines.Length / 2);
+			}
+			
+		}
+
 	}
 }

@@ -217,7 +217,7 @@ namespace HockeySlam.Class.GameEntities.Models
 
 			Rotation = (Rotation + _rotation) % MathHelper.TwoPi;
 			updatePositionVector(gameTime, normalizedVelocity, lastRotation, time);
-			updateBoundingSpheres(gameTime, lastRotation, time);
+			updateBoundings(gameTime, lastRotation, time);
 		}
 
 		private void UpdateRotation()
@@ -348,7 +348,7 @@ namespace HockeySlam.Class.GameEntities.Models
 			}
 		}
 
-		private void updateBoundingSpheres(GameTime gameTime, float lastRotation, float time)
+		private void updateBoundings(GameTime gameTime, float lastRotation, float time)
 		{
 			float upBodyY = upBody.Center.Y;
 			float downBodyY = downBody.Center.Y;
@@ -377,8 +377,10 @@ namespace HockeySlam.Class.GameEntities.Models
 			return bs;
 		}
 
-		public bool collisionOccured(List<BoundingSphere> bss)
+		public Boolean collisionOccured(ICollidable collideObject)
 		{
+			List<BoundingSphere> bss = collideObject.getBoundingSpheres();
+
 			foreach (BoundingSphere bs in bss) {
 				if (bs.Intersects(stick))
 					return true;
@@ -419,7 +421,6 @@ namespace HockeySlam.Class.GameEntities.Models
 					disk.AddRotationVelocity(new Vector2(rotationStrength, rotationStrength) * goVelocity);
 				}
 			}
-
 		}
 
 		public void DrawDebug()
@@ -502,6 +503,16 @@ namespace HockeySlam.Class.GameEntities.Models
 			m = (diskScreenCoord.Y - project.Y) / (diskScreenCoord.Y + project.Y);
 			b = project.Y - m * project.X;
 			//return b;
+		}
+
+		public List<BoundingBox> getBoundingBoxes()
+		{
+			return null;
+		}
+
+		public void bounce(Vector2 newVelocity)
+		{
+			_velocity = newVelocity;
 		}
 	}
 }

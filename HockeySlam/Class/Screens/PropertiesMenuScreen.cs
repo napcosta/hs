@@ -10,7 +10,7 @@ using HockeySlam.Class.GameEntities.Models;
 
 namespace HockeySlam.Class.Screens
 {
-	enum MenuSelected {NONE, JUST_CHANGED, BLURTYPE, BLUR, TRANSPARECY};
+	enum MenuSelected { NONE, JUST_CHANGED, BLURTYPE, BLUR, TRANSPARECY }
 	enum BlurType { NORMAL, GAUSSION }
 
 	class PropertiesMenuScreen : MenuScreen

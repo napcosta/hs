@@ -6,10 +6,13 @@ using Microsoft.Xna.Framework;
 
 namespace HockeySlam.Interface
 {
-	interface ICollidable
+	public interface ICollidable
 	{
 		List<BoundingSphere> getBoundingSpheres();
-		Boolean collisionOccured(List<BoundingSphere> area);
+		List<BoundingBox> getBoundingBoxes();
+		Boolean collisionOccured(ICollidable collideObject);
 		void notify();
+		void bounce(Vector2 newVelocity);
+		Vector2 getVelocity();
 	}
 }
