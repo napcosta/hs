@@ -35,8 +35,10 @@ namespace HockeySlam.Class.GameState
 			List<ICollidable> collidedWith = new List<ICollidable>();
 			foreach (ICollidable collidableObject in collidableObjects)
 			{
-				if (collidableObject != collidable && collidableObject.collisionOccured(collidable.getBoundingSpheres()))
+				if (collidableObject != collidable && collidableObject.collisionOccured(collidable)) {
 					collidedWith.Add(collidableObject);
+					Console.WriteLine("Collision");
+				}
 			}
 
 			return collidedWith;

@@ -10,11 +10,16 @@ using HockeySlam.Interface;
 
 namespace HockeySlam.Class.GameEntities.Models
 {
-	class Court : BaseModel, IReflectable
+	class Court : BaseModel, IReflectable, IDebugEntity, ICollidable
 	{
 		Matrix rotation = Matrix.Identity;
 		Effect _effect;
 		GameManager _gameManager;
+
+		BoundingBox _leftBox;
+		BoundingBox _rightBox;
+		BoundingBox _frontBox;
+		BoundingBox _backBox;
 
 		public Court(Game game, Camera camera, GameManager gameManager)
 			: base(game, camera)
@@ -31,8 +36,20 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		public override void Initialize()
 		{
+			_leftBox = new BoundingBox(new Vector3(-41, 0, 55), new Vector3(41, 10, 65));
+			_backBox = new BoundingBox(new Vector3(-41, 0,-65), new Vector3(-51, 10, 65));
+			_rightBox = new BoundingBox(new Vector3(-41, 0, -55), new Vector3(41, 10, -65));
+			_frontBox = new BoundingBox(new Vector3(41, 0, -65), new Vector3(51, 10, 65));
+
 			Ice ice = (Ice)_gameManager.getGameEntity("ice");
 			ice.register(this);
+
+			DebugManager dm = (DebugManager)_gameManager.getGameEntity("debugManager");
+			dm.registerDebugEntities(this);
+
+			CollisionManager cm = (CollisionManager)_gameManager.getGameEntity("collisionManager");
+			cm.register(this);
+
 			base.Initialize();
 		}
 
@@ -60,6 +77,74 @@ namespace HockeySlam.Class.GameEntities.Models
 		void IReflectable.setClipPlane(Vector4? plane)
 		{
 			
+		}
+
+		public void DrawDebug()
+		{
+			BoundingSphereRender.Render(_leftBox, _game.GraphicsDevice, _camera.view, _camera.projection, Color.Yellow);
+			BoundingSphereRender.Render(_backBox, _game.GraphicsDevice, _camera.view, _camera.projection, Color.Yellow);
+			BoundingSphereRender.Render(_rightBox, _game.GraphicsDevice, _camera.view, _camera.projection, Color.Yellow);
+			BoundingSphereRender.Render(_frontBox, _game.GraphicsDevice, _camera.view, _camera.projection, Color.Yellow);
+		}
+
+		public void notify()
+		{
+			
+		}
+
+
+		public bool collisionOccured(ICollidable collideObject)
+		{
+			List<BoundingSphere> bs = collideObject.getBoundingSpheres();
+			foreach (BoundingSphere sphere in bs) {
+				if (_leftBox.Intersects(sphere)) {
+					Vector2 bounceVelocity = collideObject.getVelocity();
+					bounceVelocity.X *= -1;
+					collideObject.bounce(bounceVelocity);
+					return true;
+				}
+				if (_rightBox.Intersects(sphere)) {
+					Vector2 bounceVelocity = collideObject.getVelocity();
+					bounceVelocity.X *= -1;
+					collideObject.bounce(bounceVelocity);
+					return true;
+				}
+				if (_backBox.Intersects(sphere)) {
+					Vector2 bounceVelocity = collideObject.getVelocity();
+					bounceVelocity.Y *= -1;
+					collideObject.bounce(bounceVelocity);
+					return true;
+				}
+				if (_frontBox.Intersects(sphere)) {
+					Vector2 bounceVelocity = collideObject.getVelocity();
+					bounceVelocity.Y *= -1;
+					collideObject.bounce(bounceVelocity);
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		public List<BoundingBox> getBoundingBoxes()
+		{
+			List<BoundingBox> boundingBoxes = new List<BoundingBox>();
+
+			boundingBoxes.Add(_leftBox);
+
+			return boundingBoxes;
+		}
+
+		public List<BoundingSphere> getBoundingSpheres()
+		{
+			return null;
+		}
+
+		public void bounce(Vector2 newVelocity) { }
+
+		public Vector2 getVelocity()
+		{
+			return Vector2.Zero;
 		}
 	}
 }

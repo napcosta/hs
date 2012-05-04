@@ -71,20 +71,10 @@ namespace HockeySlam.Class.GameEntities.Models
 			return bs;
 		}
 
-		public bool collisionOccured(List<BoundingSphere> bss)
-		{
-			foreach (BoundingSphere bs in bss) {
-				if(bs.Intersects(_collisionArea))
-					return true;
-			}
-			return false;
-		}
-
 		public void notify()
 		{
-			//CollisionManager cm = (CollisionManager)gameManager.getGameEntity("collisionManager");
-			//if (cm.verifyCollision(this))
-			//    Console.WriteLine("CollisionOcurred");
+			CollisionManager cm = (CollisionManager)_gameManager.getGameEntity("collisionManager");
+			List<ICollidable> collided = cm.verifyCollision(this);
 		}
 
 		public void DrawDebug()
@@ -135,7 +125,7 @@ namespace HockeySlam.Class.GameEntities.Models
 
 			_collisionArea.Center.X = _position.X;
 			_collisionArea.Center.Z = _position.Z;
-
+			notify();
 			base.Update(gameTime);
 		}
 
@@ -208,6 +198,33 @@ namespace HockeySlam.Class.GameEntities.Models
 		public void setPosition(Vector3 pos)
 		{
 			_position = pos;
+		}
+
+
+		public List<BoundingBox> getBoundingBoxes()
+		{
+			return null;
+		}
+
+		public Boolean collisionOccured(ICollidable collideObject)
+		{
+			List<BoundingSphere> bss = collideObject.getBoundingSpheres();
+
+			foreach (BoundingSphere bs in bss) {
+				if (bs.Intersects(_collisionArea))
+					return true;
+			}
+			return false;
+		}
+
+		public void bounce(Vector2 newVelocity)
+		{
+			_velocity = newVelocity;
+		}
+
+		public Vector2 getVelocity()
+		{
+			return _velocity;
 		}
 	}
 }

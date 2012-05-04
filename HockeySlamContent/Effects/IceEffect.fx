@@ -104,6 +104,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 		reflectionUVx.x += 2*blurAmount;
 		reflectionUVx.y -= blurAmount;
 		reflection += tex2D(reflectionSampler, reflectionUVx);
+		reflection = reflection/9;
 
 	} else if (blurType == 1) {
 
@@ -126,10 +127,9 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 		reflectionUVx.x += 2*blurAmount;
 		reflectionUVx.y -= blurAmount;
 		reflection += tex2D(reflectionSampler, reflectionUVx);
+		reflection = reflection/14;
 
 	}
-
-	reflection = reflection/9;
 
 	float4 snow = tex2D(iceSurfaceSnowSampler, input.UV);
 	float4 ice = tex2D(iceSurfaceTextureSampler, input.UV);

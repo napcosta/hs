@@ -31,7 +31,6 @@ namespace HockeySlam.Class.GameState
 		Vector4 _rotationInput;
 		Disk _disk;
 		int _priority;
-		int testCounter = 0;
 
 		public MultiplayerManager(Game game, Camera camera, GameManager gameManager, NetworkSession networkSession)
 		{
