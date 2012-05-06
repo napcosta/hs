@@ -38,7 +38,11 @@ namespace HockeySlam.Class.GameState
 
 		private void addEntities()
 		{
-			Camera camera = new Camera(_game, new Vector3(85, 85, 0), Vector3.Zero, Vector3.Up);
+			Camera camera;
+			if (_networkSession != null)
+				camera = new MultiplayerCamera(_game, new Vector3(85, 85, 0), Vector3.Zero, Vector3.Up);
+			else
+				camera = new Camera(_game, new Vector3(100, 100, 0), Vector3.Zero, Vector3.Up);
 			AddEntity("camera", camera);
 			AddEntity("debugManager", new DebugManager());
 			AddEntity("collisionManager", new CollisionManager());
@@ -46,6 +50,9 @@ namespace HockeySlam.Class.GameState
 			//AddEntity("atmosphere", new Atmosphere(_game, camera));
 			if (_networkSession != null) {
 				AddEntity("multiplayerManager", new MultiplayerManager(_game, camera, this, _networkSession));
+			} else {
+				AddEntity("disk", new Disk(this, _game, camera));
+				AddEntity("reactiveAgentManager", new ReactiveAgentManager(this, _game, camera));
 			}
 			//AddEntity("disk", new Disk(this, _game, camera));
 			AddEntity("ice", new Ice(_game, camera, this));
@@ -79,12 +86,14 @@ namespace HockeySlam.Class.GameState
 
 		void CreateAllPlayers(Camera camera)
 		{
-			foreach (NetworkGamer gamer in _networkSession.AllGamers) {
-				Player newPlayer = new Player(this, _game, camera);
-				newPlayer.Initialize();
-				newPlayer.LoadContent();
+			if (_networkSession != null) {
+				foreach (NetworkGamer gamer in _networkSession.AllGamers) {
+					Player newPlayer = new Player(this, _game, camera);
+					newPlayer.Initialize();
+					newPlayer.LoadContent();
 
-				gamer.Tag = newPlayer;
+					gamer.Tag = newPlayer;
+				}
 			}
 		}
 

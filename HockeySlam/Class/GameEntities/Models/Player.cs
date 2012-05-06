@@ -22,7 +22,7 @@ namespace HockeySlam.Class.GameEntities.Models
 	{
 		#region fields
 		Vector2 _velocity;
-		int _maxVelocity;
+		float _maxVelocity;
 		Matrix position;
 		Vector3 lastPositionVector;
 		Vector3 lastPosition;
@@ -89,6 +89,11 @@ namespace HockeySlam.Class.GameEntities.Models
 			_gameManager = gameManager;
 		}
 
+		public float getRotation()
+		{
+			return _rotation;
+		}
+
 		public Vector3 getPositionVector()
 		{
 			return _positionVector;
@@ -150,7 +155,10 @@ namespace HockeySlam.Class.GameEntities.Models
 			cm.register(this);
 			dm.registerDebugEntities(this);
 
-			_disk = ((MultiplayerManager)_gameManager.getGameEntity("multiplayerManager")).getDisk();
+			MultiplayerManager mm = (MultiplayerManager)_gameManager.getGameEntity("multiplayerManager");
+			if (mm != null)
+				_disk = mm.getDisk();
+			else _disk = (Disk)_gameManager.getGameEntity("disk");
 			_arrowManager = (ArrowManager)_gameManager.getGameEntity("arrowManager");
 
 			_deactiveKeyboardTime = 0;
@@ -560,6 +568,11 @@ namespace HockeySlam.Class.GameEntities.Models
 		public List<BoundingBox> getBoundingBoxes()
 		{
 			return null;
+		}
+
+		public float getMaxVelocity()
+		{
+			return _maxVelocity;
 		}
 
 		public void bounce(Vector2 newVelocity)
