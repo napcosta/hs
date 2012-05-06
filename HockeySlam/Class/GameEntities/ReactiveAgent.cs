@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.Xna.Framework;
 using HockeySlam.Class.GameEntities.Models;
+using Microsoft.Xna.Framework.Input;
 
 using HockeySlam.Class.GameState;
 using HockeySlam.Interface;
@@ -50,7 +51,7 @@ namespace HockeySlam.Class.GameEntities
 			//Vector3 vec = new Vector3(_player.getPositionVector().X-10f, _player.getPositionVector().Y, _player.getPositionVector().Z-10f);
 			view = Matrix.CreateLookAt(_player.getPositionVector(), new Vector3(x, y, z), Vector3.Up);
 
-			_farPlane = 20;
+			_farPlane = 50;
 
 			projection = Matrix.CreatePerspectiveFieldOfView(
 			    MathHelper.PiOver4,
@@ -94,26 +95,26 @@ namespace HockeySlam.Class.GameEntities
 				_player.PositionInput = Vector2.Zero;
 				return true;
 			}
-			if (_player.getVelocity().X > _player.getMaxVelocity()/2 || _player.getVelocity().Y > _player.getMaxVelocity()/2) {
+	/*		if (_player.getVelocity().X > _player.getMaxVelocity()/2 || _player.getVelocity().Y > _player.getMaxVelocity()/2) {
 				if(_player.getVelocity().X > _player.getMaxVelocity()/2)
 					newPositionInput.X = 0;
 				if (_player.getVelocity().Y > _player.getMaxVelocity() / 2)
 					newPositionInput.Y = 0;
 				_player.PositionInput = newPositionInput;
 				return false;
-			}
-			if (_player.getPositionVector().X > _disk.getPosition().X)
-				newPositionInput.X = 1;
+			}*/
 			if (_player.getPositionVector().X < _disk.getPosition().X)
-				newPositionInput.X = 2;
-			if (_player.getPositionVector().X == _disk.getPosition().X)
-				newPositionInput.X = 0;
-			/*if (_player.getPositionVector().Z > _disk.getPosition().Y)
-				newPositionInput.Y = 1;
-			if (_player.getPositionVector().Z < _disk.getPosition().Y)
 				newPositionInput.Y = 2;
-			if (_player.getPositionVector().Z == _disk.getPosition().Y)
-				newPositionInput.Y = 0;*/
+			if (_player.getPositionVector().X > _disk.getPosition().X)
+				newPositionInput.Y = 1;
+			if (_player.getPositionVector().X == _disk.getPosition().X)
+				newPositionInput.Y = 0;
+			if (_player.getPositionVector().Z < _disk.getPosition().Z)
+				newPositionInput.X = 1;
+			if (_player.getPositionVector().Z > _disk.getPosition().Z)
+				newPositionInput.X = 2;
+			if (_player.getPositionVector().Z == _disk.getPosition().Z)
+				newPositionInput.X = 0;
 
 			_player.PositionInput = newPositionInput;
 
@@ -122,7 +123,33 @@ namespace HockeySlam.Class.GameEntities
 
 		public void update(GameTime gameTime)
 		{
-			generateKeys();
+
+			KeyboardState keyboard = Keyboard.GetState();
+			Vector2 pos;
+				if (keyboard.IsKeyDown(Keys.A))
+					pos.X = 1;
+				else if (keyboard.IsKeyDown(Keys.D))
+					pos.X = 2;
+				else
+					pos.X = 0;
+
+				//_player.PositionInput = pos;
+			
+				if (keyboard.IsKeyDown(Keys.W))
+					pos.Y = 1;
+				else if (keyboard.IsKeyDown(Keys.S))
+					pos.Y = 2;
+				else
+					pos.Y = 0;
+
+				_player.PositionInput = pos;
+
+
+
+			if(pos.X == 0 && pos.Y == 0)
+				generateKeys();
+
+
 			_player.Update(gameTime);
 			Vector3 playerPosition = _player.getPositionVector();
 			_boundingSphere.Center = playerPosition;
@@ -143,6 +170,7 @@ namespace HockeySlam.Class.GameEntities
 		{
 			bool isDiskInRange;
 			if (isDiskAhead()) {
+				System.Console.WriteLine("isDiskAhead");
 				isDiskInRange = moveTowardsDisk();
 				if (isDiskInRange) {
 					System.Console.WriteLine("BALL IN RANGE");
