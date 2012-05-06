@@ -36,9 +36,9 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		public override void Initialize()
 		{
-			_leftBox = new BoundingBox(new Vector3(-41, 0, 56), new Vector3(41, 10, 65));
+			_leftBox = new BoundingBox(new Vector3(-51, 0, 56), new Vector3(51, 10, 65));
 			_backBox = new BoundingBox(new Vector3(-41, 0,-65), new Vector3(-51, 10, 65));
-			_rightBox = new BoundingBox(new Vector3(-41, 0, -56), new Vector3(41, 10, -65));
+			_rightBox = new BoundingBox(new Vector3(-51, 0, -56), new Vector3(51, 10, -65));
 			_frontBox = new BoundingBox(new Vector3(41, 0, -65), new Vector3(51, 10, 65));
 
 			Ice ice = (Ice)_gameManager.getGameEntity("ice");

@@ -192,7 +192,7 @@ namespace HockeySlam.Class.GameEntities.Models
 			base.Update(gameTime);
 			// TODO: Add your update code here
 			_rotation = 0;
-			float lastRotation = Rotation;
+			//float lastRotation = Rotation;
 
 			if (_deactivateKeyboard && _deactiveKeyboardTime == 0)
 				_deactivateKeyboard = false;
@@ -202,8 +202,8 @@ namespace HockeySlam.Class.GameEntities.Models
 			Vector2 normalizedVelocity = normalizeVelocity(_velocity);
 			float time = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-			updatePositionVector(gameTime, normalizedVelocity, lastRotation, time);
-			updateBoundings(gameTime, lastRotation, time);
+			updatePositionVector(gameTime, normalizedVelocity, _lastRotation, time);
+			updateBoundings(gameTime, _lastRotation, time);
 
 #if WINDOWS
 
@@ -247,7 +247,7 @@ namespace HockeySlam.Class.GameEntities.Models
             else _velocity.X = 0;
 #endif
 			setRotation(_rotation);
-			if (_positionVector != lastPositionVector || Rotation != lastRotation) {
+			if (_positionVector != lastPositionVector || Rotation != _lastRotation) {
 				notify();
 				lastPositionVector = _positionVector;
 				//lastTempRotation = tempRotation;
