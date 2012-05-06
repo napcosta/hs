@@ -81,7 +81,7 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 {
 	float2 reflectionUV = postProjToScreen(input.ReflectionPosition) + halfPixel();
-	float4 reflection;
+	float4 reflection = float4(0.0, 0.0, 0.0, 0.0);
 
 	if (blurType == 0) {
 

@@ -19,13 +19,13 @@ namespace HockeySlam.Class.GameEntities
 
 	public class Camera : IGameEntity
 	{
-		Vector3 _position;
-		Vector3 _target;
-		Vector3 _up;
+		protected Vector3 _position;
+		protected Vector3 _target;
+		protected Vector3 _up;
 
-		Vector3 _diskPosition;
-		Vector3 _localPlayerPosition;
-		Game _game;
+		protected Vector3 _diskPosition;
+		protected Vector3 _localPlayerPosition;
+		protected Game _game;
 		//Camera matrices
 		public Matrix view
 		{
@@ -77,31 +77,8 @@ namespace HockeySlam.Class.GameEntities
 				return 0;
 		}
 
-		public void updateTargetAndPosition()
+		public virtual void Update(GameTime gameTime)
 		{
-			float distanceZ = Math.Max(_localPlayerPosition.Z, _diskPosition.Z) - Math.Min(_localPlayerPosition.Z, _diskPosition.Z);
-			float distanceX = Math.Max(_localPlayerPosition.X, _diskPosition.X) - Math.Min(_localPlayerPosition.X, _diskPosition.X);
-
-			_target.Z = (distanceZ / 2.0f) + Math.Min(_localPlayerPosition.Z, _diskPosition.Z);
-			_target.X = (distanceX / 2.0f) + Math.Min(_localPlayerPosition.X, _diskPosition.X);
-			_position.Z = _target.Z;
-
-			_position.Y = Math.Max(distanceZ,distanceX);
-
-			if (_position.Y < 50)
-				_position.Y = 50;
-			else if (_position.Y > 85)
-				_position.Y = 85;
-
-			_position.X = _target.X + _position.Y;
-
-			//_position.X = _position.Y;
-		}
-
-		public void Update(GameTime gameTime) 
-		{
-			updateTargetAndPosition();
-			view = Matrix.CreateLookAt(_position, _target, _up);
 		}
 
 		public void Draw(GameTime gameTime) { }
