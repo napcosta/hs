@@ -16,7 +16,7 @@ using HockeySlam.Interface;
 
 namespace HockeySlam.Class.GameEntities.Models
 {
-	public enum KeyboardKey { NONE, UP, DOWN, LEFT, RIGHT };
+	public enum KeyboardKey { UP, DOWN, LEFT, RIGHT, NONE };
 
 	public class Player : BaseModel, ICollidable, IDebugEntity, IReflectable
 	{
@@ -51,6 +51,12 @@ namespace HockeySlam.Class.GameEntities.Models
 		VertexBuffer _vertexBuffer;
 		BasicEffect _basicEffect;
 		Disk _disk;
+
+		float _deactiveKeyboardTime;
+		bool _deactivateKeyboard;
+
+		Vector3 _lastBouncePosition;
+		bool[] _keyDeactivated = new bool[4];
 
 		public float Rotation
 		{
@@ -146,6 +152,16 @@ namespace HockeySlam.Class.GameEntities.Models
 
 			_disk = ((MultiplayerManager)_gameManager.getGameEntity("multiplayerManager")).getDisk();
 			_arrowManager = (ArrowManager)_gameManager.getGameEntity("arrowManager");
+
+			_deactiveKeyboardTime = 0;
+			_deactivateKeyboard = false;
+
+			_lastBouncePosition = Vector3.Zero;
+			_keyDeactivated[(int)KeyboardKey.UP] = false;
+			_keyDeactivated[(int)KeyboardKey.DOWN] = false;
+			_keyDeactivated[(int)KeyboardKey.LEFT] = false;
+			_keyDeactivated[(int)KeyboardKey.RIGHT] = false;
+
 			base.Initialize();
 		}
 
@@ -169,9 +185,32 @@ namespace HockeySlam.Class.GameEntities.Models
 			// TODO: Add your update code here
 			_rotation = 0;
 			float lastRotation = Rotation;
-#if WINDOWS
-			KeyboardState currentKeyboardState = Keyboard.GetState();
 
+			if (_deactivateKeyboard && _deactiveKeyboardTime == 0)
+				_deactivateKeyboard = false;
+			else if (_deactivateKeyboard)
+				_deactiveKeyboardTime -= 10;
+
+			Console.WriteLine(_deactiveKeyboardTime);
+
+#if WINDOWS
+			Vector2 newPositionInput = PositionInput;
+			if (_keyDeactivated[(int)KeyboardKey.UP] && PositionInput.Y == 2) {
+				newPositionInput.Y = 0;
+				PositionInput = newPositionInput;
+			}
+			if (_keyDeactivated[(int)KeyboardKey.DOWN] && PositionInput.Y == 1) {
+				newPositionInput.Y = 0;
+				PositionInput = newPositionInput;
+			}
+			if (_keyDeactivated[(int)KeyboardKey.LEFT] && PositionInput.Y == 2) {
+				newPositionInput.X = 0;
+				PositionInput = newPositionInput;
+			}
+			if (_keyDeactivated[(int)KeyboardKey.RIGHT] && PositionInput.Y == 1) {
+				newPositionInput.X = 0;
+				PositionInput = newPositionInput;
+			}
 
 			UpdatePosition();
 			UpdateRotation();
@@ -398,16 +437,26 @@ namespace HockeySlam.Class.GameEntities.Models
 			CollisionManager cm = (CollisionManager)_gameManager.getGameEntity("collisionManager");
 			List<ICollidable> collidedWith = cm.verifyCollision(this);
 
+			bool collidedWithCourt = false;
+
 			if (collidedWith.Count != 0 && (_positionOfCollision != _positionVector)) {
-				foreach (ICollidable collided in collidedWith)
-					VerifyDiskCollision(collided);
+				foreach (ICollidable collided in collidedWith) {
+					VerifyDiskCollision(collided, out collidedWithCourt);
+				}
 				_positionOfCollision = _positionVector;
 				if (_rotation != 0)
 					_rotationOfCollision = Rotation;
+				if (!collidedWithCourt)
+					activateKeyboard();
 			}
 		}
 
-		private void VerifyDiskCollision(ICollidable collided)
+		private void activateKeyboard()
+		{
+			throw new NotImplementedException();
+		}
+
+		private void VerifyDiskCollision(ICollidable collided, out bool collidedWithCourt)
 		{
 			int rotationStrength = 15;
 			if (collided is Disk) {
@@ -421,6 +470,9 @@ namespace HockeySlam.Class.GameEntities.Models
 					disk.AddRotationVelocity(new Vector2(rotationStrength, rotationStrength) * goVelocity);
 				}
 			}
+			if (collided is Court)
+				collidedWithCourt = true;
+			else collidedWithCourt = false;
 		}
 
 		public void DrawDebug()
@@ -512,7 +564,34 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		public void bounce(Vector2 newVelocity)
 		{
-			_velocity = newVelocity;
+			if (_lastBouncePosition != _positionVector) {
+				if (newVelocity.X == -1 * _velocity.X) {
+					_velocity.X = 0;
+					Vector2 newPositionInput = PositionInput;
+					newPositionInput.X = 0;
+					PositionInput = newPositionInput;
+				}
+				if (newVelocity.Y == -1 * _velocity.Y) {
+					_velocity.Y = 0;
+					Vector2 newPositionInput = PositionInput;
+					newPositionInput.Y = 0;
+					PositionInput = newPositionInput;
+				}
+				_deactivateKeyboard = true;
+				//_deactiveKeyboardTime = 100;
+				_lastBouncePosition = _positionVector;
+			}
+		}
+
+		public void updatePositionInput(Vector2 positionInput)
+		{
+			if(!_deactivateKeyboard)
+				PositionInput = positionInput;
+		}
+
+		public void updateRotationInput(Vector4 rotationInput)
+		{
+			RotationInput = rotationInput;
 		}
 	}
 }

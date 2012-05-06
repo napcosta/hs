@@ -168,8 +168,8 @@ namespace HockeySlam.Class.GameState
 			if (_rotationInput.W > keyPriority)
 				_rotationInput.W--;
 
-			player.PositionInput = positionInput;
-			player.RotationInput = _rotationInput;
+			player.updatePositionInput(positionInput);
+			player.updateRotationInput(_rotationInput);
 		}
 
 		/* Updates the server and sends the packets to the clients */
