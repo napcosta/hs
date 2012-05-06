@@ -199,8 +199,6 @@ namespace HockeySlam.Class.GameEntities.Models
 			else if (_deactivateKeyboard)
 				_deactiveKeyboardTime -= 10;
 
-			Console.WriteLine(_deactiveKeyboardTime);
-
 #if WINDOWS
 			Vector2 newPositionInput = PositionInput;
 			if (_keyDeactivated[(int)KeyboardKey.UP] && PositionInput.Y == 2) {
@@ -461,7 +459,7 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		private void activateKeyboard()
 		{
-			throw new NotImplementedException();
+			
 		}
 
 		private void VerifyDiskCollision(ICollidable collided, out bool collidedWithCourt)

@@ -124,10 +124,11 @@ namespace HockeySlam.Class.GameEntities
 		{
 			generateKeys();
 			_player.Update(gameTime);
-			_boundingSphere.Center = _player.getPositionVector();
+			Vector3 playerPosition = _player.getPositionVector();
+			_boundingSphere.Center = playerPosition;
 			float x, y, z;
-			x = (float)Math.Cos(_fovRotation) * _viewDistance;
-			z = (float)Math.Sin(_fovRotation) * _viewDistance;
+			x = (float)Math.Cos(_fovRotation) * _viewDistance + playerPosition.X;
+			z = (float)Math.Sin(_fovRotation) * _viewDistance + playerPosition.Z;
 			y = _player.getPositionVector().Y;
 			view = Matrix.CreateLookAt(_player.getPositionVector(), new Vector3(x, y, z), Vector3.Up);
 			_fov.Matrix = view * projection;
@@ -157,35 +158,31 @@ namespace HockeySlam.Class.GameEntities
 		{
 			Vector2 newPositionInput = Vector2.Zero;
 			if (_direction.X > 0)
-				newPositionInput.X = 2;
-			if (_direction.X < 0)
 				newPositionInput.X = 1;
+			if (_direction.X < 0)
+				newPositionInput.X = 2;
 			if (_direction.Y > 0)
-				newPositionInput.Y = 1;
-			if (_direction.Y < 0)
 				newPositionInput.Y = 2;
+			if (_direction.Y < 0)
+				newPositionInput.Y = 1;
 
 			_player.PositionInput = newPositionInput;
 		}
 
 		private void rotate()
 		{
-			if (_randomGenerator.Next(0, 1) == 0)
-				_fovRotation += 0.3f;
-			else
-				_fovRotation -= 0.3f;
-
-			float x, y, z;
-			x = (float)Math.Cos(_fovRotation) * _viewDistance;
-			z = (float)Math.Sin(_fovRotation) * _viewDistance;
-			y = _player.getPositionVector().Y;
-			view = Matrix.CreateLookAt(_player.getPositionVector(), new Vector3(x, y, z), Vector3.Up);
-			_fov.Matrix = view * projection;
+			if (_randomGenerator.Next(2) == 0) {
+				_fovRotation += 0.2f;
+				_direction.X = (float)Math.Sin(_fovRotation);
+			} else {
+				_fovRotation -= 0.2f;
+				_direction.Y = (float)Math.Cos(_fovRotation);
+			}
 		}
 
 		private void moveRandomly()
 		{
-			if (_randomGenerator.Next(0, 1) == 0)
+			if (_randomGenerator.Next(2) == 0)
 				moveTowardsDirection();
 			else
 				rotate();
