@@ -36,9 +36,9 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		public override void Initialize()
 		{
-			_leftBox = new BoundingBox(new Vector3(-41, 0, 55), new Vector3(41, 10, 65));
+			_leftBox = new BoundingBox(new Vector3(-41, 0, 56), new Vector3(41, 10, 65));
 			_backBox = new BoundingBox(new Vector3(-41, 0,-65), new Vector3(-51, 10, 65));
-			_rightBox = new BoundingBox(new Vector3(-41, 0, -55), new Vector3(41, 10, -65));
+			_rightBox = new BoundingBox(new Vector3(-41, 0, -56), new Vector3(41, 10, -65));
 			_frontBox = new BoundingBox(new Vector3(41, 0, -65), new Vector3(51, 10, 65));
 
 			Ice ice = (Ice)_gameManager.getGameEntity("ice");
@@ -95,35 +95,59 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		public bool collisionOccured(ICollidable collideObject)
 		{
+			bool collisionOccured = false;
+			bool isObjectPlayer = collideObject is Player;
+			Vector3 playerPosition = Vector3.Zero;
+			bool[] deactivateKeys = new bool[4];
+			Player player = null;
+			if (isObjectPlayer) {
+				player = (Player)collideObject;
+				playerPosition = player.getPositionVector();
+				for (int i = 0; i < 4; i++)
+					deactivateKeys[i] = false;
+			}
+
 			List<BoundingSphere> bs = collideObject.getBoundingSpheres();
 			foreach (BoundingSphere sphere in bs) {
 				if (_leftBox.Intersects(sphere)) {
 					Vector2 bounceVelocity = collideObject.getVelocity();
 					bounceVelocity.X *= -1;
 					collideObject.bounce(bounceVelocity);
-					return true;
+					if (isObjectPlayer)
+						deactivateKeys[(int)KeyboardKey.LEFT] = true;
+					collisionOccured = true;
 				}
 				if (_rightBox.Intersects(sphere)) {
 					Vector2 bounceVelocity = collideObject.getVelocity();
 					bounceVelocity.X *= -1;
 					collideObject.bounce(bounceVelocity);
-					return true;
+					if (isObjectPlayer)
+						deactivateKeys[(int)KeyboardKey.RIGHT] = true;
+					collisionOccured = true;
 				}
 				if (_backBox.Intersects(sphere)) {
 					Vector2 bounceVelocity = collideObject.getVelocity();
 					bounceVelocity.Y *= -1;
 					collideObject.bounce(bounceVelocity);
-					return true;
+					if (isObjectPlayer)
+						deactivateKeys[(int)KeyboardKey.UP] = true;
+					collisionOccured = true;
 				}
 				if (_frontBox.Intersects(sphere)) {
 					Vector2 bounceVelocity = collideObject.getVelocity();
 					bounceVelocity.Y *= -1;
 					collideObject.bounce(bounceVelocity);
-					return true;
+					if (isObjectPlayer)
+						deactivateKeys[(int)KeyboardKey.DOWN] = true;
+					collisionOccured = true;
 				}
+
+				if(isObjectPlayer)
+					player.deactivateKeys(deactivateKeys);
+
 			}
 
-			return false;
+			return collisionOccured;
 		}
 
 		public List<BoundingBox> getBoundingBoxes()

@@ -29,7 +29,7 @@ namespace HockeySlam.Class.GameEntities.Models
 		Vector3 _positionOfCollision;
 
 		float tempRotation;
-		float lastTempRotation;
+		float _lastRotation;
 		float _rotation;
 		float _rotationOfCollision;
 
@@ -57,6 +57,7 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		Vector3 _lastBouncePosition;
 		bool[] _keyDeactivated = new bool[4];
+		bool _collidedWithCourt;
 
 		public float Rotation
 		{
@@ -124,7 +125,6 @@ namespace HockeySlam.Class.GameEntities.Models
 		{
 			// TODO: Add your initialization code here
 			tempRotation = 0;
-			lastTempRotation = tempRotation;
 
 			position = Matrix.Identity;
 			_positionVector = Vector3.Zero;
@@ -199,24 +199,13 @@ namespace HockeySlam.Class.GameEntities.Models
 			else if (_deactivateKeyboard)
 				_deactiveKeyboardTime -= 10;
 
+			Vector2 normalizedVelocity = normalizeVelocity(_velocity);
+			float time = (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+			updatePositionVector(gameTime, normalizedVelocity, lastRotation, time);
+			updateBoundings(gameTime, lastRotation, time);
+
 #if WINDOWS
-			Vector2 newPositionInput = PositionInput;
-			if (_keyDeactivated[(int)KeyboardKey.UP] && PositionInput.Y == 2) {
-				newPositionInput.Y = 0;
-				PositionInput = newPositionInput;
-			}
-			if (_keyDeactivated[(int)KeyboardKey.DOWN] && PositionInput.Y == 1) {
-				newPositionInput.Y = 0;
-				PositionInput = newPositionInput;
-			}
-			if (_keyDeactivated[(int)KeyboardKey.LEFT] && PositionInput.Y == 2) {
-				newPositionInput.X = 0;
-				PositionInput = newPositionInput;
-			}
-			if (_keyDeactivated[(int)KeyboardKey.RIGHT] && PositionInput.Y == 1) {
-				newPositionInput.X = 0;
-				PositionInput = newPositionInput;
-			}
 
 			UpdatePosition();
 			UpdateRotation();
@@ -257,12 +246,16 @@ namespace HockeySlam.Class.GameEntities.Models
             }
             else _velocity.X = 0;
 #endif
-			Vector2 normalizedVelocity = normalizeVelocity(_velocity);
-			float time = (float)gameTime.ElapsedGameTime.TotalSeconds;
+			setRotation(_rotation);
+			if (_positionVector != lastPositionVector || Rotation != lastRotation) {
+				notify();
+				lastPositionVector = _positionVector;
+				//lastTempRotation = tempRotation;
+			}
 
-			Rotation = (Rotation + _rotation) % MathHelper.TwoPi;
-			updatePositionVector(gameTime, normalizedVelocity, lastRotation, time);
-			updateBoundings(gameTime, lastRotation, time);
+			if (!_collidedWithCourt) {
+				activateKeyboard();
+			}
 		}
 
 		private void UpdateRotation()
@@ -314,25 +307,33 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		private void UpdatePosition()
 		{
-			if (PositionInput.Y == 2 && _velocity.Y < _maxVelocity) {
+			if(_keyDeactivated[(int)KeyboardKey.DOWN] && PositionInput.Y == 2)
+				_velocity.Y = 0;
+			else if (PositionInput.Y == 2 && _velocity.Y < _maxVelocity) {
 				_velocity.Y += 0.6f;
 			} else if (PositionInput.Y == 0 && _velocity.Y > 0) {
 				_velocity.Y -= 0.3f;
 			}
 
-			if (PositionInput.Y == 1 && _velocity.Y > -_maxVelocity) {
+			if(_keyDeactivated[(int)KeyboardKey.UP] && PositionInput.Y == 1)
+				_velocity.Y = 0;
+			else if (PositionInput.Y == 1 && _velocity.Y > -_maxVelocity) {
 				_velocity.Y -= 0.6f;
 			} else if (PositionInput.Y == 0 && _velocity.Y < 0) {
 				_velocity.Y += 0.3f;
 			}
 
-			if (PositionInput.X == 2 && _velocity.X > -_maxVelocity) {
+			if (_keyDeactivated[(int)KeyboardKey.RIGHT] && PositionInput.X == 2)
+				_velocity.X = 0;
+			else if (PositionInput.X == 2 && _velocity.X > -_maxVelocity) {
 				_velocity.X -= 0.6f;
 			} else if (PositionInput.X == 0 && _velocity.X < 0) {
 				_velocity.X += 0.3f;
 			}
 
-			if (PositionInput.X == 1 && _velocity.X < _maxVelocity) {
+			if (_keyDeactivated[(int)KeyboardKey.LEFT] && PositionInput.X == 1)
+				_velocity.X = 0;
+			else if (PositionInput.X == 1 && _velocity.X < _maxVelocity) {
 				_velocity.X += 0.6f;
 			} else if (PositionInput.X == 0 && _velocity.X > 0) {
 				_velocity.X -= 0.3f;
@@ -342,9 +343,6 @@ namespace HockeySlam.Class.GameEntities.Models
 				_velocity.X = 0;
 			if (_velocity.Y >= -0.3f && _velocity.Y <= 0.3f)
 				_velocity.Y = 0;
-
-			//Console.WriteLine(_velocity);
-
 		}
 
 		private KeyboardKey getPriorityIndex()
@@ -385,12 +383,6 @@ namespace HockeySlam.Class.GameEntities.Models
 		private void updatePositionVector(GameTime gameTime, Vector2 normalizedVelocity, float lastRotation, float time)
 		{
 			_positionVector += new Vector3(time * _velocity.Y * normalizedVelocity.Y, 0, time * _velocity.X * normalizedVelocity.X);
-
-			if (_positionVector != lastPositionVector || Rotation != lastRotation) {
-				notify();
-				lastPositionVector = _positionVector;
-				lastTempRotation = tempRotation;
-			}
 		}
 
 		private void updateBoundings(GameTime gameTime, float lastRotation, float time)
@@ -443,26 +435,35 @@ namespace HockeySlam.Class.GameEntities.Models
 			CollisionManager cm = (CollisionManager)_gameManager.getGameEntity("collisionManager");
 			List<ICollidable> collidedWith = cm.verifyCollision(this);
 
-			bool collidedWithCourt = false;
+			_collidedWithCourt = false;
 
 			if (collidedWith.Count != 0 && (_positionOfCollision != _positionVector)) {
 				foreach (ICollidable collided in collidedWith) {
-					VerifyDiskCollision(collided, out collidedWithCourt);
+					verifyDiskCollision(collided);
+					verifyCourtCollision(collided);
 				}
+
 				_positionOfCollision = _positionVector;
 				if (_rotation != 0)
 					_rotationOfCollision = Rotation;
-				if (!collidedWithCourt)
-					activateKeyboard();
 			}
+		}
+
+		private void verifyCourtCollision(ICollidable collided)
+		{
+			if (collided is Court)
+				_collidedWithCourt = true;
 		}
 
 		private void activateKeyboard()
 		{
-			
+			_keyDeactivated[(int)KeyboardKey.UP] = false;
+			_keyDeactivated[(int)KeyboardKey.DOWN] = false;
+			_keyDeactivated[(int)KeyboardKey.LEFT] = false;
+			_keyDeactivated[(int)KeyboardKey.RIGHT] = false;
 		}
 
-		private void VerifyDiskCollision(ICollidable collided, out bool collidedWithCourt)
+		private void verifyDiskCollision(ICollidable collided)
 		{
 			int rotationStrength = 15;
 			if (collided is Disk) {
@@ -477,8 +478,8 @@ namespace HockeySlam.Class.GameEntities.Models
 				}
 			}
 			if (collided is Court)
-				collidedWithCourt = true;
-			else collidedWithCourt = false;
+				_collidedWithCourt = true;
+			else _collidedWithCourt = false;
 		}
 
 		public void DrawDebug()
@@ -575,7 +576,7 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		public void bounce(Vector2 newVelocity)
 		{
-			if (_lastBouncePosition != _positionVector) {
+			/*if (_lastBouncePosition != _positionVector) {
 				if (newVelocity.X == -1 * _velocity.X) {
 					_velocity.X = 0;
 					Vector2 newPositionInput = PositionInput;
@@ -591,7 +592,7 @@ namespace HockeySlam.Class.GameEntities.Models
 				_deactivateKeyboard = true;
 				//_deactiveKeyboardTime = 100;
 				_lastBouncePosition = _positionVector;
-			}
+			}*/
 		}
 
 		public void updatePositionInput(Vector2 positionInput)
@@ -603,6 +604,17 @@ namespace HockeySlam.Class.GameEntities.Models
 		public void updateRotationInput(Vector4 rotationInput)
 		{
 			RotationInput = rotationInput;
+		}
+
+		public void deactivateKeys(bool[] keysDeactivated)
+		{
+			_keyDeactivated = keysDeactivated;
+		}
+
+		public void setRotation(float rotation)
+		{
+			_lastRotation = Rotation;
+			Rotation = (Rotation + rotation) % MathHelper.TwoPi;
 		}
 	}
 }

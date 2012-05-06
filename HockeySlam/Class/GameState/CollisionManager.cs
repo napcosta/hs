@@ -37,7 +37,6 @@ namespace HockeySlam.Class.GameState
 			{
 				if (collidableObject != collidable && collidableObject.collisionOccured(collidable)) {
 					collidedWith.Add(collidableObject);
-					Console.WriteLine("Collision");
 				}
 			}
 

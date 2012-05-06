@@ -191,7 +191,7 @@ namespace HockeySlam.Class.GameEntities
 		private void shoot()
 		{
 			_player.PositionInput = Vector2.Zero;
-			_player.Rotation += 0.1f;
+			_player.setRotation(0.1f);
 		}
 
 		private bool isDiskAhead()
