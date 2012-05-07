@@ -32,7 +32,7 @@ namespace HockeySlam.Class.GameState
 
 		public void addReactiveAgent()
 		{
-			playerList.Add(new ReactiveAgent(_gameManager, _game, _camera));
+			playerList.Add(new ReactiveAgent(_gameManager, _game, _camera, 1));
 		}
 
 		public void Update(GameTime gameTime)

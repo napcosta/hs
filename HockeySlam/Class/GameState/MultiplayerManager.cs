@@ -51,7 +51,7 @@ namespace HockeySlam.Class.GameState
 			_lastPositionInput = Vector2.Zero;
 			_rotationInput = Vector4.Zero;
 			_priority = 0;
-			_disk = new Disk(_gameManager, _game, _camera);
+			_disk = new Disk(_gameManager, _game, _camera, false);
 			_disk.Initialize();
 		}
 
