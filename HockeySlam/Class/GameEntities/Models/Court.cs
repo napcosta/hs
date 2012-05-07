@@ -109,41 +109,43 @@ namespace HockeySlam.Class.GameEntities.Models
 
 			List<BoundingSphere> bs = collideObject.getBoundingSpheres();
 			foreach (BoundingSphere sphere in bs) {
-				if (_leftBox.Intersects(sphere)) {
-					Vector2 bounceVelocity = collideObject.getVelocity();
-					bounceVelocity.X *= -1;
-					collideObject.bounce(bounceVelocity);
-					if (isObjectPlayer)
-						deactivateKeys[(int)KeyboardKey.LEFT] = true;
-					collisionOccured = true;
-				}
-				if (_rightBox.Intersects(sphere)) {
-					Vector2 bounceVelocity = collideObject.getVelocity();
-					bounceVelocity.X *= -1;
-					collideObject.bounce(bounceVelocity);
-					if (isObjectPlayer)
-						deactivateKeys[(int)KeyboardKey.RIGHT] = true;
-					collisionOccured = true;
-				}
-				if (_backBox.Intersects(sphere)) {
-					Vector2 bounceVelocity = collideObject.getVelocity();
-					bounceVelocity.Y *= -1;
-					collideObject.bounce(bounceVelocity);
-					if (isObjectPlayer)
-						deactivateKeys[(int)KeyboardKey.UP] = true;
-					collisionOccured = true;
-				}
-				if (_frontBox.Intersects(sphere)) {
-					Vector2 bounceVelocity = collideObject.getVelocity();
-					bounceVelocity.Y *= -1;
-					collideObject.bounce(bounceVelocity);
-					if (isObjectPlayer)
-						deactivateKeys[(int)KeyboardKey.DOWN] = true;
-					collisionOccured = true;
-				}
+				if (!collisionOccured) {
+					if (_leftBox.Intersects(sphere)) {
+						Vector2 bounceVelocity = collideObject.getVelocity();
+						bounceVelocity.X *= -1;
+						collideObject.bounce(bounceVelocity);
+						if (isObjectPlayer)
+							deactivateKeys[(int)KeyboardKey.LEFT] = true;
+						collisionOccured = true;
+					}
+					if (_rightBox.Intersects(sphere)) {
+						Vector2 bounceVelocity = collideObject.getVelocity();
+						bounceVelocity.X *= -1;
+						collideObject.bounce(bounceVelocity);
+						if (isObjectPlayer)
+							deactivateKeys[(int)KeyboardKey.RIGHT] = true;
+						collisionOccured = true;
+					}
+					if (_backBox.Intersects(sphere)) {
+						Vector2 bounceVelocity = collideObject.getVelocity();
+						bounceVelocity.Y *= -1;
+						collideObject.bounce(bounceVelocity);
+						if (isObjectPlayer)
+							deactivateKeys[(int)KeyboardKey.UP] = true;
+						collisionOccured = true;
+					}
+					if (_frontBox.Intersects(sphere)) {
+						Vector2 bounceVelocity = collideObject.getVelocity();
+						bounceVelocity.Y *= -1;
+						collideObject.bounce(bounceVelocity);
+						if (isObjectPlayer)
+							deactivateKeys[(int)KeyboardKey.DOWN] = true;
+						collisionOccured = true;
+					}
 
-				if(isObjectPlayer)
-					player.deactivateKeys(deactivateKeys);
+					if (isObjectPlayer)
+						player.deactivateKeys(deactivateKeys);
+				}
 
 			}
 
