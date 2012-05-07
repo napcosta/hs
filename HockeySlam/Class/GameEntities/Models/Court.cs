@@ -21,6 +21,9 @@ namespace HockeySlam.Class.GameEntities.Models
 		BoundingBox _frontBox;
 		BoundingBox _backBox;
 
+		BoundingBox _team1Goal;
+		BoundingBox _team2Goal;
+
 		public Court(Game game, Camera camera, GameManager gameManager)
 			: base(game, camera)
 		{
@@ -40,6 +43,9 @@ namespace HockeySlam.Class.GameEntities.Models
 			_backBox = new BoundingBox(new Vector3(-41, 0,-65), new Vector3(-51, 10, 65));
 			_rightBox = new BoundingBox(new Vector3(-51, 0, -56), new Vector3(51, 10, -65));
 			_frontBox = new BoundingBox(new Vector3(41, 0, -65), new Vector3(51, 10, 65));
+
+			_team1Goal = new BoundingBox(new Vector3(-10, 0, 55), new Vector3(10, 10, 65));
+			_team2Goal = new BoundingBox(new Vector3(-10, 0, -55), new Vector3(10, 10, -65));
 
 			Ice ice = (Ice)_gameManager.getGameEntity("ice");
 			ice.register(this);
@@ -85,6 +91,9 @@ namespace HockeySlam.Class.GameEntities.Models
 			BoundingSphereRender.Render(_backBox, _game.GraphicsDevice, _camera.view, _camera.projection, Color.Yellow);
 			BoundingSphereRender.Render(_rightBox, _game.GraphicsDevice, _camera.view, _camera.projection, Color.Yellow);
 			BoundingSphereRender.Render(_frontBox, _game.GraphicsDevice, _camera.view, _camera.projection, Color.Yellow);
+
+			BoundingSphereRender.Render(_team1Goal, _game.GraphicsDevice, _camera.view, _camera.projection, Color.AliceBlue);
+			BoundingSphereRender.Render(_team2Goal, _game.GraphicsDevice, _camera.view, _camera.projection, Color.PaleVioletRed);
 		}
 
 		public void notify()

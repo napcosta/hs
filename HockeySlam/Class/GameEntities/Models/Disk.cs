@@ -28,13 +28,18 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		GameManager _gameManager;
 
-		public Disk(GameManager gameManager, Game game, Camera camera)
+		/* -------------------- AGENTS ----------------------*/
+		Player _playerWithDisk;
+		bool _isSinglePlayer;
+
+		public Disk(GameManager gameManager, Game game, Camera camera, bool isSinglePlayer)
 			: base(game, camera)
 		{
 			_model = game.Content.Load<Model>(@"Models\disk");
 			_game = game;
 			_camera = camera;
 			_gameManager = gameManager;
+			_isSinglePlayer = isSinglePlayer;
 		}
 
 		public override void Initialize()
@@ -106,26 +111,32 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		public override void Update(GameTime gameTime)
 		{
-			float drag = 0.1f;
-			float moreDrag = 0.3f;
+			if (!_isSinglePlayer || _playerWithDisk == null) {
+				float drag = 0.1f;
+				float moreDrag = 0.3f;
 
-			if (!_isColliding) {
+				if (!_isColliding) {
 
-				UpdateVelocityX(drag, moreDrag);
-				UpdateVelocityY(drag, moreDrag);
+					UpdateVelocityX(drag, moreDrag);
+					UpdateVelocityY(drag, moreDrag);
+				}
+
+				_isColliding = false;
+
+				Vector2 normalizedVelocity = normalizeVelocity(_velocity);
+				float time = (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+				_position.X += time * _velocity.Y * normalizedVelocity.Y;
+				_position.Z += time * _velocity.X * normalizedVelocity.X;
+
+				_collisionArea.Center.X = _position.X;
+				_collisionArea.Center.Z = _position.Z;
+				notify();
+			} else {
+				_position = _playerWithDisk.getStickPosition();
+				_collisionArea.Center = _playerWithDisk.getStickPosition();
 			}
-
-			_isColliding = false;
-
-			Vector2 normalizedVelocity = normalizeVelocity(_velocity);
-			float time = (float)gameTime.ElapsedGameTime.TotalSeconds;
-
-			_position.X += time * _velocity.Y * normalizedVelocity.Y;
-			_position.Z += time * _velocity.X * normalizedVelocity.X;
-
-			_collisionArea.Center.X = _position.X;
-			_collisionArea.Center.Z = _position.Z;
-			notify();
+			
 			base.Update(gameTime);
 		}
 
@@ -225,6 +236,19 @@ namespace HockeySlam.Class.GameEntities.Models
 		public Vector2 getVelocity()
 		{
 			return _velocity;
+		}
+
+		/* -------------------------- AGENTS --------------------------- */
+
+		public void newPlayerWithDisk(Player player) {
+			_playerWithDisk = player;
+		}
+
+		// Direction coordinates must be beetween 0 and 1
+		public void shoot(Vector2 direction)
+		{
+			_velocity = direction*_maxVelocity;
+			_playerWithDisk = null;
 		}
 	}
 }

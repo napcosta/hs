@@ -51,7 +51,7 @@ namespace HockeySlam.Class.GameState
 			if (_networkSession != null) {
 				AddEntity("multiplayerManager", new MultiplayerManager(_game, camera, this, _networkSession));
 			} else {
-				AddEntity("disk", new Disk(this, _game, camera));
+				AddEntity("disk", new Disk(this, _game, camera, true));
 				AddEntity("reactiveAgentManager", new ReactiveAgentManager(this, _game, camera));
 			}
 			//AddEntity("disk", new Disk(this, _game, camera));

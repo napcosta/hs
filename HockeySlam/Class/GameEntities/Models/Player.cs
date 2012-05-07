@@ -246,7 +246,7 @@ namespace HockeySlam.Class.GameEntities.Models
             }
             else _velocity.X = 0;
 #endif
-			setRotation(_rotation);
+			//setRotation(_rotation);
 			if (_positionVector != lastPositionVector || Rotation != _lastRotation) {
 				notify();
 				lastPositionVector = _positionVector;
@@ -303,6 +303,8 @@ namespace HockeySlam.Class.GameEntities.Models
 			} else
 				_rotation = 0.0f;
 			//Console.WriteLine("RotationInput -> " + RotationInput + " Rotation -> " + _rotation);
+
+			setRotation(_rotation);
 		}
 
 		private void UpdatePosition()
@@ -615,6 +617,13 @@ namespace HockeySlam.Class.GameEntities.Models
 		{
 			_lastRotation = Rotation;
 			Rotation = (Rotation + rotation) % MathHelper.TwoPi;
+		}
+
+		/* ---------------------------- AGENTS ------------------------------- */
+
+		public Vector3 getStickPosition()
+		{
+			return stick.Center;
 		}
 	}
 }

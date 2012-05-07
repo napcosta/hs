@@ -27,6 +27,9 @@ namespace HockeySlam.Class.GameEntities
 		float _fovRotation;
 		float _farPlane;
 
+		bool _hasDisk;
+		int team;
+
 		private Matrix view
 		{
 			get;
@@ -38,7 +41,7 @@ namespace HockeySlam.Class.GameEntities
 			get;
 			set;
 		}
-		public ReactiveAgent(GameManager gameManager, Game game, Camera camera)
+		public ReactiveAgent(GameManager gameManager, Game game, Camera camera, int team)
 		{
 			_player = new Player(gameManager, game, camera);
 			_game = game;
@@ -67,7 +70,7 @@ namespace HockeySlam.Class.GameEntities
 			_court = (Court)gameManager.getGameEntity("court");
 			_disk = (Disk)gameManager.getGameEntity("disk");
 
-			_boundingSphere = new BoundingSphere(_player.getPositionVector(), 2.3f);
+			_boundingSphere = new BoundingSphere(_player.getPositionVector(), 3f);
 
 			_randomGenerator = new Random();
 			_direction = Vector2.Zero;
@@ -172,13 +175,14 @@ namespace HockeySlam.Class.GameEntities
 			if (isDiskAhead()) {
 				System.Console.WriteLine("isDiskAhead");
 				isDiskInRange = moveTowardsDisk();
-				if (isDiskInRange) {
+				if (isDiskInRange && !_hasDisk) {
 					System.Console.WriteLine("BALL IN RANGE");
-					shoot();
+					_disk.newPlayerWithDisk(_player);
+					_hasDisk = true;
 				}
 			} else if (isWallAhead())
 				rotate();
-			else
+			else if(!_hasDisk)
 				moveRandomly();
 		}
 
