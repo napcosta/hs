@@ -155,6 +155,9 @@ namespace HockeySlam.Class.GameEntities.Models
 			List<BoundingBox> boundingBoxes = new List<BoundingBox>();
 
 			boundingBoxes.Add(_leftBox);
+			boundingBoxes.Add(_rightBox);
+			boundingBoxes.Add(_backBox);
+			boundingBoxes.Add(_frontBox);
 
 			return boundingBoxes;
 		}

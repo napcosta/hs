@@ -95,14 +95,7 @@ namespace HockeySlam.Class.GameEntities
 				_player.PositionInput = Vector2.Zero;
 				return true;
 			}
-	/*		if (_player.getVelocity().X > _player.getMaxVelocity()/2 || _player.getVelocity().Y > _player.getMaxVelocity()/2) {
-				if(_player.getVelocity().X > _player.getMaxVelocity()/2)
-					newPositionInput.X = 0;
-				if (_player.getVelocity().Y > _player.getMaxVelocity() / 2)
-					newPositionInput.Y = 0;
-				_player.PositionInput = newPositionInput;
-				return false;
-			}*/
+
 			if (_player.getPositionVector().X < _disk.getPosition().X)
 				newPositionInput.Y = 2;
 			if (_player.getPositionVector().X > _disk.getPosition().X)
@@ -154,9 +147,16 @@ namespace HockeySlam.Class.GameEntities
 			Vector3 playerPosition = _player.getPositionVector();
 			_boundingSphere.Center = playerPosition;
 			float x, y, z;
-			x = (float)Math.Cos(_fovRotation) * _viewDistance + playerPosition.X;
-			z = (float)Math.Sin(_fovRotation) * _viewDistance + playerPosition.Z;
-			y = _player.getPositionVector().Y;
+
+			if(isDiskAhead()) {
+				x = _disk.getPosition().X;
+				y = _disk.getPosition().Y;
+				z = _disk.getPosition().Z;
+			} else {
+				x = (float)Math.Cos(_fovRotation) * _viewDistance + playerPosition.X;
+				z = (float)Math.Sin(_fovRotation) * _viewDistance + playerPosition.Z;
+				y = _player.getPositionVector().Y;
+			}
 			view = Matrix.CreateLookAt(_player.getPositionVector(), new Vector3(x, y, z), Vector3.Up);
 			_fov.Matrix = view * projection;
 		}
@@ -176,9 +176,7 @@ namespace HockeySlam.Class.GameEntities
 					System.Console.WriteLine("BALL IN RANGE");
 					shoot();
 				}
-			} else if (isWallAhead())
-				rotate();
-			else
+			} else
 				moveRandomly();
 		}
 
@@ -226,8 +224,9 @@ namespace HockeySlam.Class.GameEntities
 		{
 			List<BoundingSphere> boundingList = _disk.getBoundingSpheres();
 			foreach(BoundingSphere bs in boundingList) {
-				if(bs.Intersects(_fov))
-					return true;		
+				if (bs.Intersects(_fov)) {
+					return true;
+				}
 			}
 			return false;
 		}
@@ -236,8 +235,10 @@ namespace HockeySlam.Class.GameEntities
 		{
 			List<BoundingBox> boundingList = _court.getBoundingBoxes();
 			foreach (BoundingBox bb in boundingList) {
-				if (bb.Intersects(_fov))
+				if (bb.Intersects(_fov)) {
+					
 					return true;
+				}
 			}
 			return false;
 		}
