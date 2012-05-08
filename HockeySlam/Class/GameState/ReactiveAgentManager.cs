@@ -20,6 +20,7 @@ namespace HockeySlam.Class.GameState
 		Game _game;
 		Camera _camera;
 		bool _addAgentKeyPressed;
+		int _team;
 
 		List<ReactiveAgent> playerList = new List<ReactiveAgent>();
 
@@ -28,11 +29,13 @@ namespace HockeySlam.Class.GameState
 			_gameManager = gameManager;
 			_game = game;
 			_camera = camera;
+			_team = 0;
 		}
 
 		public void addReactiveAgent()
 		{
-			playerList.Add(new ReactiveAgent(_gameManager, _game, _camera, 1));
+			playerList.Add(new ReactiveAgent(_gameManager, _game, _camera, _team+1));
+			_team = (_team + 1) % 2;
 		}
 
 		public void Update(GameTime gameTime)

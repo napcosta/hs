@@ -25,11 +25,13 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		Matrix _rotation;
 		Matrix _scale;
+		float drag = 0.1f;
+		float moreDrag = 0.3f;
 
 		GameManager _gameManager;
 
 		/* -------------------- AGENTS ----------------------*/
-		Player _playerWithDisk;
+		ReactiveAgent _playerWithDisk;
 		bool _isSinglePlayer;
 
 		public Disk(GameManager gameManager, Game game, Camera camera, bool isSinglePlayer)
@@ -112,17 +114,15 @@ namespace HockeySlam.Class.GameEntities.Models
 		public override void Update(GameTime gameTime)
 		{
 			if (!_isSinglePlayer || _playerWithDisk == null) {
-				float drag = 0.1f;
-				float moreDrag = 0.3f;
+
 
 				if (!_isColliding) {
-
 					UpdateVelocityX(drag, moreDrag);
 					UpdateVelocityY(drag, moreDrag);
 				}
 
 				_isColliding = false;
-
+				
 				Vector2 normalizedVelocity = normalizeVelocity(_velocity);
 				float time = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
@@ -133,8 +133,9 @@ namespace HockeySlam.Class.GameEntities.Models
 				_collisionArea.Center.Z = _position.Z;
 				notify();
 			} else {
-				_position = _playerWithDisk.getStickPosition();
-				_collisionArea.Center = _playerWithDisk.getStickPosition();
+				_position = _playerWithDisk.getPlayer().getStickPosition();
+				_collisionArea.Center = _playerWithDisk.getPlayer().getStickPosition();
+				_velocity = Vector2.Zero;
 			}
 			
 			base.Update(gameTime);
@@ -240,15 +241,21 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		/* -------------------------- AGENTS --------------------------- */
 
-		public void newPlayerWithDisk(Player player) {
+		public void newPlayerWithDisk(ReactiveAgent player) {
+			player.removePlayerDisk();
 			_playerWithDisk = player;
 		}
 
 		// Direction coordinates must be beetween 0 and 1
 		public void shoot(Vector2 direction)
 		{
-			_velocity = direction*_maxVelocity;
+			_velocity = direction*_maxVelocity*5;
 			_playerWithDisk = null;
+		}
+
+		public ReactiveAgent getPlayerWithDisk()
+		{
+			return _playerWithDisk;
 		}
 	}
 }

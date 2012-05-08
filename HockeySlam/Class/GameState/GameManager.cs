@@ -88,7 +88,7 @@ namespace HockeySlam.Class.GameState
 		{
 			if (_networkSession != null) {
 				foreach (NetworkGamer gamer in _networkSession.AllGamers) {
-					Player newPlayer = new Player(this, _game, camera);
+					Player newPlayer = new Player(this, _game, camera, 2, false);
 					newPlayer.Initialize();
 					newPlayer.LoadContent();
 

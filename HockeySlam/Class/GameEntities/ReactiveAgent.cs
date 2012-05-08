@@ -11,7 +11,7 @@ using HockeySlam.Interface;
 
 namespace HockeySlam.Class.GameEntities
 {
-	class ReactiveAgent : IDebugEntity
+	public class ReactiveAgent : IDebugEntity
 	{
 		BoundingFrustum _fov;
 		Player _player;
@@ -24,11 +24,13 @@ namespace HockeySlam.Class.GameEntities
 		Random _randomGenerator;
 		Vector2 _direction;
 		Vector3 _fovTarget;
+		Vector3 _lastPositionWithDisk;
 		float _fovRotation;
 		float _farPlane;
 
 		bool _hasDisk;
-		int team;
+		int _team;
+		bool _hasShoot;
 
 		private Matrix view
 		{
@@ -43,7 +45,7 @@ namespace HockeySlam.Class.GameEntities
 		}
 		public ReactiveAgent(GameManager gameManager, Game game, Camera camera, int team)
 		{
-			_player = new Player(gameManager, game, camera);
+			_player = new Player(gameManager, game, camera, team, true);
 			_game = game;
 			_camera = camera;
 			_fovRotation = 0;
@@ -78,6 +80,11 @@ namespace HockeySlam.Class.GameEntities
 
 			_player.Initialize();
 			_player.LoadContent();
+
+			_team = team;
+			_hasShoot = false;
+
+			_lastPositionWithDisk = Vector3.Zero;
 		}
 
 
@@ -119,6 +126,8 @@ namespace HockeySlam.Class.GameEntities
 
 		public void update(GameTime gameTime)
 		{
+			if(this != _disk.getPlayerWithDisk())
+				_hasDisk = false;
 
 			KeyboardState keyboard = Keyboard.GetState();
 			Vector2 pos;
@@ -140,7 +149,9 @@ namespace HockeySlam.Class.GameEntities
 
 				_player.PositionInput = pos;
 
-
+			List<BoundingSphere> diskBoundingSpheres = _disk.getBoundingSpheres();
+			if (_hasShoot && !_boundingSphere.Intersects(diskBoundingSpheres[0]))
+				_hasShoot = false;
 
 			if(pos.X == 0 && pos.Y == 0)
 				generateKeys();
@@ -151,7 +162,7 @@ namespace HockeySlam.Class.GameEntities
 			_boundingSphere.Center = playerPosition;
 			float x, y, z;
 
-			if(isDiskAhead()) {
+			if(isDiskAhead() && !_hasDisk) {
 				x = _disk.getPosition().X;
 				y = _disk.getPosition().Y;
 				z = _disk.getPosition().Z;
@@ -172,17 +183,33 @@ namespace HockeySlam.Class.GameEntities
 		private void generateKeys()
 		{
 			bool isDiskInRange;
-			if (isDiskAhead()) {
-				System.Console.WriteLine("isDiskAhead");
+			if (isDiskAhead() && !_hasDisk && !sameTeam(_disk.getPlayerWithDisk())) {
 				isDiskInRange = moveTowardsDisk();
-				if (isDiskInRange && !_hasDisk) {
-					System.Console.WriteLine("BALL IN RANGE");
-					_disk.newPlayerWithDisk(_player);
+				if (isDiskInRange && !_hasShoot && _player.getPositionVector() != _lastPositionWithDisk) {
+					_disk.newPlayerWithDisk(this);
 					_hasDisk = true;
+					_lastPositionWithDisk = _player.getPositionVector();
 				}
-			}
+			} else if(_hasDisk)
+				findGoal();
 			else if(!_hasDisk)
 				moveRandomly();
+		}
+
+		private void findGoal()
+		{
+			bool seeGoal = false;
+			if(_team == 1 && _fov.Intersects(_court.getTeam1Goal()))
+				seeGoal = true;
+			else if(_team == 2 && _fov.Intersects(_court.getTeam2Goal()))
+				seeGoal = true;
+
+			if (seeGoal)
+				shoot();
+			else {
+				moveRandomly();
+				//System.Console.WriteLine("moving randomly");
+			}
 		}
 
 		private void moveTowardsDirection()
@@ -221,8 +248,25 @@ namespace HockeySlam.Class.GameEntities
 
 		private void shoot()
 		{
-			_player.PositionInput = Vector2.Zero;
-			_player.setRotation(0.1f);
+			//_player.PositionInput = Vector2.Zero;
+			//_player.setRotation(0.1f);
+			Vector2 goalPosition;
+			Vector2 shotDirection;
+			if (_team == 1)
+				goalPosition = _court.getTeam1GoalPosition();
+			else
+				goalPosition = _court.getTeam2GoalPosition();
+
+			shotDirection.Y = goalPosition.X - _player.getPositionVector().X;
+			shotDirection.X = goalPosition.Y - _player.getPositionVector().Z;
+
+			shotDirection = Vector2.Normalize(shotDirection);
+
+			_hasDisk = false;
+			_hasShoot = true;
+			_disk.shoot(shotDirection);
+
+			//Console.WriteLine("-> " + shotDirection);
 		}
 
 		private bool isDiskAhead()
@@ -245,6 +289,28 @@ namespace HockeySlam.Class.GameEntities
 					return true;
 				}
 			}
+			return false;
+		}
+
+		public void removePlayerDisk()
+		{
+			_hasDisk = false;
+		}
+
+		public Player getPlayer()
+		{
+			return _player;
+		}
+
+		public int getTeam()
+		{
+			return _team;
+		}
+
+		public bool sameTeam(ReactiveAgent agent)
+		{
+			if(agent != null) 
+				return agent.getTeam() == _team;
 			return false;
 		}
 	}

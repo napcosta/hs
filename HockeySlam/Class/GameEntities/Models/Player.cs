@@ -52,12 +52,16 @@ namespace HockeySlam.Class.GameEntities.Models
 		BasicEffect _basicEffect;
 		Disk _disk;
 
-		float _deactiveKeyboardTime;
 		bool _deactivateKeyboard;
 
 		Vector3 _lastBouncePosition;
 		bool[] _keyDeactivated = new bool[4];
 		bool _collidedWithCourt;
+		int _team;
+
+		/* -------------------------- AGENTS ----------------------------- */
+		bool _isSinglePlayer;
+		/* --------------------------------------------------------------- */
 
 		public float Rotation
 		{
@@ -83,11 +87,13 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		#endregion
 
-		public Player(GameManager gameManager, Game game, Camera camera)
+		public Player(GameManager gameManager, Game game, Camera camera, int team, bool isSinglePlayer)
 			: base(game, camera)
 		{
 			_model = game.Content.Load<Model>(@"Models\player");
 			_gameManager = gameManager;
+			_isSinglePlayer = isSinglePlayer;
+			_team = team;
 		}
 
 		public float getRotation()
@@ -161,7 +167,6 @@ namespace HockeySlam.Class.GameEntities.Models
 			else _disk = (Disk)_gameManager.getGameEntity("disk");
 			_arrowManager = (ArrowManager)_gameManager.getGameEntity("arrowManager");
 
-			_deactiveKeyboardTime = 0;
 			_deactivateKeyboard = false;
 
 			_lastBouncePosition = Vector3.Zero;
@@ -179,7 +184,11 @@ namespace HockeySlam.Class.GameEntities.Models
 				_arrowManager.unregister(this);
 
 			Vector3 diffuseColor;
-			diffuseColor = new Vector3(1, 0.25f, 0.25f);
+
+			if (_team == 1)
+				diffuseColor = new Vector3(0.25f, 0.25f, 1);
+			else
+				diffuseColor = new Vector3(1, 0.25f, 0.25f);
 			//diffuseColor[1] = new Vector3(0.25f, 1, 0.25f);
 			//diffuseColor[2] = new Vector3(0.25f, 0.25f, 1);
 			//diffuseColor[3] = new Vector3(0.5f, 0.5f, 0.5f);
@@ -193,11 +202,6 @@ namespace HockeySlam.Class.GameEntities.Models
 			// TODO: Add your update code here
 			_rotation = 0;
 			//float lastRotation = Rotation;
-
-			if (_deactivateKeyboard && _deactiveKeyboardTime == 0)
-				_deactivateKeyboard = false;
-			else if (_deactivateKeyboard)
-				_deactiveKeyboardTime -= 10;
 
 			Vector2 normalizedVelocity = normalizeVelocity(_velocity);
 			float time = (float)gameTime.ElapsedGameTime.TotalSeconds;
@@ -468,7 +472,7 @@ namespace HockeySlam.Class.GameEntities.Models
 		private void verifyDiskCollision(ICollidable collided)
 		{
 			int rotationStrength = 15;
-			if (collided is Disk) {
+			if (collided is Disk && !_isSinglePlayer) {
 				Disk disk = (Disk)collided;
 				disk.AddVelocity(_velocity);
 				List<BoundingSphere> diskSpheres = disk.getBoundingSpheres();
@@ -479,9 +483,6 @@ namespace HockeySlam.Class.GameEntities.Models
 					disk.AddRotationVelocity(new Vector2(rotationStrength, rotationStrength) * goVelocity);
 				}
 			}
-			if (collided is Court)
-				_collidedWithCourt = true;
-			else _collidedWithCourt = false;
 		}
 
 		public void DrawDebug()

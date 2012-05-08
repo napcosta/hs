@@ -184,5 +184,25 @@ namespace HockeySlam.Class.GameEntities.Models
 		{
 			return Vector2.Zero;
 		}
+
+		public BoundingBox getTeam1Goal()
+		{
+			return _team1Goal;
+		}
+
+		public BoundingBox getTeam2Goal()
+		{
+			return _team2Goal;
+		}
+
+		public Vector2 getTeam1GoalPosition()
+		{
+			return new Vector2(0, 55);
+		}
+
+		public Vector2 getTeam2GoalPosition()
+		{
+			return new Vector2(0, -55);
+		}
 	}
 }
