@@ -53,7 +53,6 @@ namespace HockeySlam.Class.GameEntities
 			x = (float)Math.Cos(_fovRotation) * _viewDistance;
 			z = (float)Math.Sin(_fovRotation) * _viewDistance;
 			y = _player.getPositionVector().Y;
-			//Vector3 vec = new Vector3(_player.getPositionVector().X-10f, _player.getPositionVector().Y, _player.getPositionVector().Z-10f);
 			view = Matrix.CreateLookAt(_player.getPositionVector(), new Vector3(x, y, z), Vector3.Up);
 
 			_farPlane = 50;
@@ -137,8 +136,6 @@ namespace HockeySlam.Class.GameEntities
 					pos.X = 2;
 				else
 					pos.X = 0;
-
-				//_player.PositionInput = pos;
 			
 				if (keyboard.IsKeyDown(Keys.W))
 					pos.Y = 1;
@@ -186,14 +183,19 @@ namespace HockeySlam.Class.GameEntities
 			if (isDiskAhead() && !_hasDisk && !sameTeam(_disk.getPlayerWithDisk())) {
 				isDiskInRange = moveTowardsDisk();
 				if (isDiskInRange && !_hasShoot && _player.getPositionVector() != _lastPositionWithDisk) {
-					_disk.newPlayerWithDisk(this);
-					_hasDisk = true;
-					_lastPositionWithDisk = _player.getPositionVector();
+					grabDisk();
 				}
 			} else if(_hasDisk)
 				findGoal();
 			else if(!_hasDisk)
 				moveRandomly();
+		}
+
+		private void grabDisk()
+		{
+			_disk.newPlayerWithDisk(this);
+			_hasDisk = true;
+			_lastPositionWithDisk = _player.getPositionVector();
 		}
 
 		private void findGoal()
@@ -208,7 +210,6 @@ namespace HockeySlam.Class.GameEntities
 				shoot();
 			else {
 				moveRandomly();
-				//System.Console.WriteLine("moving randomly");
 			}
 		}
 
@@ -248,8 +249,6 @@ namespace HockeySlam.Class.GameEntities
 
 		private void shoot()
 		{
-			//_player.PositionInput = Vector2.Zero;
-			//_player.setRotation(0.1f);
 			Vector2 goalPosition;
 			Vector2 shotDirection;
 			if (_team == 1)
@@ -265,8 +264,6 @@ namespace HockeySlam.Class.GameEntities
 			_hasDisk = false;
 			_hasShoot = true;
 			_disk.shoot(shotDirection);
-
-			//Console.WriteLine("-> " + shotDirection);
 		}
 
 		private bool isDiskAhead()
