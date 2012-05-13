@@ -180,9 +180,9 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		public override void Draw(GameTime gameTime)
 		{
-			if (!isOutOfScreen())
+			if (!isOutOfScreen()) {
 				_arrowManager.unregister(this);
-
+			}
 			Vector3 diffuseColor;
 
 			if (_team == 1)
@@ -528,16 +528,21 @@ namespace HockeySlam.Class.GameEntities.Models
 			_camera.updateLocalPlayerPosition(_positionVector);
 		}
 
+		public void setArrowPlayer()
+		{
+			System.Console.WriteLine("setting arrow player Pos");
+			Vector3 project = _game.GraphicsDevice.Viewport.Project(_positionVector, _camera.projection, _camera.view, Matrix.Identity);
+			_arrowManager.setLocalPlayerPos(new Vector2(project.X, project.Y));
+		}
+
 		private bool isOutOfScreen()
 		{
 			Vector3 project = _game.GraphicsDevice.Viewport.Project(_positionVector, _camera.projection, _camera.view, Matrix.Identity);
-			//Console.WriteLine(project);
 			if (project.X < 0) {
 				_arrowManager.updatePosition(this, new Vector2(0, project.Y), MathHelper.PiOver2);
 				return true;
 			}
 			if (project.X > _game.GraphicsDevice.Viewport.Width) {
-				Console.WriteLine("NOW!!");
 				_arrowManager.updatePosition(this, new Vector2(_game.GraphicsDevice.Viewport.Width, project.Y), -MathHelper.PiOver2);
 				return true;
 			}
@@ -550,21 +555,6 @@ namespace HockeySlam.Class.GameEntities.Models
 				return true;
 			}
 			return false;
-			/*	if(project.X > _game.GraphicsDevice.Viewport.Width)
-					return true;
-				if (project.Y < 0 || project.Y > _game.GraphicsDevice.Viewport.Height)
-					return true;
-				return false;*/
-		}
-
-		private void calculateLeftVertex(Vector3 project, out float m, out float b)
-		{
-			//float m;
-			//float b;
-			Vector3 diskScreenCoord = _game.GraphicsDevice.Viewport.Project(_disk.getPosition(), _camera.projection, _camera.view, Matrix.Identity);
-			m = (diskScreenCoord.Y - project.Y) / (diskScreenCoord.Y + project.Y);
-			b = project.Y - m * project.X;
-			//return b;
 		}
 
 		public List<BoundingBox> getBoundingBoxes()
@@ -579,23 +569,6 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		public void bounce(Vector2 newVelocity)
 		{
-			/*if (_lastBouncePosition != _positionVector) {
-				if (newVelocity.X == -1 * _velocity.X) {
-					_velocity.X = 0;
-					Vector2 newPositionInput = PositionInput;
-					newPositionInput.X = 0;
-					PositionInput = newPositionInput;
-				}
-				if (newVelocity.Y == -1 * _velocity.Y) {
-					_velocity.Y = 0;
-					Vector2 newPositionInput = PositionInput;
-					newPositionInput.Y = 0;
-					PositionInput = newPositionInput;
-				}
-				_deactivateKeyboard = true;
-				//_deactiveKeyboardTime = 100;
-				_lastBouncePosition = _positionVector;
-			}*/
 		}
 
 		public void updatePositionInput(Vector2 positionInput)

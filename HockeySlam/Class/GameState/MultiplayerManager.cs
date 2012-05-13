@@ -232,8 +232,10 @@ namespace HockeySlam.Class.GameState
 						Player player = remoteGamer.Tag as Player;
 						player.setPositionVector(position);
 						player.Rotation = rotation;
-						if (remoteGamer.IsLocal)
+						if (remoteGamer.IsLocal) {
 							player.updateCameraPosition();
+							player.setArrowPlayer();
+						}
 					}
 				}
 
@@ -261,6 +263,7 @@ namespace HockeySlam.Class.GameState
 
 				Player player = gamer.Tag as Player;
 				player.updateCameraPosition();
+				player.setArrowPlayer();
 			}
 		}
 
