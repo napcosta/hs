@@ -75,7 +75,7 @@ namespace HockeySlam.Class.GameEntities.Models
 		public override void Initialize()
 		{
 			base.Initialize();
-			SetModelEffect(_playersTrace, false);
+			SetModelEffect(_iceEffect, false);
 			_iceEffect.Parameters["viewportWidth"].SetValue(_graphics.Viewport.Width);
 			_iceEffect.Parameters["viewportHeight"].SetValue(_graphics.Viewport.Height);
 			_playersTrace.Parameters["viewportWidth"].SetValue(_graphics.Viewport.Width);
@@ -113,7 +113,7 @@ namespace HockeySlam.Class.GameEntities.Models
 			}
 
 			_graphics.SetRenderTarget(null);
-			_iceEffect.Parameters["ReflectionMap"].SetValue(_playersTarget);
+			_iceEffect.Parameters["ReflectionMap"].SetValue(_reflectionTarg);
 			_graphics.Clear(Color.CornflowerBlue);
 		}
 
@@ -164,7 +164,7 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		public void preDraw(GameTime gameTime)
 		{
-			renderPlayersPosition(gameTime);
+			//renderPlayersPosition(gameTime);
 			renderReflection(gameTime);
 		}
 
