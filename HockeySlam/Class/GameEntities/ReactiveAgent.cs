@@ -129,7 +129,7 @@ namespace HockeySlam.Class.GameEntities
 				_hasDisk = false;
 
 			KeyboardState keyboard = Keyboard.GetState();
-			Vector2 pos;
+			Vector2 pos = Vector2.Zero;
 				if (keyboard.IsKeyDown(Keys.A))
 					pos.X = 1;
 				else if (keyboard.IsKeyDown(Keys.D))
@@ -250,14 +250,14 @@ namespace HockeySlam.Class.GameEntities
 		private void shoot()
 		{
 			Vector2 goalPosition;
-			Vector2 shotDirection;
+			Vector2 shotDirection = Vector2.Zero;
 			if (_team == 1)
 				goalPosition = _court.getTeam1GoalPosition();
 			else
 				goalPosition = _court.getTeam2GoalPosition();
 
-			shotDirection.Y = goalPosition.X - _player.getPositionVector().X;
-			shotDirection.X = goalPosition.Y - _player.getPositionVector().Z;
+			shotDirection.Y = goalPosition.X - _disk.getPosition().X;
+			shotDirection.X = goalPosition.Y - _disk.getPosition().Z;
 
 			shotDirection = Vector2.Normalize(shotDirection);
 

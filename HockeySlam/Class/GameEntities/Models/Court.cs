@@ -197,12 +197,12 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		public Vector2 getTeam1GoalPosition()
 		{
-			return new Vector2(0, 55);
+			return new Vector2(0, 56);
 		}
 
 		public Vector2 getTeam2GoalPosition()
 		{
-			return new Vector2(0, -55);
+			return new Vector2(0, -56);
 		}
 	}
 }

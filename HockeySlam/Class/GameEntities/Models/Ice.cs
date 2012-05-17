@@ -15,11 +15,18 @@ namespace HockeySlam.Class.GameEntities.Models
 	class Ice : BaseModel, IGameEntity
 	{
 		Effect _iceEffect;
+		Effect _playersTrace;
 
 		ContentManager _content;
 		GraphicsDevice _graphics;
 
 		RenderTarget2D _reflectionTarg;
+		RenderTarget2D _playersTarget;
+
+		List<Texture2D> _playersTraceTexture;
+		Texture2D _renderTargetTexture;
+		Texture2D _traceTexture;
+
 		public List<IReflectable> _reflectedObjects = new List<IReflectable>();
 
 		GameManager _gameManager;
@@ -27,6 +34,8 @@ namespace HockeySlam.Class.GameEntities.Models
 		float _iceTransparency;
 		float _blurAmount;
 		int _blurType;
+		int _numPlayers;
+		TimeSpan _lastTime;
 
 		public Ice(Game game, Camera camera, GameManager gameManager)
 			: base(game, camera)
@@ -34,19 +43,43 @@ namespace HockeySlam.Class.GameEntities.Models
 			_content = game.Content;
 			_graphics = game.GraphicsDevice;
 			_model = _content.Load<Model>("Models/Plane2");
+
 			_iceEffect = _content.Load<Effect>("Effects/IceEffect");
 			_iceEffect.Parameters["IceSurfaceTexture"].SetValue(_content.Load<Texture2D>("Textures/IceSurface2"));
-			_reflectionTarg = new RenderTarget2D(_graphics, _graphics.Viewport.Width,
-			_graphics.Viewport.Height, false, SurfaceFormat.Color, DepthFormat.Depth24);
+
+			_playersTrace = _content.Load<Effect>("Effects/PlayersTrace");
+			_traceTexture = _content.Load<Texture2D>("Textures/trace");
+
+			_reflectionTarg = new RenderTarget2D(_graphics, _graphics.Viewport.Width, _graphics.Viewport.Height, 
+												false, SurfaceFormat.Color, DepthFormat.Depth24);
+			_playersTarget = new RenderTarget2D(_graphics, _graphics.Viewport.Width, _graphics.Viewport.Height, 
+												false, SurfaceFormat.Color, DepthFormat.Depth24);
+			_renderTargetTexture = new Texture2D(_graphics, _playersTarget.Width, _playersTarget.Height);
+
+			Color[] c = new Color[_playersTarget.Width*_playersTarget.Height];
+			for(int i = 0; i < c.Length; i++)
+				c[i] = Color.Black;
+			_playersTraceTexture = new List<Texture2D>();
+
+			for(int i = 0; i < 12; i++) {
+				Texture2D tex = new Texture2D(_graphics, _playersTarget.Width, _playersTarget.Height, false, SurfaceFormat.Color);
+				tex.SetData<Color>(c);
+				_playersTraceTexture.Add(tex);
+			}
+
 			_gameManager = gameManager;
+			_numPlayers = 0;
+			_lastTime = TimeSpan.Zero;
 		}
 
 		public override void Initialize()
 		{
 			base.Initialize();
-			SetModelEffect(_iceEffect, false);
+			SetModelEffect(_playersTrace, false);
 			_iceEffect.Parameters["viewportWidth"].SetValue(_graphics.Viewport.Width);
 			_iceEffect.Parameters["viewportHeight"].SetValue(_graphics.Viewport.Height);
+			_playersTrace.Parameters["viewportWidth"].SetValue(_graphics.Viewport.Width);
+			_playersTrace.Parameters["viewportHeight"].SetValue(_graphics.Viewport.Height);
 
 			_blurType = 0;
 			_blurAmount = 0.001f;
@@ -80,18 +113,66 @@ namespace HockeySlam.Class.GameEntities.Models
 			}
 
 			_graphics.SetRenderTarget(null);
-			_iceEffect.Parameters["ReflectionMap"].SetValue(_reflectionTarg);
+			_iceEffect.Parameters["ReflectionMap"].SetValue(_playersTarget);
 			_graphics.Clear(Color.CornflowerBlue);
+		}
+
+		public void renderPlayersPosition(GameTime gameTime)
+		{
+			_graphics.SetRenderTarget(_playersTarget);
+			_graphics.Clear(Color.Black);
+
+			Rectangle[] _playerPos = new Rectangle[_numPlayers];
+			SpriteBatch spriteBatch = new SpriteBatch(_graphics);
+
+			int i = 0;
+			foreach (IReflectable reflectable in _reflectedObjects) {
+				if (reflectable is Player) {
+					Player reflectedPlayer = (Player)reflectable;
+					Vector3 playerPos = _graphics.Viewport.Project(reflectedPlayer.getPositionVector(), _camera.projection, _camera.view, Matrix.Identity);
+					_playerPos[i] = new Rectangle((int)playerPos.X, (int)playerPos.Y, 2, 2);
+					i++;
+				}
+			}
+
+			spriteBatch.Begin();
+			foreach (Rectangle rec in _playerPos) {
+				spriteBatch.Draw(_traceTexture, rec, Color.White);
+			}
+			spriteBatch.End();
+
+			_playersTrace.CurrentTechnique.Passes[0].Apply();
+			_graphics.SetRenderTarget(null);
+
+			Color[] content = new Color[_playersTarget.Width * _playersTarget.Height];
+			_playersTarget.GetData<Color>(content);
+
+			_renderTargetTexture = new Texture2D(_graphics, _playersTarget.Width, _playersTarget.Height);
+			_renderTargetTexture.SetData<Color>(content);
+
+			_playersTraceTexture.RemoveAt(0);
+			_playersTraceTexture.Add(_renderTargetTexture);
+			i = 11;
+			foreach (Texture2D tex in _playersTraceTexture) {
+				_playersTrace.Parameters["trace" + i].SetValue(tex);
+				i--;
+			}
+
+			_graphics.Clear(Color.CornflowerBlue);
+
 		}
 
 		public void preDraw(GameTime gameTime)
 		{
+			renderPlayersPosition(gameTime);
 			renderReflection(gameTime);
 		}
 
 		public void register(IReflectable reflectable)
 		{
 			_reflectedObjects.Add(reflectable);
+			if (reflectable is Player)
+				_numPlayers++;
 		}
 
 		public override void Draw(GameTime gameTime)
