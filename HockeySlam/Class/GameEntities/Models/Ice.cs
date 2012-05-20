@@ -91,6 +91,8 @@ namespace HockeySlam.Class.GameEntities.Models
 			_iceEffect.Parameters["iceTransparency"].SetValue(_iceTransparency);
 
 			_traceFadeEffect.Parameters["fade"].SetValue(0.001f);
+			_traceFadeEffect.Parameters["viewportWidth"].SetValue(_graphics.Viewport.Width);
+			_traceFadeEffect.Parameters["viewportHeight"].SetValue(_graphics.Viewport.Height);
 
 		}
 
@@ -138,11 +140,12 @@ namespace HockeySlam.Class.GameEntities.Models
 				}
 			}
 
-			spriteBatch.Begin(0,null,null,null,null,_playersTrace);
+			spriteBatch.Begin();
 			foreach (Rectangle rec in _playerPos) {
 				spriteBatch.Draw(_traceTexture, rec, Color.White);
 			}
 			spriteBatch.End();
+			_playersTrace.CurrentTechnique.Passes[0].Apply();
 			_graphics.SetRenderTarget(null);
 
 			_playersTrace.Parameters["playerPosition"].SetValue(_playersTarget);
@@ -153,15 +156,16 @@ namespace HockeySlam.Class.GameEntities.Models
 			_traceFadeTexture.SetData<Color>(content);
 
 			_graphics.SetRenderTarget(_traceFadeTarget);
-			spriteBatch.Begin(0, null, null, null, null, _traceFadeEffect);
+			spriteBatch.Begin();
 			Rectangle rect = new Rectangle(0,0,_traceFadeTarget.Width, _traceFadeTarget.Height);
 			spriteBatch.Draw(_traceFadeTexture, rect, Color.White);
 			spriteBatch.End();
+			_traceFadeEffect.CurrentTechnique.Passes[0].Apply();
 			_graphics.SetRenderTarget(null);
 
 			_traceFadeEffect.Parameters["playerPosition"].SetValue(_playersTarget);
 			_traceFadeEffect.Parameters["trace"].SetValue(_traceFadeTexture);
-			_traceFadeTexture.Dispose();
+			//_traceFadeTexture.Dispose();
 
 			_graphics.Clear(Color.CornflowerBlue);
 
