@@ -182,27 +182,29 @@ namespace HockeySlam.Class.GameState
 			_disk.Update(gameTime);
 			Vector3 diskPosition = _disk.getPosition();
 			
-		//	if (servUpdate == 3)
-		//		_packetWriter.Write(diskPosition);
+			if (servUpdate == 3)
+				_packetWriter.Write(diskPosition);
 			
 			foreach (NetworkGamer gamer in _networkSession.AllGamers) {
 
 				Player player = gamer.Tag as Player;
 
-				player.Update(gameTime);
-				if (servUpdate == 3) {
+				if (!gamer.IsHost)
+					player.Update(gameTime);
+				
+			//	if (servUpdate == 3) {
 					_packetWriter.Write(gamer.Id);
 					_packetWriter.Write(player.getPositionVector());
 					_packetWriter.Write(player.Rotation);
-				}
-			}
+				//}
+			//}
 			//Send the combined data for all players to everyone in the session.
 			LocalNetworkGamer server = (LocalNetworkGamer)_networkSession.Host;
-			if (servUpdate == 3) {
+		//	if (servUpdate == 3) {
 				server.SendData(_packetWriter, SendDataOptions.InOrder);
 				servUpdate = 0;
-			} else {
-				servUpdate++;
+			//} else {
+			//	servUpdate++;
 			}
 		}
 
