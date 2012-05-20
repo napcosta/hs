@@ -89,7 +89,7 @@ namespace HockeySlam.Class.GameState
 
 				gamer.SendData(_packetWriter, SendDataOptions.InOrder, _networkSession.Host);
 			}
-
+			localPlayer.Update(gameTime);
 			_disk.Update(gameTime);
 		}
 
