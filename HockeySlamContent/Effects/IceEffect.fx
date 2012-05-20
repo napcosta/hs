@@ -131,14 +131,16 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 
 	}
 
-	float4 snow = tex2D(iceSurfaceSnowSampler, input.UV);
-	float4 ice = tex2D(iceSurfaceTextureSampler, input.UV);
-	reflection = reflection*(1-iceTransparency) + ice*iceTransparency;
-	reflection = float4(0.3,0.3,0.9,1.0)*0.2 + reflection*0.8;
+	//float4 snow = tex2D(iceSurfaceSnowSampler, input.UV);
+	//float4 ice = tex2D(iceSurfaceTextureSampler, input.UV);
+	//reflection = reflection*(1-iceTransparency) + ice*iceTransparency;
+	//reflection = float4(0.3,0.3,0.9,1.0)*0.2 + reflection*0.8;
 
 	//reflection = snow*snow.a + reflection*(1-snow.a);
 	
-	return reflection;
+	//return reflection;
+
+	return tex2D(reflectionSampler, reflectionUV);
 }
 
 technique Technique1

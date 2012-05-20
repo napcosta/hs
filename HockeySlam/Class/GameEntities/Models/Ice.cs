@@ -118,7 +118,7 @@ namespace HockeySlam.Class.GameEntities.Models
 			}
 
 			_graphics.SetRenderTarget(null);
-			_iceEffect.Parameters["ReflectionMap"].SetValue(_reflectionTarg);
+			_iceEffect.Parameters["ReflectionMap"].SetValue(_playersTarget);
 			_graphics.Clear(Color.CornflowerBlue);
 		}
 

@@ -85,7 +85,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 
 	updatedTrace.w = 1;
 
-	return updatedTrace;
+	return tex2D(playerPositionSampler, reflectionUV);
 
 }
 
