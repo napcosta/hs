@@ -31,6 +31,7 @@ namespace HockeySlam.Class.GameState
 		Vector4 _rotationInput;
 		Disk _disk;
 		int _priority;
+		int servUpdate = 0;
 
 		public MultiplayerManager(Game game, Camera camera, GameManager gameManager, NetworkSession networkSession)
 		{
@@ -71,7 +72,7 @@ namespace HockeySlam.Class.GameState
 			UpdateNetworkSession(gameTime);
 		}
 
-		void UpdateLocalGamer(LocalNetworkGamer gamer)
+		void LocalGamerUpdate(LocalNetworkGamer gamer, GameTime gameTime)
 		{
 			/* Look up what player is associated with this local player,
 			 * and read the latest user inputs for it. The server will later
@@ -88,6 +89,8 @@ namespace HockeySlam.Class.GameState
 
 				gamer.SendData(_packetWriter, SendDataOptions.InOrder, _networkSession.Host);
 			}
+
+			_disk.Update(gameTime);
 		}
 
 		void ReadPlayerInput(Player player, PlayerIndex playerIndex)
@@ -175,22 +178,32 @@ namespace HockeySlam.Class.GameState
 		/* Updates the server and sends the packets to the clients */
 		void UpdateServer(GameTime gameTime)
 		{
+
 			_disk.Update(gameTime);
 			Vector3 diskPosition = _disk.getPosition();
-			_packetWriter.Write(diskPosition);
+			
+			if (servUpdate == 3)
+				_packetWriter.Write(diskPosition);
 			
 			foreach (NetworkGamer gamer in _networkSession.AllGamers) {
 
 				Player player = gamer.Tag as Player;
 
 				player.Update(gameTime);
-				_packetWriter.Write(gamer.Id);
-				_packetWriter.Write(player.getPositionVector());
-				_packetWriter.Write(player.Rotation);
+				if (servUpdate == 3) {
+					_packetWriter.Write(gamer.Id);
+					_packetWriter.Write(player.getPositionVector());
+					_packetWriter.Write(player.Rotation);
+				}
 			}
 			//Send the combined data for all players to everyone in the session.
 			LocalNetworkGamer server = (LocalNetworkGamer)_networkSession.Host;
-			server.SendData(_packetWriter, SendDataOptions.InOrder);
+			if (servUpdate == 3) {
+				server.SendData(_packetWriter, SendDataOptions.InOrder);
+				servUpdate = 0;
+			} else {
+				servUpdate++;
+			}
 		}
 
 		void ServerReadInputFromClients(LocalNetworkGamer gamer)
@@ -218,7 +231,7 @@ namespace HockeySlam.Class.GameState
 				
 				gamer.ReceiveData(_packetReader, out sender);
 				Vector3 diskPosition = _packetReader.ReadVector3();
-				_disk.setPosition(diskPosition);
+				_disk.synchPosition(diskPosition);
 				while (_packetReader.Position < _packetReader.Length) {
 					//Read the state of one Player from the network packet
 
@@ -245,7 +258,7 @@ namespace HockeySlam.Class.GameState
 		void UpdateNetworkSession(GameTime gameTime)
 		{
 			foreach (LocalNetworkGamer gamer in _networkSession.LocalGamers)
-				UpdateLocalGamer(gamer);
+				LocalGamerUpdate(gamer, gameTime);
 
 			if (_networkSession.IsHost)
 				UpdateServer(gameTime);
