@@ -182,8 +182,8 @@ namespace HockeySlam.Class.GameState
 			_disk.Update(gameTime);
 			Vector3 diskPosition = _disk.getPosition();
 			
-			if (servUpdate == 3)
-				_packetWriter.Write(diskPosition);
+		//	if (servUpdate == 3)
+		//		_packetWriter.Write(diskPosition);
 			
 			foreach (NetworkGamer gamer in _networkSession.AllGamers) {
 
@@ -230,8 +230,8 @@ namespace HockeySlam.Class.GameState
 				NetworkGamer sender;
 				
 				gamer.ReceiveData(_packetReader, out sender);
-				Vector3 diskPosition = _packetReader.ReadVector3();
-				_disk.synchPosition(diskPosition);
+				//Vector3 diskPosition = _packetReader.ReadVector3();
+				//_disk.synchPosition(diskPosition);
 				while (_packetReader.Position < _packetReader.Length) {
 					//Read the state of one Player from the network packet
 
