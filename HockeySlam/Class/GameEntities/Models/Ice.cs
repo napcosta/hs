@@ -16,16 +16,18 @@ namespace HockeySlam.Class.GameEntities.Models
 	{
 		Effect _iceEffect;
 		Effect _playersTrace;
+		Effect _traceFadeEffect;
 
 		ContentManager _content;
 		GraphicsDevice _graphics;
 
 		RenderTarget2D _reflectionTarg;
 		RenderTarget2D _playersTarget;
+		RenderTarget2D _traceFadeTarget;
 
-		List<Texture2D> _playersTraceTexture;
 		Texture2D _renderTargetTexture;
 		Texture2D _traceTexture;
+		Texture2D _traceFadeTexture;
 
 		public List<IReflectable> _reflectedObjects = new List<IReflectable>();
 
@@ -50,22 +52,21 @@ namespace HockeySlam.Class.GameEntities.Models
 			_playersTrace = _content.Load<Effect>("Effects/PlayersTrace");
 			_traceTexture = _content.Load<Texture2D>("Textures/trace");
 
+			_traceFadeEffect = _content.Load<Effect>("Effects/TraceFade");
+
 			_reflectionTarg = new RenderTarget2D(_graphics, _graphics.Viewport.Width, _graphics.Viewport.Height, 
 												false, SurfaceFormat.Color, DepthFormat.Depth24);
 			_playersTarget = new RenderTarget2D(_graphics, _graphics.Viewport.Width, _graphics.Viewport.Height, 
 												false, SurfaceFormat.Color, DepthFormat.Depth24);
+			_traceFadeTarget = new RenderTarget2D(_graphics, _graphics.Viewport.Width, _graphics.Viewport.Height,
+												false, SurfaceFormat.Color, DepthFormat.Depth24);
+
 			_renderTargetTexture = new Texture2D(_graphics, _playersTarget.Width, _playersTarget.Height);
 
 			Color[] c = new Color[_playersTarget.Width*_playersTarget.Height];
 			for(int i = 0; i < c.Length; i++)
 				c[i] = Color.Black;
-			_playersTraceTexture = new List<Texture2D>();
-
-			for(int i = 0; i < 12; i++) {
-				Texture2D tex = new Texture2D(_graphics, _playersTarget.Width, _playersTarget.Height, false, SurfaceFormat.Color);
-				tex.SetData<Color>(c);
-				_playersTraceTexture.Add(tex);
-			}
+			_traceFadeTarget.SetData<Color>(c);
 
 			_gameManager = gameManager;
 			_numPlayers = 0;
@@ -88,6 +89,8 @@ namespace HockeySlam.Class.GameEntities.Models
 			_iceEffect.Parameters["blurType"].SetValue(_blurType);
 			_iceEffect.Parameters["blurAmount"].SetValue(_blurAmount);
 			_iceEffect.Parameters["iceTransparency"].SetValue(_iceTransparency);
+
+			_traceFadeEffect.Parameters["fade"].SetValue(0.001f);
 
 		}
 
@@ -135,28 +138,30 @@ namespace HockeySlam.Class.GameEntities.Models
 				}
 			}
 
-			spriteBatch.Begin();
+			spriteBatch.Begin(0,null,null,null,null,_playersTrace);
 			foreach (Rectangle rec in _playerPos) {
 				spriteBatch.Draw(_traceTexture, rec, Color.White);
 			}
 			spriteBatch.End();
-
-			_playersTrace.CurrentTechnique.Passes[0].Apply();
 			_graphics.SetRenderTarget(null);
 
-			Color[] content = new Color[_playersTarget.Width * _playersTarget.Height];
-			_playersTarget.GetData<Color>(content);
+			_playersTrace.Parameters["playerPosition"].SetValue(_playersTarget);
 
-			_renderTargetTexture = new Texture2D(_graphics, _playersTarget.Width, _playersTarget.Height);
-			_renderTargetTexture.SetData<Color>(content);
+			_traceFadeTexture = new Texture2D(_graphics, _traceFadeTarget.Width, _traceFadeTarget.Height);
+			Color[] content = new Color[_traceFadeTarget.Width*_traceFadeTarget.Height];
+			_traceFadeTarget.GetData<Color>(content);
+			_traceFadeTexture.SetData<Color>(content);
 
-			_playersTraceTexture.RemoveAt(0);
-			_playersTraceTexture.Add(_renderTargetTexture);
-			i = 11;
-			foreach (Texture2D tex in _playersTraceTexture) {
-				_playersTrace.Parameters["trace" + i].SetValue(tex);
-				i--;
-			}
+			_graphics.SetRenderTarget(_traceFadeTarget);
+			spriteBatch.Begin(0, null, null, null, null, _traceFadeEffect);
+			Rectangle rect = new Rectangle(0,0,_traceFadeTarget.Width, _traceFadeTarget.Height);
+			spriteBatch.Draw(_traceFadeTexture, rect, Color.White);
+			spriteBatch.End();
+			_graphics.SetRenderTarget(null);
+
+			_traceFadeEffect.Parameters["playerPosition"].SetValue(_playersTarget);
+			_traceFadeEffect.Parameters["trace"].SetValue(_traceFadeTexture);
+			_traceFadeTexture.Dispose();
 
 			_graphics.Clear(Color.CornflowerBlue);
 
@@ -164,7 +169,7 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		public void preDraw(GameTime gameTime)
 		{
-			//renderPlayersPosition(gameTime);
+			renderPlayersPosition(gameTime);
 			renderReflection(gameTime);
 		}
 
