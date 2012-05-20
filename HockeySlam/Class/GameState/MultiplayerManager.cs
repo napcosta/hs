@@ -32,7 +32,6 @@ namespace HockeySlam.Class.GameState
 		Disk _disk;
 		int _priority;
 		int servUpdate = 0;
-
 		public MultiplayerManager(Game game, Camera camera, GameManager gameManager, NetworkSession networkSession)
 		{
 			_game = game;
@@ -54,6 +53,7 @@ namespace HockeySlam.Class.GameState
 			_priority = 0;
 			_disk = new Disk(_gameManager, _game, _camera, false);
 			_disk.Initialize();
+			_networkSession.SimulatedLatency = TimeSpan.FromSeconds(3.0f);
 		}
 
 		public void Draw(GameTime gameTime)
@@ -90,7 +90,9 @@ namespace HockeySlam.Class.GameState
 				gamer.SendData(_packetWriter, SendDataOptions.InOrder, _networkSession.Host);
 			}
 			localPlayer.Update(gameTime);
-			_disk.Update(gameTime);
+
+			if(!gamer.IsHost)
+				_disk.Update(gameTime);
 		}
 
 		void ReadPlayerInput(Player player, PlayerIndex playerIndex)
@@ -178,12 +180,11 @@ namespace HockeySlam.Class.GameState
 		/* Updates the server and sends the packets to the clients */
 		void UpdateServer(GameTime gameTime)
 		{
-
 			_disk.Update(gameTime);
 			Vector3 diskPosition = _disk.getPosition();
 			
 			//if (servUpdate == 3)
-				_packetWriter.Write(diskPosition);
+				
 			
 			foreach (NetworkGamer gamer in _networkSession.AllGamers) {
 
@@ -193,6 +194,7 @@ namespace HockeySlam.Class.GameState
 					player.Update(gameTime);
 				
 			//	if (servUpdate == 3) {
+				_packetWriter.Write(diskPosition);
 					_packetWriter.Write(gamer.Id);
 					_packetWriter.Write(player.getPositionVector());
 					_packetWriter.Write(player.Rotation);
@@ -202,7 +204,7 @@ namespace HockeySlam.Class.GameState
 			LocalNetworkGamer server = (LocalNetworkGamer)_networkSession.Host;
 		//	if (servUpdate == 3) {
 				server.SendData(_packetWriter, SendDataOptions.InOrder);
-				servUpdate = 0;
+				//servUpdate = 0;
 			//} else {
 			//	servUpdate++;
 			}
