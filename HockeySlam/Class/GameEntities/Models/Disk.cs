@@ -207,7 +207,7 @@ namespace HockeySlam.Class.GameEntities.Models
 			return _position;
 		}
 
-		public void setPosition(Vector3 pos)
+		public void synchPosition(Vector3 pos)
 		{
 			_position = pos;
 		}
