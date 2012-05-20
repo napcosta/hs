@@ -39,7 +39,7 @@ namespace HockeySlam.Class.GameState
 				spriteBatch.Draw(_arrow, src, null, Color.White, -_rotation, Vector2.Zero, SpriteEffects.None, 0);
 			}
 
-			Rectangle src2 = new Rectangle((int)_localPlayerPos.X+15, (int)_localPlayerPos.Y-50, 30, 30);
+			Rectangle src2 = new Rectangle((int)_localPlayerPos.X+8, (int)_localPlayerPos.Y-5, 15, 15);
 			spriteBatch.Draw(_arrow, src2, null, Color.White, MathHelper.Pi, Vector2.Zero, SpriteEffects.None, 0);
 
 			spriteBatch.End();

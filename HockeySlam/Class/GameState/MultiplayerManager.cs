@@ -75,7 +75,7 @@ namespace HockeySlam.Class.GameState
 		{
 			/* Look up what player is associated with this local player,
 			 * and read the latest user inputs for it. The server will later
-			 * use these values to control the tank movement. */
+			 * use these values to control the player movement. */
 			Player localPlayer = gamer.Tag as Player;
 
 			ReadPlayerInput(localPlayer, gamer.SignedInGamer.PlayerIndex);
