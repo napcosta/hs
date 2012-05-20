@@ -14,6 +14,7 @@ namespace HockeySlam.Class.GameState
 	{
 		Dictionary<Player, Vector2> _playerOffScreen;
 		Game _game;
+		Vector2  _localPlayerPos;
 
 		Texture2D _arrow;
 		float _rotation;
@@ -27,6 +28,9 @@ namespace HockeySlam.Class.GameState
 
 		public void Draw(GameTime gameTime)
 		{
+			BlendState lastBlend = _game.GraphicsDevice.BlendState;
+			DepthStencilState lastDepth = _game.GraphicsDevice.DepthStencilState;
+
 			SpriteBatch spriteBatch = new SpriteBatch(_game.GraphicsDevice);
 
 			spriteBatch.Begin();
@@ -34,8 +38,16 @@ namespace HockeySlam.Class.GameState
 				Rectangle src = new Rectangle((int)pair.Value.X, (int)pair.Value.Y, 30, 30);
 				spriteBatch.Draw(_arrow, src, null, Color.White, -_rotation, Vector2.Zero, SpriteEffects.None, 0);
 			}
+
+			Rectangle src2 = new Rectangle((int)_localPlayerPos.X+8, (int)_localPlayerPos.Y-5, 15, 15);
+			spriteBatch.Draw(_arrow, src2, null, Color.White, MathHelper.Pi, Vector2.Zero, SpriteEffects.None, 0);
+
 			spriteBatch.End();
+
+			_game.GraphicsDevice.BlendState = lastBlend;
+			_game.GraphicsDevice.DepthStencilState = lastDepth;
 		}
+
 
 		public void Initialize()
 		{
@@ -59,6 +71,11 @@ namespace HockeySlam.Class.GameState
 		{
 			if(_playerOffScreen.ContainsKey(player))
 				_playerOffScreen.Remove(player);
+		}
+
+		public void setLocalPlayerPos(Vector2 localPlayerPos)
+		{
+			_localPlayerPos = localPlayerPos;
 		}
 	}
 }
