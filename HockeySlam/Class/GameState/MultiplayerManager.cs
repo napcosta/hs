@@ -53,7 +53,7 @@ namespace HockeySlam.Class.GameState
 			_priority = 0;
 			_disk = new Disk(_gameManager, _game, _camera, false);
 			_disk.Initialize();
-			_networkSession.SimulatedLatency = TimeSpan.FromSeconds(3.0f);
+			_networkSession.SimulatedLatency = TimeSpan.FromMilliseconds(200.0f);
 		}
 
 		public void Draw(GameTime gameTime)
