@@ -39,6 +39,7 @@ namespace HockeySlam.Class.GameState
 		private void InitializeParticles()
 		{
 			particles.Add(new IceParticles(game, game.Content, gameManager));
+			particles.Add(new Trail(game, game.Content, gameManager));
 		}
 
 		public void LoadContent()
