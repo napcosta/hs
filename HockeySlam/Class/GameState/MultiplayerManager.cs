@@ -409,10 +409,14 @@ namespace HockeySlam.Class.GameState
 				_networkSession.SessionProperties[2] = _enablePrediction ? 1 : 0;
 				_networkSession.SessionProperties[3] = _enablePrediction ? 1 : 0;
 			} else {
-				_networkQuality = (NetworkQuality)_networkSession.SessionProperties[0];
-				_framesBetweenPackets = _networkSession.SessionProperties[1].Value;
-				_enablePrediction = _networkSession.SessionProperties[2] != 0;
-				_enableSmoothing = _networkSession.SessionProperties[3] != 0;
+				if(_networkSession.SessionProperties[0] != null)
+					_networkQuality = (NetworkQuality)_networkSession.SessionProperties[0];
+				if(_networkSession.SessionProperties[1] != null)
+					_framesBetweenPackets = _networkSession.SessionProperties[1].Value;
+				if(_networkSession.SessionProperties[2] != null)
+					_enablePrediction = _networkSession.SessionProperties[2] != 0;
+				if(_networkSession.SessionProperties[3] != null)
+					_enableSmoothing = _networkSession.SessionProperties[3] != 0;
 			}
 
 			switch (_networkQuality) {
