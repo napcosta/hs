@@ -65,7 +65,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 {
 	float2 reflectionUV = postProjToScreen(input.ReflectionPosition) + halfPixel();
 
-	float4 lessTrace = tex2D(traceSampler, reflectionUV) - float4(fade, fade, fade, 0);
+	float4 lessTrace = tex2D(traceSampler, input.UV) - float4(fade, fade, fade, 0);
 	
 	if(lessTrace.x < 0)
 		lessTrace.x = 0;
@@ -74,7 +74,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 	if(lessTrace.z < 0)
 		lessTrace.z = 0;
 
-	float4 updatedTrace = lessTrace + tex2D(playerPositionSampler, reflectionUV);
+	float4 updatedTrace = lessTrace + tex2D(playerPositionSampler, input.UV);
 
 	if(updatedTrace.x > 255)
 		updatedTrace.x = 255;

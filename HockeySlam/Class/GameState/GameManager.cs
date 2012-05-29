@@ -56,6 +56,7 @@ namespace HockeySlam.Class.GameState
 			}
 			//AddEntity("disk", new Disk(this, _game, camera));
 			AddEntity("ice", new Ice(_game, camera, this));
+			AddEntity("particleManager", new ParticleManager(_game, camera, this));
 			AddEntity("arrowManager", new ArrowManager(_game));
 		}
 

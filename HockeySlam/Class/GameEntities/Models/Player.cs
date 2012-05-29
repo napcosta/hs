@@ -530,7 +530,6 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		public void setArrowPlayer()
 		{
-			System.Console.WriteLine("setting arrow player Pos");
 			Vector3 project = _game.GraphicsDevice.Viewport.Project(new Vector3 (_positionVector.X, _positionVector.Y+4.3f, _positionVector.Z), _camera.projection, _camera.view, Matrix.Identity);
 			_arrowManager.setLocalPlayerPos(new Vector2(project.X, project.Y));
 		}

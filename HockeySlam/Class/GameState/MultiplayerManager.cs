@@ -210,6 +210,17 @@ namespace HockeySlam.Class.GameState
 			}
 		}
 
+		public List<Player> GetPlayers()
+		{
+			List<Player> players = new List<Player>();
+			foreach(Gamer gamer in _networkSession.AllGamers) {
+				Player player = gamer.Tag as Player;
+				players.Add(player);
+			}
+
+			return players;
+		}
+
 		void ServerReadInputFromClients(LocalNetworkGamer gamer)
 		{
 			//keep reading as long as incoming packets are available

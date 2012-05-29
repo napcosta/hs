@@ -61,12 +61,14 @@ namespace HockeySlam.Class.GameEntities.Models
 			_traceFadeTarget = new RenderTarget2D(_graphics, _graphics.Viewport.Width, _graphics.Viewport.Height,
 												false, SurfaceFormat.Color, DepthFormat.Depth24);
 
+			_traceFadeTexture = new Texture2D(_graphics, _traceFadeTarget.Width, _traceFadeTarget.Height);
+
 			_renderTargetTexture = new Texture2D(_graphics, _playersTarget.Width, _playersTarget.Height);
 
 			Color[] c = new Color[_playersTarget.Width*_playersTarget.Height];
 			for(int i = 0; i < c.Length; i++)
 				c[i] = Color.Black;
-			_traceFadeTarget.SetData<Color>(c);
+			_traceFadeTexture.SetData<Color>(c);
 
 			_gameManager = gameManager;
 			_numPlayers = 0;
@@ -118,7 +120,7 @@ namespace HockeySlam.Class.GameEntities.Models
 			}
 
 			_graphics.SetRenderTarget(null);
-			_iceEffect.Parameters["ReflectionMap"].SetValue(_playersTarget);
+			_iceEffect.Parameters["ReflectionMap"].SetValue(_reflectionTarg);
 			_graphics.Clear(Color.CornflowerBlue);
 		}
 
@@ -150,11 +152,6 @@ namespace HockeySlam.Class.GameEntities.Models
 
 			_playersTrace.Parameters["playerPosition"].SetValue(_playersTarget);
 
-			_traceFadeTexture = new Texture2D(_graphics, _traceFadeTarget.Width, _traceFadeTarget.Height);
-			Color[] content = new Color[_traceFadeTarget.Width*_traceFadeTarget.Height];
-			_traceFadeTarget.GetData<Color>(content);
-			_traceFadeTexture.SetData<Color>(content);
-
 			_graphics.SetRenderTarget(_traceFadeTarget);
 			spriteBatch.Begin();
 			Rectangle rect = new Rectangle(0,0,_traceFadeTarget.Width, _traceFadeTarget.Height);
@@ -165,6 +162,11 @@ namespace HockeySlam.Class.GameEntities.Models
 
 			_traceFadeEffect.Parameters["playerPosition"].SetValue(_playersTarget);
 			_traceFadeEffect.Parameters["trace"].SetValue(_traceFadeTexture);
+
+			_traceFadeTexture = new Texture2D(_graphics, _traceFadeTarget.Width, _traceFadeTarget.Height);
+			Color[] content = new Color[_traceFadeTarget.Width * _traceFadeTarget.Height];
+			_traceFadeTarget.GetData<Color>(content);
+			_traceFadeTexture.SetData<Color>(content);
 			//_traceFadeTexture.Dispose();
 
 			_graphics.Clear(Color.CornflowerBlue);
