@@ -298,6 +298,7 @@ namespace HockeySlam.Class.GameState
 						player._simulationState.Velocity = velocity;
 						player._simulationState.Position = position;
 						player._simulationState.Rotation = rotation;
+
 						if (_enablePrediction) {
 							// Predict how the remote player will move by
 							// updating our local copy of its simulation state
@@ -308,6 +309,7 @@ namespace HockeySlam.Class.GameState
 								player.UpdateState(ref player._previousState);
 							}
 						}
+
 						if (_currentSmoothing > 0) {
 							// Interpolate the display state gradually from the
 							// previous state to the current simulation state
@@ -320,13 +322,7 @@ namespace HockeySlam.Class.GameState
 						player._displayState.Rotation = rotation;*/
 						//player.setPositionVector(position);
 						//player.Rotation = rotation;
-						if (remoteGamer.IsLocal) {
-							player.updateCameraPosition();
-							player.setArrowPlayer();
-						}
-
-						player.UpdateState(ref player._simulationState);
-						player._displayState = player._simulationState;
+						
 					}
 				}
 			}
