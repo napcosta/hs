@@ -210,10 +210,6 @@ namespace HockeySlam.Class.GameState
 
 			player.updatePositionInput(positionInput);
 			player.updateRotationInput(_rotationInput);
-
-			previousKeyboardState = currentKeyboardState;
-			currentKeyboardState = Keyboard.GetState();
-			UpdateOptions();
 		}
 
 		/// <summary>
@@ -345,6 +341,9 @@ namespace HockeySlam.Class.GameState
 
 		void UpdateNetworkSession(GameTime gameTime)
 		{
+			previousKeyboardState = currentKeyboardState;
+			currentKeyboardState = Keyboard.GetState();
+			UpdateOptions();
 			foreach (LocalNetworkGamer gamer in _networkSession.LocalGamers)
 				LocalGamerUpdate(gamer, gameTime);
 
