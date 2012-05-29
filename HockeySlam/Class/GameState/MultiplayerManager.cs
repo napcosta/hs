@@ -13,6 +13,7 @@ using HockeySlam.Class.GameState;
 using HockeySlam.Class.GameEntities;
 using HockeySlam.Class.Networking;
 using Microsoft.Xna.Framework.Input;
+
 namespace HockeySlam.Class.GameState
 {
 	public class MultiplayerManager : IGameEntity

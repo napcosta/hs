@@ -40,25 +40,26 @@ namespace HockeySlam.Class.GameEntities.Particles
 
 			settings.MaxParticles = 1000;
 
-			settings.Duration = TimeSpan.FromSeconds(10);
+			settings.Duration = TimeSpan.FromSeconds(4);
 
 			settings.DurationRandomness = 1.5f;
 
-			settings.EmitterVelocitySensitivity = 0.1f;
+			settings.EndVelocity = 2;
+
+			settings.EmitterVelocitySensitivity = -0.1f;
 
 			settings.MinVerticalVelocity = 1;
-			settings.MaxVerticalVelocity = 2;
-
-			settings.MinHorizontalVelocity = 1;
-			settings.MaxHorizontalVelocity = 5;
+			settings.MaxVerticalVelocity = 6;
 
 			settings.Gravity = new Vector3(0, -13, 0);
+
+			settings.MinColor = Color.LightBlue;
 
 			settings.MinStartSize = 0.1f;
 			settings.MaxStartSize = 0.2f;
 
-			settings.MinEndSize = 0.2f;
-			settings.MaxEndSize = 0.5f;
+			settings.MinEndSize = 0.3f;
+			settings.MaxEndSize = 0.4f;
 		}
 
 		public override void  SpecificUpdate(GameTime gameTime)

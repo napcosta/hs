@@ -274,14 +274,14 @@ namespace HockeySlam.Class.Particles
 
 			velocity *= settings.EmitterVelocitySensitivity;
 
-			//if (!velocityZero) {
+			if (velocityZero) {
 				float horizontalVelocity = MathHelper.Lerp(settings.MinHorizontalVelocity, settings.MaxHorizontalVelocity, (float)random.NextDouble());
 
 				double horizontalAngle = random.NextDouble() * MathHelper.TwoPi;
 
 				velocity.X += horizontalVelocity * (float)Math.Cos(horizontalAngle);
 				velocity.Z += horizontalVelocity * (float)Math.Sin(horizontalAngle);
-			//}
+			}
 
 			velocity.Y += MathHelper.Lerp(settings.MinVerticalVelocity, settings.MaxVerticalVelocity, (float)random.NextDouble());
 
