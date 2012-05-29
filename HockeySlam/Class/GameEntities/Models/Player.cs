@@ -653,6 +653,11 @@ namespace HockeySlam.Class.GameEntities.Models
 			Rotation = (Rotation + rotation) % MathHelper.TwoPi;
 		}
 
+		public void setVelocity(Vector2 velocity)
+		{
+			_velocity = velocity;
+		}
+
 		/* ---------------------------- AGENTS ------------------------------- */
 
 		public Vector3 getStickPosition()

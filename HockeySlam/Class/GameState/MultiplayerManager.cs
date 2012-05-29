@@ -118,15 +118,15 @@ namespace HockeySlam.Class.GameState
 				_packetWriter.Write(localPlayer.RotationInput);
 
 				gamer.SendData(_packetWriter, SendDataOptions.InOrder, _networkSession.Host);
-			} else {
-				localPlayer.UpdateState(ref localPlayer._simulationState);
-				localPlayer._displayState = localPlayer._simulationState;
 			}
 
 			// The client as well as the host are updating. The client will sync with the
 			// server later
 			localPlayer.Update(gameTime);
+			localPlayer.UpdateState(ref localPlayer._simulationState);
 			localPlayer._displayState = localPlayer._simulationState;
+
+			//localPlayer._displayState = localPlayer._simulationState;
 			if(!gamer.IsHost)
 				_disk.Update(gameTime);
 		}
@@ -303,9 +303,12 @@ namespace HockeySlam.Class.GameState
 
 					if (remoteGamer != null) {
 						Player player = remoteGamer.Tag as Player;
-						player._simulationState.Velocity = velocity;
-						player._simulationState.Position = position;
-						player._simulationState.Rotation = rotation;
+						player.setPositionVector(position);
+						player.Rotation = rotation;
+						player.setVelocity(velocity);
+						//player._simulationState.Velocity = velocity;
+						//player._simulationState.Position = position;
+						//player._simulationState.Rotation = rotation;
 
 						if (_enablePrediction) {
 							// Predict how the remote player will move by
@@ -353,9 +356,6 @@ namespace HockeySlam.Class.GameState
 
 		void UpdateNetworkSession(GameTime gameTime)
 		{
-			previousKeyboardState = currentKeyboardState;
-			currentKeyboardState = Keyboard.GetState();
-			UpdateOptions();
 			foreach (LocalNetworkGamer gamer in _networkSession.LocalGamers)
 				LocalGamerUpdate(gamer, gameTime);
 
@@ -377,6 +377,10 @@ namespace HockeySlam.Class.GameState
 				player.updateCameraPosition();
 				player.setArrowPlayer();
 			}
+
+			previousKeyboardState = currentKeyboardState;
+			currentKeyboardState = Keyboard.GetState();
+			UpdateOptions();
 		}
 
 		private void UpdateOptions()
