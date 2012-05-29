@@ -11,6 +11,7 @@ using Microsoft.Xna.Framework.Media;
 using HockeySlam.Class.GameEntities;
 using HockeySlam;
 using HockeySlam.Class.GameState;
+using HockeySlam.Class.Networking;
 using HockeySlam.Interface;
 
 
@@ -59,6 +60,40 @@ namespace HockeySlam.Class.GameEntities.Models
 		bool _collidedWithCourt;
 		int _team;
 
+		public struct PlayerState
+		{
+			public Vector3 Position;
+			public Vector2 Velocity;
+			public float Rotation;
+		}
+
+		// This is the latest master copy of the player state, used by our local
+		// physics computations and prediction. This state will jerk whenever
+		// a new packet is received.
+		public PlayerState _simulationState;
+
+		// This is a copy of the state from immediately before the last
+		// network packet was received
+		public PlayerState _previousState;
+
+		// This is the player state that is drawn onto the screen. It is gradually
+		// interpolated from the _previousState toward the _simulationState, in
+		// order to smooth out any sudden jumps caused by discontinuities when
+		// a network packet suddenly modifies the _simulationState
+		public PlayerState _displayState;
+
+		public PlayerState _currentState;
+
+		// Used to interpolate _displayState from _previousState toward _simulationState
+		float _currentSmoothing;
+
+		// Avereged time difference from the last 100 incoming packets, used to
+		// estimate how our local clock compares to the time on the remote machine.
+		RollingAverage clockDelta = new RollingAverage(100);
+
+		#endregion
+
+		#region agents
 		/* -------------------------- AGENTS ----------------------------- */
 		bool _isSinglePlayer;
 		/* --------------------------------------------------------------- */
@@ -94,6 +129,13 @@ namespace HockeySlam.Class.GameEntities.Models
 			_gameManager = gameManager;
 			_isSinglePlayer = isSinglePlayer;
 			_team = team;
+
+			_simulationState.Position = new Vector3(0,0,0);
+			_simulationState.Rotation = 0;
+			
+			// initialize all three versions of our state to the same values.
+			_previousState = _simulationState;
+			_displayState = _simulationState;
 		}
 
 		public float getRotation()
@@ -174,6 +216,8 @@ namespace HockeySlam.Class.GameEntities.Models
 			_keyDeactivated[(int)KeyboardKey.DOWN] = false;
 			_keyDeactivated[(int)KeyboardKey.LEFT] = false;
 			_keyDeactivated[(int)KeyboardKey.RIGHT] = false;
+
+			_currentState = _displayState;
 
 			base.Initialize();
 		}
@@ -260,6 +304,9 @@ namespace HockeySlam.Class.GameEntities.Models
 			if (!_collidedWithCourt) {
 				activateKeyboard();
 			}
+
+			// Update the master simulation state
+			//UpdateState(ref _currentState);
 		}
 
 		private void UpdateRotation()
@@ -351,6 +398,20 @@ namespace HockeySlam.Class.GameEntities.Models
 				_velocity.Y = 0;
 		}
 
+		/// <summary>
+		/// Updates one of our state structures. This
+		/// method is used directly to update locally controlled tanks, and also
+		/// indirectly to predict the motion of remote tanks.
+		/// </summary>
+		/// <param name="state"></param>
+		public void UpdateState(ref PlayerState state)
+		{
+			state.Position = _positionVector;
+			state.Velocity = _velocity;
+			state.Rotation = Rotation;
+
+		}
+
 		private KeyboardKey getPriorityIndex()
 		{
 			float temp = 0;
@@ -379,9 +440,9 @@ namespace HockeySlam.Class.GameEntities.Models
 		{
 			Matrix oldWorld = world;
 			world = Matrix.Identity;
-			world *= Matrix.CreateRotationY(Rotation);
+			world *= Matrix.CreateRotationY(_displayState.Rotation);
 			//world *= oldWorld;
-			position = Matrix.CreateTranslation(_positionVector.X, _positionVector.Y, _positionVector.Z);
+			position = Matrix.CreateTranslation(_displayState.Position.X, _displayState.Position.Y, _displayState.Position.Z);
 
 			world = world * _scale * position;
 		}
@@ -530,7 +591,7 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		public void setArrowPlayer()
 		{
-			System.Console.WriteLine("setting arrow player Pos");
+		//	System.Console.WriteLine("setting arrow player Pos");
 			Vector3 project = _game.GraphicsDevice.Viewport.Project(new Vector3 (_positionVector.X, _positionVector.Y+4.3f, _positionVector.Z), _camera.projection, _camera.view, Matrix.Identity);
 			_arrowManager.setLocalPlayerPos(new Vector2(project.X, project.Y));
 		}

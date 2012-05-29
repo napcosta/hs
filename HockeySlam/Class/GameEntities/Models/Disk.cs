@@ -30,6 +30,27 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		GameManager _gameManager;
 
+		struct DiskState
+		{
+			public Vector3 Position;
+			public Vector2 Velocity;
+		}
+
+		// This is the latest master copy of the Disk state, used by our local
+		// physics computations and prediction. This state will jerk whenever
+		// a new packet is received.
+		DiskState _simulationState;
+
+		// This is a copy of the state from immediately before the last
+		// network packet was received
+		DiskState _previousState;
+
+		// This is the player state that is drawn onto the screen. It is gradually
+		// interpolated from the _previousState toward the _simulationState, in
+		// order to smooth out any sudden jumps caused by discontinuities when
+		// a network packet suddenly modifies the _simulationState
+		DiskState _displayState;
+
 		/* -------------------- AGENTS ----------------------*/
 		ReactiveAgent _playerWithDisk;
 		bool _isSinglePlayer;
@@ -139,6 +160,15 @@ namespace HockeySlam.Class.GameEntities.Models
 			}
 			
 			base.Update(gameTime);
+
+			UpdateState(ref _simulationState);
+		}
+
+		void UpdateState(ref DiskState state)
+		{
+			state.Position = _position;
+			state.Velocity = _velocity;
+
 		}
 
 		private void UpdateVelocityY(float drag, float moreDrag)
