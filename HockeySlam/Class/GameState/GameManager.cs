@@ -158,7 +158,8 @@ namespace HockeySlam.Class.GameState
 			_game.GraphicsDevice.BlendState = lastBlend;
 			_game.GraphicsDevice.DepthStencilState = lastDepth;
 
-			/************/
+			MultiplayerManager mpmgr = (MultiplayerManager)getGameEntity("multiplayerManager");
+			mpmgr.DrawOptions();
 
 		}
 

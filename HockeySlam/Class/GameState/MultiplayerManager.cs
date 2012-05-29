@@ -6,7 +6,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.GamerServices;
 using Microsoft.Xna.Framework.Net;
 using Microsoft.Xna.Framework.Input;
-
+using Microsoft.Xna.Framework.Graphics;
 using HockeySlam.Interface;
 using HockeySlam.Class.GameEntities.Models;
 using HockeySlam.Class.GameState;
@@ -36,7 +36,8 @@ namespace HockeySlam.Class.GameState
 		KeyboardState currentKeyboardState;
 		KeyboardState previousKeyboardState;
 		float _currentSmoothing;
-
+		SpriteBatch _spriteBatch;
+		SpriteFont _font;
 		// latency and packet loss simulation
 		enum NetworkQuality
 		{
@@ -62,7 +63,10 @@ namespace HockeySlam.Class.GameState
 		}
 
 		public void LoadContent()
-		{ }
+		{
+			_spriteBatch = new SpriteBatch(_game.GraphicsDevice);
+			_font = _game.Content.Load<SpriteFont>("Fonts/GameFont");
+		}
 
 		public void Initialize()
 		{
@@ -79,6 +83,7 @@ namespace HockeySlam.Class.GameState
 
 		public void Draw(GameTime gameTime)
 		{
+
 			foreach (NetworkGamer gamer in _networkSession.AllGamers) {
 
 				Player player = gamer.Tag as Player;
@@ -206,6 +211,10 @@ namespace HockeySlam.Class.GameState
 
 			player.updatePositionInput(positionInput);
 			player.updateRotationInput(_rotationInput);
+
+			previousKeyboardState = currentKeyboardState;
+			currentKeyboardState = Keyboard.GetState();
+			UpdateOptions();
 		}
 
 		/// <summary>
@@ -233,9 +242,10 @@ namespace HockeySlam.Class.GameState
 			//	_packetWriter.Write(player.Rotation);
 
 			//Send the combined data for all players to everyone in the session.
-			LocalNetworkGamer server = (LocalNetworkGamer)_networkSession.Host;
-			server.SendData(_packetWriter, SendDataOptions.InOrder);
+				LocalNetworkGamer server = (LocalNetworkGamer)_networkSession.Host;
+				server.SendData(_packetWriter, SendDataOptions.InOrder);
 			}
+			
 		}
 
 		public List<Player> GetPlayers()
@@ -300,6 +310,7 @@ namespace HockeySlam.Class.GameState
 						player._simulationState.Velocity = velocity;
 						player._simulationState.Position = position;
 						player._simulationState.Rotation = rotation;
+
 						if (_enablePrediction) {
 							// Predict how the remote player will move by
 							// updating our local copy of its simulation state
@@ -310,6 +321,7 @@ namespace HockeySlam.Class.GameState
 								player.UpdateState(ref player._previousState);
 							}
 						}
+
 						if (_currentSmoothing > 0) {
 							// Interpolate the display state gradually from the
 							// previous state to the current simulation state
@@ -322,12 +334,7 @@ namespace HockeySlam.Class.GameState
 						player._displayState.Rotation = rotation;*/
 						//player.setPositionVector(position);
 						//player.Rotation = rotation;
-						if (remoteGamer.IsLocal) {
-							player.updateCameraPosition();
-							player.setArrowPlayer();
-							player.UpdateState(ref player._simulationState);
-							player._displayState = player._simulationState;
-						}
+						
 					}
 				}
 			}
@@ -443,6 +450,49 @@ namespace HockeySlam.Class.GameState
 		public Disk getDisk()
 		{
 			return _disk;
+		}
+
+		/// <summary>
+		/// Draws the current latency and packet loss simulation settings.
+		/// </summary>
+		public void DrawOptions()
+		{
+			_spriteBatch.Begin();
+
+			string quality =
+			    string.Format("Network simulation = {0} ms, {1}% packet loss",
+					  _networkSession.SimulatedLatency.TotalMilliseconds,
+					  _networkSession.SimulatedPacketLoss * 100);
+
+			string sendRate = string.Format("Packets per second = {0}",
+							60 / _framesBetweenPackets);
+
+			string prediction = string.Format("Prediction = {0}",
+							  _enablePrediction ? "on" : "off");
+
+			string smoothing = string.Format("Smoothing = {0}",
+							 _enableSmoothing ? "on" : "off");
+
+			// If we are the host, include prompts telling how to change the settings.
+			if (_networkSession.IsHost) {
+				quality += " (A to change)";
+				sendRate += " (B to change)";
+				prediction += " (X to toggle)";
+				smoothing += " (Y to toggle)";
+			}
+
+			// Draw combined text to the screen.
+			string message = quality + "\n" +
+					 sendRate + "\n" +
+					 prediction + "\n" +
+					 smoothing;
+
+			_spriteBatch.DrawString(_font, message, new Vector2(161, 321), Color.Black);
+			_spriteBatch.DrawString(_font, message, new Vector2(160, 320), Color.White);
+
+			_spriteBatch.End();
+
+			_game.GraphicsDevice.DepthStencilState = DepthStencilState.Default;
 		}
 
 	}
