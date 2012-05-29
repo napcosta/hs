@@ -12,7 +12,6 @@ using HockeySlam.Class.GameEntities.Models;
 using HockeySlam.Class.GameState;
 using HockeySlam.Class.GameEntities;
 using HockeySlam.Class.Networking;
-using Microsoft.Xna.Framework.Input;
 
 namespace HockeySlam.Class.GameState
 {
@@ -123,6 +122,7 @@ namespace HockeySlam.Class.GameState
 			// The client as well as the host are updating. The client will sync with the
 			// server later
 			localPlayer.Update(gameTime);
+
 			localPlayer.UpdateState(ref localPlayer._simulationState);
 			localPlayer._displayState = localPlayer._simulationState;
 
@@ -227,6 +227,9 @@ namespace HockeySlam.Class.GameState
 
 				if (!gamer.IsHost)
 					player.Update(gameTime);
+
+				player.UpdateState(ref player._simulationState);
+				player._displayState = player._simulationState;
 				
 				_packetWriter.Write(diskPosition);
 				_packetWriter.Write(gamer.Id);
