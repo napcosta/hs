@@ -12,7 +12,7 @@ using HockeySlam.Class.GameEntities.Models;
 using HockeySlam.Class.GameState;
 using HockeySlam.Class.GameEntities;
 using HockeySlam.Class.Networking;
-
+using Microsoft.Xna.Framework.Input;
 namespace HockeySlam.Class.GameState
 {
 	public class MultiplayerManager : IGameEntity
@@ -32,6 +32,26 @@ namespace HockeySlam.Class.GameState
 		Disk _disk;
 		int _priority;
 		int servUpdate = 0;
+		KeyboardState currentKeyboardState;
+		KeyboardState previousKeyboardState;
+		float _currentSmoothing;
+
+		// latency and packet loss simulation
+		enum NetworkQuality
+		{
+			Typical,	// 100ms latency, 10% packet loss
+			Poor,		// 200ms latency, 20% packet loss
+			Perfect,	// 0ms latency, 0% packet loss
+		}
+
+		NetworkQuality _networkQuality;
+
+		int _framesBetweenPackets = 6;
+		int _framesSinceLastSend;
+		bool _enablePrediction = true;
+		bool _enableSmoothing = true;
+
+
 		public MultiplayerManager(Game game, Camera camera, GameManager gameManager, NetworkSession networkSession)
 		{
 			_game = game;
@@ -72,6 +92,10 @@ namespace HockeySlam.Class.GameState
 			UpdateNetworkSession(gameTime);
 		}
 
+
+		/// <summary>
+		/// Updates locally, reads the player's input and sends it to the server
+		/// </summary>
 		void LocalGamerUpdate(LocalNetworkGamer gamer, GameTime gameTime)
 		{
 			/* Look up what player is associated with this local player,
@@ -88,9 +112,15 @@ namespace HockeySlam.Class.GameState
 				_packetWriter.Write(localPlayer.RotationInput);
 
 				gamer.SendData(_packetWriter, SendDataOptions.InOrder, _networkSession.Host);
+			} else {
+				localPlayer.UpdateState(ref localPlayer._simulationState);
+				localPlayer._displayState = localPlayer._simulationState;
 			}
-			localPlayer.Update(gameTime);
 
+			// The client as well as the host are updating. The client will sync with the
+			// server later
+			localPlayer.Update(gameTime);
+			localPlayer._displayState = localPlayer._simulationState;
 			if(!gamer.IsHost)
 				_disk.Update(gameTime);
 		}
@@ -177,14 +207,13 @@ namespace HockeySlam.Class.GameState
 			player.updateRotationInput(_rotationInput);
 		}
 
-		/* Updates the server and sends the packets to the clients */
+		/// <summary>
+		/// Updates the server and sends the packets to the clients
+		/// </summary>
 		void UpdateServer(GameTime gameTime)
 		{
 			_disk.Update(gameTime);
 			Vector3 diskPosition = _disk.getPosition();
-			
-			//if (servUpdate == 3)
-				
 			
 			foreach (NetworkGamer gamer in _networkSession.AllGamers) {
 
@@ -193,20 +222,18 @@ namespace HockeySlam.Class.GameState
 				if (!gamer.IsHost)
 					player.Update(gameTime);
 				
-			//	if (servUpdate == 3) {
 				_packetWriter.Write(diskPosition);
-					_packetWriter.Write(gamer.Id);
-					_packetWriter.Write(player.getPositionVector());
-					_packetWriter.Write(player.Rotation);
-				//}
-			//}
+				_packetWriter.Write(gamer.Id);
+
+				_packetWriter.Write(player._simulationState.Position);
+				_packetWriter.Write(player._simulationState.Rotation);
+				_packetWriter.Write(player._simulationState.Velocity);
+			//	_packetWriter.Write(player.getPositionVector());
+			//	_packetWriter.Write(player.Rotation);
+
 			//Send the combined data for all players to everyone in the session.
 			LocalNetworkGamer server = (LocalNetworkGamer)_networkSession.Host;
-		//	if (servUpdate == 3) {
-				server.SendData(_packetWriter, SendDataOptions.InOrder);
-				//servUpdate = 0;
-			//} else {
-			//	servUpdate++;
+			server.SendData(_packetWriter, SendDataOptions.InOrder);
 			}
 		}
 
@@ -241,9 +268,17 @@ namespace HockeySlam.Class.GameState
 
 		void ClientReadGameStateFromServer(LocalNetworkGamer gamer)
 		{
+
+			float smoothingDecay = 1.0f / _framesBetweenPackets;
+
+			_currentSmoothing -= smoothingDecay;
+
+			if (_currentSmoothing < 0)
+				_currentSmoothing = 0;
+
 			while (gamer.IsDataAvailable) {
 				NetworkGamer sender;
-				
+
 				gamer.ReceiveData(_packetReader, out sender);
 				Vector3 diskPosition = _packetReader.ReadVector3();
 				_disk.synchPosition(diskPosition);
@@ -253,21 +288,63 @@ namespace HockeySlam.Class.GameState
 					byte gamerId = _packetReader.ReadByte();
 					Vector3 position = _packetReader.ReadVector3();
 					float rotation = _packetReader.ReadSingle();
-					
+
+					Vector2 velocity = _packetReader.ReadVector2();
+
+
 					NetworkGamer remoteGamer = _networkSession.FindGamerById(gamerId);
 
 					if (remoteGamer != null) {
 						Player player = remoteGamer.Tag as Player;
-						player.setPositionVector(position);
-						player.Rotation = rotation;
+						player._simulationState.Velocity = velocity;
+						player._simulationState.Position = position;
+						player._simulationState.Rotation = rotation;
+						if (_enablePrediction) {
+							// Predict how the remote player will move by
+							// updating our local copy of its simulation state
+							player.UpdateState(ref player._simulationState);
+							if (_currentSmoothing > 0) {
+								// If both smoothing and prediction are active,
+								// also apply prediction to the previous state.
+								player.UpdateState(ref player._previousState);
+							}
+						}
+						if (_currentSmoothing > 0) {
+							// Interpolate the display state gradually from the
+							// previous state to the current simulation state
+							ApplySmoothing(player);
+						} else {
+							// Copy the simulation state directly into the display state.
+							player._displayState = player._simulationState;
+						}
+						/*player._displayState.Position = position;
+						player._displayState.Rotation = rotation;*/
+						//player.setPositionVector(position);
+						//player.Rotation = rotation;
 						if (remoteGamer.IsLocal) {
 							player.updateCameraPosition();
 							player.setArrowPlayer();
+							player.UpdateState(ref player._simulationState);
+							player._displayState = player._simulationState;
 						}
 					}
 				}
-
 			}
+		}
+
+		private void ApplySmoothing(Player player)
+		{
+			player._displayState.Position = Vector3.Lerp(player._simulationState.Position,
+								     player._previousState.Position,
+								     _currentSmoothing);
+
+			player._displayState.Velocity = Vector2.Lerp(player._simulationState.Velocity,
+								     player._previousState.Velocity,
+								     _currentSmoothing);
+			
+			player._displayState.Rotation = MathHelper.Lerp(player._simulationState.Rotation,
+								     player._previousState.Rotation,
+								     _currentSmoothing);
 		}
 
 		void UpdateNetworkSession(GameTime gameTime)
@@ -293,6 +370,73 @@ namespace HockeySlam.Class.GameState
 				player.updateCameraPosition();
 				player.setArrowPlayer();
 			}
+		}
+
+		private void UpdateOptions()
+		{
+			if (_networkSession.IsHost) {
+				if (IsPressed(Keys.U)) {
+					_networkQuality++;
+
+					if (_networkQuality > NetworkQuality.Perfect)
+						_networkQuality = 0;
+				}
+
+				if (IsPressed(Keys.I)) {
+					if (_framesBetweenPackets == 6)
+						_framesBetweenPackets = 3;
+					else if (_framesBetweenPackets == 3)
+						_framesBetweenPackets = 1;
+					else
+						_framesBetweenPackets = 6;
+				}
+
+				if (IsPressed(Keys.O))
+					_enablePrediction = !_enablePrediction;
+
+				if (IsPressed(Keys.P))
+					_enableSmoothing = !_enableSmoothing;
+
+				_networkSession.SessionProperties[0] = (int)_networkQuality;
+				_networkSession.SessionProperties[1] = _framesBetweenPackets;
+				_networkSession.SessionProperties[2] = _enablePrediction ? 1 : 0;
+				_networkSession.SessionProperties[3] = _enablePrediction ? 1 : 0;
+			} else {
+				_networkQuality = (NetworkQuality)_networkSession.SessionProperties[0];
+				_framesBetweenPackets = _networkSession.SessionProperties[1].Value;
+				_enablePrediction = _networkSession.SessionProperties[2] != 0;
+				_enableSmoothing = _networkSession.SessionProperties[3] != 0;
+			}
+
+			switch (_networkQuality) {
+			case NetworkQuality.Typical:
+				_networkSession.SimulatedLatency = TimeSpan.FromMilliseconds(100);
+				_networkSession.SimulatedPacketLoss = 0.1f;
+				break;
+			case NetworkQuality.Poor:
+				_networkSession.SimulatedLatency = TimeSpan.FromMilliseconds(200);
+				_networkSession.SimulatedPacketLoss = 0.2f;
+				break;
+
+			case NetworkQuality.Perfect:
+				_networkSession.SimulatedLatency = TimeSpan.Zero;
+				_networkSession.SimulatedPacketLoss = 0;
+				break;
+
+			}
+		}
+
+		bool IsPressed(Keys key)
+		{
+			return ((currentKeyboardState.IsKeyDown(key) &&
+				 previousKeyboardState.IsKeyUp(key)));
+		}
+
+		private void HandleInput()
+		{
+			previousKeyboardState = currentKeyboardState;
+
+			currentKeyboardState = Keyboard.GetState();
 		}
 
 		public Disk getDisk()
