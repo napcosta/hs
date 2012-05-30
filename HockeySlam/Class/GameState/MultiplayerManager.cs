@@ -187,8 +187,13 @@ namespace HockeySlam.Class.GameState
 			localPlayer.UpdateLocal(positionInput, rotationInput, gameTime);
 
 			if (!_networkSession.IsHost) {
-					localPlayer.ClientWriteNetworkPacket(_packetWriter);
-					gamer.SendData(_packetWriter, SendDataOptions.InOrder, _networkSession.Host);
+				foreach (Gamer remoteGamer in _networkSession.RemoteGamers) {
+					Player player = remoteGamer.Tag as Player;
+					player.UpdateRemote(_framesBetweenPackets, _enablePrediction, gameTime);
+				}
+				
+				localPlayer.ClientWriteNetworkPacket(_packetWriter);
+				gamer.SendData(_packetWriter, SendDataOptions.InOrder, _networkSession.Host);
 			}
 		}
 
