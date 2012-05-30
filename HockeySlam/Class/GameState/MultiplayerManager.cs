@@ -170,7 +170,7 @@ namespace HockeySlam.Class.GameState
 			UpdateOptions();
 		}
 
-		void UpdateLocalGamer(LocalNetworkGamer gamer, GameTime gameTime, bool sendPacketThisFrame)
+		void UpdateLocalGamer(LocalNetworkGamer gamer, GameTime gameTime)
 		{
 			/* Look up what player is associated with this local player,
 			 * and read the latest user inputs for it. The server will later
@@ -186,7 +186,7 @@ namespace HockeySlam.Class.GameState
 			 * to ourselves, because we already know what they will contain */
 			localPlayer.UpdateLocal(positionInput, rotationInput, gameTime);
 
-			if (sendPacketThisFrame && !_networkSession.IsHost) {
+			if (!_networkSession.IsHost) {
 					localPlayer.ClientWriteNetworkPacket(_packetWriter);
 					gamer.SendData(_packetWriter, SendDataOptions.InOrder, _networkSession.Host);
 			}
@@ -363,7 +363,7 @@ namespace HockeySlam.Class.GameState
 			}
 
 			foreach (LocalNetworkGamer gamer in _networkSession.LocalGamers)
-				UpdateLocalGamer(gamer, gameTime, sendPacketThisFrame);
+				UpdateLocalGamer(gamer, gameTime);
 
 			_networkSession.Update();
 
