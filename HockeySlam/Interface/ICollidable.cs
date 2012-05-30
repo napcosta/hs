@@ -11,7 +11,6 @@ namespace HockeySlam.Interface
 		List<BoundingSphere> getBoundingSpheres();
 		List<BoundingBox> getBoundingBoxes();
 		Boolean collisionOccured(ICollidable collideObject);
-		void notify();
 		void bounce(Vector2 newVelocity);
 		Vector2 getVelocity();
 	}

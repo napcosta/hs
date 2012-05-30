@@ -8,31 +8,39 @@ using Microsoft.Xna.Framework.GamerServices;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
+using Microsoft.Xna.Framework.Net;
+
 using HockeySlam.Class.GameEntities;
 using HockeySlam;
 using HockeySlam.Class.GameState;
-using HockeySlam.Class.Networking;
 using HockeySlam.Interface;
+using HockeySlam.Class.Networking;
 
 
 namespace HockeySlam.Class.GameEntities.Models
 {
-	public enum KeyboardKey { UP, DOWN, LEFT, RIGHT, NONE };
+	public enum KeyboardKey
+	{
+		UP,
+		DOWN,
+		LEFT,
+		RIGHT,
+		NONE
+	};
 
 	public class Player : BaseModel, ICollidable, IDebugEntity, IReflectable
 	{
 		#region fields
-		Vector2 _velocity;
+		//Vector2 _velocity;
 		float _maxVelocity;
 		Matrix position;
-		Vector3 lastPositionVector;
-		Vector3 lastPosition;
-		Vector3 _positionOfCollision;
+		
+		//Vector3 lastPosition;
+		
 
 		float tempRotation;
-		float _lastRotation;
+		
 		float _rotation;
-		float _rotationOfCollision;
 
 		List<Boolean> arrowKeysPressed;
 		List<Keys> lastArrowKeysPressed;
@@ -43,7 +51,7 @@ namespace HockeySlam.Class.GameEntities.Models
 		BoundingSphere downBody;
 		GameManager _gameManager;
 		ArrowManager _arrowManager;
-		Vector3 _positionVector;
+		//Vector3 _positionVector;
 		Texture2D _arrow;
 
 		Matrix _scale;
@@ -60,49 +68,38 @@ namespace HockeySlam.Class.GameEntities.Models
 		bool _collidedWithCourt;
 		int _team;
 
+		/* -------------------------- Prediction --------------------------- */
+
 		public struct PlayerState
 		{
-			public Vector3 Position;
 			public Vector2 Velocity;
+			public Vector3 Position;
 			public float Rotation;
+			public Vector3 PositionOfCollision;
+			public Vector3 LastPositionVector;
+			public float LastRotation;
+			public float RotationOfCollision;
 		}
 
-		// This is the latest master copy of the player state, used by our local
-		// physics computations and prediction. This state will jerk whenever
-		// a new packet is received.
-		public PlayerState _simulationState;
+		public PlayerState simulationState;
 
-		// This is a copy of the state from immediately before the last
-		// network packet was received
-		public PlayerState _previousState;
+		public PlayerState previousState;
 
-		// This is the player state that is drawn onto the screen. It is gradually
-		// interpolated from the _previousState toward the _simulationState, in
-		// order to smooth out any sudden jumps caused by discontinuities when
-		// a network packet suddenly modifies the _simulationState
-		public PlayerState _displayState;
+		public PlayerState displayState;
 
-		public PlayerState _currentState;
-
-		// Used to interpolate _displayState from _previousState toward _simulationState
 		float _currentSmoothing;
 
-		// Avereged time difference from the last 100 incoming packets, used to
-		// estimate how our local clock compares to the time on the remote machine.
-		RollingAverage clockDelta = new RollingAverage(100);
+		RollingAverage _clockDelta = new RollingAverage(100);
 
-		#endregion
-
-		#region agents
 		/* -------------------------- AGENTS ----------------------------- */
 		bool _isSinglePlayer;
 		/* --------------------------------------------------------------- */
 
-		public float Rotation
-		{
-			get;
-			set;
-		}
+		//public float Rotation
+		//{
+		//        get;
+		//        set;
+		//}
 
 		/* RotationInput and PositionInput are two parameters 
 		 * that will be set by the MultiplayerManager */
@@ -129,13 +126,6 @@ namespace HockeySlam.Class.GameEntities.Models
 			_gameManager = gameManager;
 			_isSinglePlayer = isSinglePlayer;
 			_team = team;
-
-			_simulationState.Position = new Vector3(0,0,0);
-			_simulationState.Rotation = 0;
-			
-			// initialize all three versions of our state to the same values.
-			_previousState = _simulationState;
-			_displayState = _simulationState;
 		}
 
 		public float getRotation()
@@ -145,12 +135,12 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		public Vector3 getPositionVector()
 		{
-			return _positionVector;
+			return displayState.Position;
 		}
 
 		public void setPositionVector(Vector3 vec)
 		{
-			_positionVector = vec;
+			displayState.Position = vec;
 		}
 
 		public override void LoadContent()
@@ -175,12 +165,19 @@ namespace HockeySlam.Class.GameEntities.Models
 			tempRotation = 0;
 
 			position = Matrix.Identity;
-			_positionVector = Vector3.Zero;
-			_positionVector.Y = 0.7f;
-			lastPositionVector = _positionVector;
 
-			_velocity = Vector2.Zero;
+			Vector3 positionVector = Vector3.Zero;
+			positionVector.Y = 0.7f;
+			simulationState.Position = positionVector;
+			simulationState.LastPositionVector = positionVector;
+
+			simulationState.Velocity = Vector2.Zero;
 			_maxVelocity = 12;
+
+			simulationState.Rotation = 0;
+
+			previousState = simulationState;
+			displayState = simulationState;
 
 			Matrix pos = Matrix.CreateTranslation(0, 0.7f, 0);
 			_scale = Matrix.CreateScale(1.5f);
@@ -191,7 +188,7 @@ namespace HockeySlam.Class.GameEntities.Models
 				arrowKeysPressed.Add(false);
 			lastArrowKeysPressed = new List<Keys>();
 
-			lastPosition = new Vector3(0, 2, 0);
+			//lastPosition = new Vector3(0, 2, 0);
 			stick = new BoundingSphere(new Vector3(2, 1f, 0), 0.5f);
 			upBody = new BoundingSphere(new Vector3(0, 4.5f, 0), 1.2f);
 			downBody = new BoundingSphere(new Vector3(0, 1.05f, -0.03f), 0.05f);
@@ -206,7 +203,8 @@ namespace HockeySlam.Class.GameEntities.Models
 			MultiplayerManager mm = (MultiplayerManager)_gameManager.getGameEntity("multiplayerManager");
 			if (mm != null)
 				_disk = mm.getDisk();
-			else _disk = (Disk)_gameManager.getGameEntity("disk");
+			else
+				_disk = (Disk)_gameManager.getGameEntity("disk");
 			_arrowManager = (ArrowManager)_gameManager.getGameEntity("arrowManager");
 
 			_deactivateKeyboard = false;
@@ -216,8 +214,6 @@ namespace HockeySlam.Class.GameEntities.Models
 			_keyDeactivated[(int)KeyboardKey.DOWN] = false;
 			_keyDeactivated[(int)KeyboardKey.LEFT] = false;
 			_keyDeactivated[(int)KeyboardKey.RIGHT] = false;
-
-			_currentState = _displayState;
 
 			base.Initialize();
 		}
@@ -240,176 +236,243 @@ namespace HockeySlam.Class.GameEntities.Models
 			base.DrawEffect(effect, diffuseColor);
 		}
 
+		/// <summary>
+		/// Updates a local player
+		/// </summary>
+		/// <param name="positionInput"></param>
+		/// <param name="rotationInput"></param>
+		public void UpdateLocal(Vector2 positionInput, Vector4 rotationInput, GameTime gameTime)
+		{
+			this.PositionInput = positionInput;
+			this.RotationInput = rotationInput;
+
+			UpdateState(ref simulationState, gameTime);
+
+			displayState = simulationState;
+		}
+
+		/// <summary>
+		/// Applies prediction and smoothing to a remotely controlled tank.
+		/// </summary>
+		public void UpdateRemote(int framesBetweenPackets, bool enablePrediction, GameTime gameTime)
+		{
+			float smoothingDecay = 1.0f / framesBetweenPackets;
+
+			_currentSmoothing -= smoothingDecay;
+
+			if (_currentSmoothing < 0)
+				_currentSmoothing = 0;
+
+			if (enablePrediction) {
+				UpdateState(ref simulationState, gameTime);
+
+				if (_currentSmoothing > 0)
+					UpdateState(ref previousState, gameTime);
+			}
+
+			if (_currentSmoothing > 0)
+				ApplySmoothing();
+			else
+				displayState = simulationState;
+		}
+
+		private void ApplySmoothing()
+		{
+			displayState.Position = Vector3.Lerp(simulationState.Position,
+						 previousState.Position,
+						 _currentSmoothing);
+
+			displayState.Velocity = Vector2.Lerp(simulationState.Velocity,
+							     previousState.Velocity,
+							     _currentSmoothing);
+
+			displayState.Rotation = MathHelper.Lerp(simulationState.Rotation,
+								    previousState.Rotation,
+								    _currentSmoothing);
+		}
+
+		public void ClientWriteNetworkPacket(PacketWriter packetWriter, GameTime gameTime)
+		{
+			packetWriter.Write((float)gameTime.TotalGameTime.TotalSeconds);
+			packetWriter.Write(PositionInput);
+			packetWriter.Write(RotationInput);
+		}
+
+		public void ServerWriteNetworkPacket(PacketWriter packeWriter)
+		{
+			packeWriter.Write(simulationState.Position);
+			packeWriter.Write(simulationState.Velocity);
+			packeWriter.Write(simulationState.Rotation);
+		}
+
+		public void ReadInputFromClient(PacketReader packetReader, GameTime gameTime)
+		{
+			PositionInput = packetReader.ReadVector2();
+			RotationInput = packetReader.ReadVector4();
+
+			UpdateState(ref simulationState, gameTime);
+			displayState = simulationState;
+		}
+
+		public void ReadNetworkPacket(PacketReader packetReader, GameTime gameTime, TimeSpan latency,
+					      bool enablePrediction, bool enableSmoothing)
+		{
+			if (enableSmoothing) {
+				previousState = displayState;
+				_currentSmoothing = 1;
+			} else
+				_currentSmoothing = 0;
+
+			float packetSendTime = packetReader.ReadSingle();
+
+			simulationState.Position = packetReader.ReadVector3();
+			simulationState.Velocity = packetReader.ReadVector2();
+			simulationState.Rotation = packetReader.ReadSingle();
+
+			if (enablePrediction)
+				ApplyPrediction(gameTime, latency, packetSendTime);
+		}
+
+		private void ApplyPrediction(GameTime gameTime, TimeSpan latency, float packetSendTime)
+		{
+			float localTime = (float)gameTime.TotalGameTime.TotalSeconds;
+
+			float timeDelta = localTime - packetSendTime;
+
+			_clockDelta.AddValue(timeDelta);
+
+			float timeDerivation = timeDelta - _clockDelta.AverageValue;
+
+			latency += TimeSpan.FromSeconds(timeDerivation);
+
+			TimeSpan oneFrame = TimeSpan.FromSeconds(1.0 / 60.0);
+
+			while (latency >= oneFrame) {
+				UpdateState(ref simulationState, gameTime);
+				latency -= oneFrame;
+			}
+		}
+
 		public override void Update(GameTime gameTime)
 		{
 			base.Update(gameTime);
+		}
+
+		public void UpdateState(ref PlayerState state, GameTime gameTime)
+		{
 			// TODO: Add your update code here
 			_rotation = 0;
 			//float lastRotation = Rotation;
 
-			Vector2 normalizedVelocity = normalizeVelocity(_velocity);
+			Vector2 normalizedVelocity = normalizeVelocity(state.Velocity);
 			float time = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-			updatePositionVector(gameTime, normalizedVelocity, _lastRotation, time);
-			updateBoundings(gameTime, _lastRotation, time);
+			updatePositionVector(gameTime, normalizedVelocity, state.LastRotation, time, ref state);
+			updateBoundings(gameTime, state.LastRotation, time);
 
-#if WINDOWS
-
-			UpdatePosition();
-			UpdateRotation();
+			UpdatePosition(ref state);
+			UpdateRotation(ref state);
 			isOutOfScreen();
-#else
-            GamePadState currentGamePadState = GamePad.GetState(PlayerIndex.One);
-            Vector2 leftThumStick = currentGamePadState.ThumbSticks.Left;
 
-            Vector2 maxVelocity;
-            maxVelocity.X = 100 * Math.Abs(leftThumStick.Y);
-            maxVelocity.Y = 100 * Math.Abs(leftThumStick.X);
-
-            if (leftThumStick.X != 0 && _velocity.Y > -maxVelocity.Y && _velocity.Y < maxVelocity.Y)
-            {
-                _velocity.Y += leftThumStick.X;
-            }
-			else if (_velocity.Y < -(float)0.5)
-            {
-                _velocity.Y += (float)0.5;
-            }
-			else if (_velocity.Y > (float)0.5)
-            {
-				_velocity.Y -= (float)0.5;
-            }
-            else _velocity.Y = 0;
-
-            if (leftThumStick.Y != 0 && _velocity.X > -maxVelocity.X && _velocity.X < maxVelocity.X)
-            {
-                _velocity.X += leftThumStick.Y;
-            }
-			else if (_velocity.X < -(float)0.5)
-            {
-				_velocity.X += (float)0.5;
-            }
-			else if (_velocity.X > (float)0.5)
-            {
-				_velocity.X -= (float)0.5;
-            }
-            else _velocity.X = 0;
-#endif
 			//setRotation(_rotation);
-			if (_positionVector != lastPositionVector || Rotation != _lastRotation) {
-				notify();
-				lastPositionVector = _positionVector;
+			if (state.Position != state.LastPositionVector || state.Rotation != state.LastRotation) {
+				notify(state);
+				state.LastPositionVector = displayState.Position;
 				//lastTempRotation = tempRotation;
 			}
 
 			if (!_collidedWithCourt) {
 				activateKeyboard();
 			}
-
-			// Update the master simulation state
-			//UpdateState(ref _currentState);
 		}
 
-		private void UpdateRotation()
+		private void UpdateRotation(ref PlayerState state)
 		{
 			KeyboardKey indexToConsider;
 
 			indexToConsider = getPriorityIndex(); //Index from the PriorityVector
 
 			if (indexToConsider == KeyboardKey.LEFT &&
-				((Rotation >= 0.0f && Rotation <= MathHelper.PiOver2) ||
-				(Rotation <= -3 * MathHelper.PiOver2 && Rotation >= -2 * MathHelper.Pi) ||
-				(Rotation >= 3 * MathHelper.PiOver2 && Rotation <= 2 * MathHelper.Pi) ||
-				(Rotation <= 0.0f && Rotation >= -MathHelper.PiOver2))) {
+				((state.Rotation >= 0.0f && state.Rotation <= MathHelper.PiOver2) ||
+				(state.Rotation <= -3 * MathHelper.PiOver2 && state.Rotation >= -2 * MathHelper.Pi) ||
+				(state.Rotation >= 3 * MathHelper.PiOver2 && state.Rotation <= 2 * MathHelper.Pi) ||
+				(state.Rotation <= 0.0f && state.Rotation >= -MathHelper.PiOver2))) {
 				_rotation = -0.1f;
 			} else if (indexToConsider == KeyboardKey.LEFT &&
-				  ((Rotation >= MathHelper.PiOver2 && Rotation <= 3 * MathHelper.PiOver2) ||
-				  (Rotation <= -MathHelper.PiOver2 && Rotation >= -3 * MathHelper.Pi))) {
+				  ((state.Rotation >= MathHelper.PiOver2 && state.Rotation <= 3 * MathHelper.PiOver2) ||
+				  (state.Rotation <= -MathHelper.PiOver2 && state.Rotation >= -3 * MathHelper.Pi))) {
 				_rotation = 0.1f;
 			} else if (indexToConsider == KeyboardKey.RIGHT &&
-				  ((Rotation >= 0.0f && Rotation <= MathHelper.PiOver2) ||
-				  (Rotation <= -3 * MathHelper.PiOver2 && Rotation >= -2 * MathHelper.Pi) ||
-				  (Rotation >= 3 * MathHelper.PiOver2 && Rotation <= 2 * MathHelper.Pi) ||
-				  (Rotation <= 0.0f && Rotation >= -MathHelper.PiOver2))) {
+				  ((state.Rotation >= 0.0f && state.Rotation <= MathHelper.PiOver2) ||
+				  (state.Rotation <= -3 * MathHelper.PiOver2 && state.Rotation >= -2 * MathHelper.Pi) ||
+				  (state.Rotation >= 3 * MathHelper.PiOver2 && state.Rotation <= 2 * MathHelper.Pi) ||
+				  (state.Rotation <= 0.0f && state.Rotation >= -MathHelper.PiOver2))) {
 				_rotation = 0.1f;
 			} else if (indexToConsider == KeyboardKey.RIGHT &&
-				  ((Rotation >= MathHelper.PiOver2 && Rotation <= 3 * MathHelper.PiOver2) ||
-				  (Rotation <= -MathHelper.PiOver2 && Rotation >= -3 * MathHelper.Pi))) {
+				  ((state.Rotation >= MathHelper.PiOver2 && state.Rotation <= 3 * MathHelper.PiOver2) ||
+				  (state.Rotation <= -MathHelper.PiOver2 && state.Rotation >= -3 * MathHelper.Pi))) {
 				_rotation = -0.1f;
 			} else if (indexToConsider == KeyboardKey.UP &&
-				  ((Rotation >= 0.0f && Rotation <= MathHelper.Pi) ||
-				  (Rotation >= -2 * MathHelper.Pi && Rotation <= -MathHelper.Pi))) {
+				  ((state.Rotation >= 0.0f && state.Rotation <= MathHelper.Pi) ||
+				  (state.Rotation >= -2 * MathHelper.Pi && state.Rotation <= -MathHelper.Pi))) {
 				_rotation = 0.1f;
 			} else if (indexToConsider == KeyboardKey.UP &&
-				  ((Rotation >= MathHelper.Pi && Rotation <= 2 * MathHelper.Pi) ||
-				  (Rotation <= 0 && Rotation >= -MathHelper.Pi))) {
+				  ((state.Rotation >= MathHelper.Pi && state.Rotation <= 2 * MathHelper.Pi) ||
+				  (state.Rotation <= 0 && state.Rotation >= -MathHelper.Pi))) {
 				_rotation = -0.1f;
 			} else if (indexToConsider == KeyboardKey.DOWN &&
-			  ((Rotation >= 0.0f && Rotation <= MathHelper.Pi) ||
-			  (Rotation >= -2 * MathHelper.Pi && Rotation <= -MathHelper.Pi))) {
+			  ((state.Rotation >= 0.0f && state.Rotation <= MathHelper.Pi) ||
+			  (state.Rotation >= -2 * MathHelper.Pi && state.Rotation <= -MathHelper.Pi))) {
 				_rotation = -0.1f;
 			} else if (indexToConsider == KeyboardKey.DOWN &&
-				  ((Rotation >= MathHelper.Pi && Rotation <= 2 * MathHelper.Pi) ||
-				  (Rotation <= 0 && Rotation >= -MathHelper.Pi))) {
+				  ((state.Rotation >= MathHelper.Pi && state.Rotation <= 2 * MathHelper.Pi) ||
+				  (state.Rotation <= 0 && state.Rotation >= -MathHelper.Pi))) {
 				_rotation = 0.1f;
 			} else
 				_rotation = 0.0f;
 			//Console.WriteLine("RotationInput -> " + RotationInput + " Rotation -> " + _rotation);
 
-			setRotation(_rotation);
+			setRotation(ref state, _rotation);
 		}
 
-		private void UpdatePosition()
+		private void UpdatePosition(ref PlayerState state)
 		{
-			if(_keyDeactivated[(int)KeyboardKey.DOWN] && PositionInput.Y == 2)
-				_velocity.Y = 0;
-			else if (PositionInput.Y == 2 && _velocity.Y < _maxVelocity) {
-				_velocity.Y += 0.6f;
-			} else if (PositionInput.Y == 0 && _velocity.Y > 0) {
-				_velocity.Y -= 0.3f;
+			if (_keyDeactivated[(int)KeyboardKey.DOWN] && PositionInput.Y == 2)
+				state.Velocity.Y = 0;
+			else if (PositionInput.Y == 2 && state.Velocity.Y < _maxVelocity) {
+				state.Velocity.Y += 0.6f;
+			} else if (PositionInput.Y == 0 && state.Velocity.Y > 0) {
+				state.Velocity.Y -= 0.3f;
 			}
 
-			if(_keyDeactivated[(int)KeyboardKey.UP] && PositionInput.Y == 1)
-				_velocity.Y = 0;
-			else if (PositionInput.Y == 1 && _velocity.Y > -_maxVelocity) {
-				_velocity.Y -= 0.6f;
-			} else if (PositionInput.Y == 0 && _velocity.Y < 0) {
-				_velocity.Y += 0.3f;
+			if (_keyDeactivated[(int)KeyboardKey.UP] && PositionInput.Y == 1)
+				state.Velocity.Y = 0;
+			else if (PositionInput.Y == 1 && state.Velocity.Y > -_maxVelocity) {
+				state.Velocity.Y -= 0.6f;
+			} else if (PositionInput.Y == 0 && state.Velocity.Y < 0) {
+				state.Velocity.Y += 0.3f;
 			}
 
 			if (_keyDeactivated[(int)KeyboardKey.RIGHT] && PositionInput.X == 2)
-				_velocity.X = 0;
-			else if (PositionInput.X == 2 && _velocity.X > -_maxVelocity) {
-				_velocity.X -= 0.6f;
-			} else if (PositionInput.X == 0 && _velocity.X < 0) {
-				_velocity.X += 0.3f;
+				state.Velocity.X = 0;
+			else if (PositionInput.X == 2 && state.Velocity.X > -_maxVelocity) {
+				state.Velocity.X -= 0.6f;
+			} else if (PositionInput.X == 0 && state.Velocity.X < 0) {
+				state.Velocity.X += 0.3f;
 			}
 
 			if (_keyDeactivated[(int)KeyboardKey.LEFT] && PositionInput.X == 1)
-				_velocity.X = 0;
-			else if (PositionInput.X == 1 && _velocity.X < _maxVelocity) {
-				_velocity.X += 0.6f;
-			} else if (PositionInput.X == 0 && _velocity.X > 0) {
-				_velocity.X -= 0.3f;
+				state.Velocity.X = 0;
+			else if (PositionInput.X == 1 && state.Velocity.X < _maxVelocity) {
+				state.Velocity.X += 0.6f;
+			} else if (PositionInput.X == 0 && state.Velocity.X > 0) {
+				state.Velocity.X -= 0.3f;
 			}
 
-			if (_velocity.X >= -0.3f && _velocity.X <= 0.3f)
-				_velocity.X = 0;
-			if (_velocity.Y >= -0.3f && _velocity.Y <= 0.3f)
-				_velocity.Y = 0;
-		}
-
-		/// <summary>
-		/// Updates one of our state structures. This
-		/// method is used directly to update locally controlled tanks, and also
-		/// indirectly to predict the motion of remote tanks.
-		/// </summary>
-		/// <param name="state"></param>
-		public void UpdateState(ref PlayerState state)
-		{
-			state.Position = _positionVector;
-			state.Velocity = _velocity;
-			state.Rotation = Rotation;
-
+			if (state.Velocity.X >= -0.3f && state.Velocity.X <= 0.3f)
+				state.Velocity.X = 0;
+			if (state.Velocity.Y >= -0.3f && state.Velocity.Y <= 0.3f)
+				state.Velocity.Y = 0;
 		}
 
 		private KeyboardKey getPriorityIndex()
@@ -440,16 +503,16 @@ namespace HockeySlam.Class.GameEntities.Models
 		{
 			Matrix oldWorld = world;
 			world = Matrix.Identity;
-			world *= Matrix.CreateRotationY(_displayState.Rotation);
+			world *= Matrix.CreateRotationY(displayState.Rotation);
 			//world *= oldWorld;
-			position = Matrix.CreateTranslation(_displayState.Position.X, _displayState.Position.Y, _displayState.Position.Z);
+			position = Matrix.CreateTranslation(displayState.Position.X, displayState.Position.Y, displayState.Position.Z);
 
 			world = world * _scale * position;
 		}
 
-		private void updatePositionVector(GameTime gameTime, Vector2 normalizedVelocity, float lastRotation, float time)
+		private void updatePositionVector(GameTime gameTime, Vector2 normalizedVelocity, float lastRotation, float time, ref PlayerState state)
 		{
-			_positionVector += new Vector3(time * _velocity.Y * normalizedVelocity.Y, 0, time * _velocity.X * normalizedVelocity.X);
+			state.Position += new Vector3(time * state.Velocity.Y * normalizedVelocity.Y, 0, time * state.Velocity.X * normalizedVelocity.X);
 		}
 
 		private void updateBoundings(GameTime gameTime, float lastRotation, float time)
@@ -457,15 +520,15 @@ namespace HockeySlam.Class.GameEntities.Models
 			float upBodyY = upBody.Center.Y;
 			float downBodyY = downBody.Center.Y;
 
-			upBody.Center = _positionVector;
+			upBody.Center = displayState.Position;
 			upBody.Center.Y = upBodyY;
 
-			downBody.Center = _positionVector;
+			downBody.Center = displayState.Position;
 			downBody.Center.Y = downBodyY;
 
 			stick.Center = Vector3.Zero;
-			stick.Center.X += 2f * ((float)Math.Sin(Rotation + MathHelper.PiOver2));
-			stick.Center.Z += 2f * ((float)Math.Cos(Rotation + MathHelper.PiOver2));
+			stick.Center.X += 2f * ((float)Math.Sin(displayState.Rotation + MathHelper.PiOver2));
+			stick.Center.Z += 2f * ((float)Math.Cos(displayState.Rotation + MathHelper.PiOver2));
 			stick.Center += downBody.Center;
 			stick.Center.Y = 1f;
 		}
@@ -497,22 +560,22 @@ namespace HockeySlam.Class.GameEntities.Models
 			return false;
 		}
 
-		public void notify()
+		public void notify(PlayerState state)
 		{
 			CollisionManager cm = (CollisionManager)_gameManager.getGameEntity("collisionManager");
 			List<ICollidable> collidedWith = cm.verifyCollision(this);
 
 			_collidedWithCourt = false;
 
-			if (collidedWith.Count != 0 && (_positionOfCollision != _positionVector)) {
+			if (collidedWith.Count != 0 && (state.PositionOfCollision != state.Position)) {
 				foreach (ICollidable collided in collidedWith) {
-					verifyDiskCollision(collided);
+					verifyDiskCollision(collided, state);
 					verifyCourtCollision(collided);
 				}
 
-				_positionOfCollision = _positionVector;
+				state.PositionOfCollision = state.Position;
 				if (_rotation != 0)
-					_rotationOfCollision = Rotation;
+					state.RotationOfCollision = state.Rotation;
 			}
 		}
 
@@ -530,15 +593,15 @@ namespace HockeySlam.Class.GameEntities.Models
 			_keyDeactivated[(int)KeyboardKey.RIGHT] = false;
 		}
 
-		private void verifyDiskCollision(ICollidable collided)
+		private void verifyDiskCollision(ICollidable collided, PlayerState state)
 		{
 			int rotationStrength = 15;
 			if (collided is Disk && !_isSinglePlayer) {
 				Disk disk = (Disk)collided;
-				disk.AddVelocity(_velocity);
+				disk.AddVelocity(state.Velocity);
 				List<BoundingSphere> diskSpheres = disk.getBoundingSpheres();
 				if (_rotation != 0 && diskSpheres[0].Intersects(stick)) {
-					Vector2 goVelocity = new Vector2((float)Math.Cos(Rotation), (float)Math.Sin(Rotation));
+					Vector2 goVelocity = new Vector2((float)Math.Cos(state.Rotation), (float)Math.Sin(state.Rotation));
 					if (_rotation > 0)
 						goVelocity *= -1;
 					disk.AddRotationVelocity(new Vector2(rotationStrength, rotationStrength) * goVelocity);
@@ -569,35 +632,36 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		public void updateVelocity(Vector2 velocity)
 		{
-			_velocity = velocity;
+			displayState.Velocity = velocity;
 		}
 
 		public Vector2 getVelocity()
 		{
-			if (_velocity != null)
-				return _velocity;
+			if (displayState.Velocity != null)
+				return displayState.Velocity;
 			return Vector2.Zero;
 		}
 
 		public bool positionHasChandeg()
 		{
-			return lastPosition != _positionVector;
+			return displayState.LastPositionVector != displayState.Position;
 		}
 
 		public void updateCameraPosition()
 		{
-			_camera.updateLocalPlayerPosition(_positionVector);
+			_camera.updateLocalPlayerPosition(displayState.Position);
 		}
 
 		public void setArrowPlayer()
 		{
-			Vector3 project = _game.GraphicsDevice.Viewport.Project(new Vector3 (_positionVector.X, _positionVector.Y+4.3f, _positionVector.Z), _camera.projection, _camera.view, Matrix.Identity);
+			System.Console.WriteLine("setting arrow player Pos");
+			Vector3 project = _game.GraphicsDevice.Viewport.Project(new Vector3(displayState.Position.X, displayState.Position.Y + 4.3f, displayState.Position.Z), _camera.projection, _camera.view, Matrix.Identity);
 			_arrowManager.setLocalPlayerPos(new Vector2(project.X, project.Y));
 		}
 
 		private bool isOutOfScreen()
 		{
-			Vector3 project = _game.GraphicsDevice.Viewport.Project(_positionVector, _camera.projection, _camera.view, Matrix.Identity);
+			Vector3 project = _game.GraphicsDevice.Viewport.Project(displayState.Position, _camera.projection, _camera.view, Matrix.Identity);
 			if (project.X < 0) {
 				_arrowManager.updatePosition(this, new Vector2(0, project.Y), MathHelper.PiOver2);
 				return true;
@@ -633,7 +697,7 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		public void updatePositionInput(Vector2 positionInput)
 		{
-			if(!_deactivateKeyboard) // to prevent going through walls
+			if (!_deactivateKeyboard) // to prevent going through walls
 				PositionInput = positionInput;
 		}
 
@@ -647,15 +711,10 @@ namespace HockeySlam.Class.GameEntities.Models
 			_keyDeactivated = keysDeactivated;
 		}
 
-		public void setRotation(float rotation)
+		public void setRotation(ref PlayerState state, float rotation)
 		{
-			_lastRotation = Rotation;
-			Rotation = (Rotation + rotation) % MathHelper.TwoPi;
-		}
-
-		public void setVelocity(Vector2 velocity)
-		{
-			_velocity = velocity;
+			state.LastRotation = state.Rotation;
+			state.Rotation = (state.Rotation + rotation) % MathHelper.TwoPi;
 		}
 
 		/* ---------------------------- AGENTS ------------------------------- */

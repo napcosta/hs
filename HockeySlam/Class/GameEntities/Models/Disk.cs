@@ -269,6 +269,11 @@ namespace HockeySlam.Class.GameEntities.Models
 			return _velocity;
 		}
 
+		public void setPosition(Vector3 position)
+		{
+			_position = position;
+		}
+
 		/* -------------------------- AGENTS --------------------------- */
 
 		public void newPlayerWithDisk(ReactiveAgent player) {
