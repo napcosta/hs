@@ -369,6 +369,9 @@ namespace HockeySlam.Class.GameState
 			foreach (LocalNetworkGamer gamer in _networkSession.LocalGamers)
 				UpdateLocalGamer(gamer, gameTime);
 
+			if (_networkSession.IsHost)
+				UpdateServer(gameTime, sendPacketThisFrame);
+
 			_networkSession.Update();
 
 			if (_networkSession == null)
@@ -384,9 +387,6 @@ namespace HockeySlam.Class.GameState
 				player.updateCameraPosition();
 				player.setArrowPlayer();
 			}
-
-			if (_networkSession.IsHost)
-				UpdateServer(gameTime, sendPacketThisFrame);
 		}
 
 		public Disk getDisk()

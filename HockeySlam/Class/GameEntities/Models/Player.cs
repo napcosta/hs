@@ -357,7 +357,9 @@ namespace HockeySlam.Class.GameEntities.Models
 
 			TimeSpan oneFrame = TimeSpan.FromSeconds(1.0 / 60.0);
 
+			Console.WriteLine("-----------------------------");
 			while (latency >= oneFrame) {
+				Console.WriteLine(PositionInput);
 				UpdateState(ref simulationState, gameTime);
 				latency -= oneFrame;
 			}
