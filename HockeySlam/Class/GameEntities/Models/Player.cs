@@ -291,18 +291,18 @@ namespace HockeySlam.Class.GameEntities.Models
 								    _currentSmoothing);
 		}
 
-		public void ClientWriteNetworkPacket(PacketWriter packetWriter, GameTime gameTime)
+		public void ClientWriteNetworkPacket(PacketWriter packetWriter)
 		{
-			packetWriter.Write((float)gameTime.TotalGameTime.TotalSeconds);
 			packetWriter.Write(PositionInput);
 			packetWriter.Write(RotationInput);
 		}
 
-		public void ServerWriteNetworkPacket(PacketWriter packeWriter)
+		public void ServerWriteNetworkPacket(PacketWriter packetWriter, GameTime gameTime)
 		{
-			packeWriter.Write(simulationState.Position);
-			packeWriter.Write(simulationState.Velocity);
-			packeWriter.Write(simulationState.Rotation);
+			packetWriter.Write((float) gameTime.TotalGameTime.TotalSeconds);
+			packetWriter.Write(simulationState.Position);
+			packetWriter.Write(simulationState.Velocity);
+			packetWriter.Write(simulationState.Rotation);
 		}
 
 		public void ReadInputFromClient(PacketReader packetReader, GameTime gameTime)

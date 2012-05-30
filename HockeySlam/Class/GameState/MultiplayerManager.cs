@@ -187,7 +187,7 @@ namespace HockeySlam.Class.GameState
 			localPlayer.UpdateLocal(positionInput, rotationInput, gameTime);
 
 			if (sendPacketThisFrame && !_networkSession.IsHost) {
-					localPlayer.ClientWriteNetworkPacket(_packetWriter, gameTime);
+					localPlayer.ClientWriteNetworkPacket(_packetWriter);
 					gamer.SendData(_packetWriter, SendDataOptions.InOrder, _networkSession.Host);
 			}
 		}
@@ -281,7 +281,7 @@ namespace HockeySlam.Class.GameState
 					Player player = gamer.Tag as Player;
 
 					_packetWriter.Write(gamer.Id);
-					player.ServerWriteNetworkPacket(_packetWriter);
+					player.ServerWriteNetworkPacket(_packetWriter, gameTime);
 				}
 				//Send the combined data for all players to everyone in the session.
 				LocalNetworkGamer server = (LocalNetworkGamer)_networkSession.Host;
