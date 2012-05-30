@@ -343,7 +343,7 @@ namespace HockeySlam.Class.GameState
 
 						TimeSpan latency = _networkSession.SimulatedLatency +
 								   TimeSpan.FromTicks(sender.RoundtripTime.Ticks / 2);
-
+						Console.WriteLine(_enablePrediction + " " + _enableSmoothing);
 						player.ReadNetworkPacket(_packetReader, gameTime, latency, _enablePrediction, _enableSmoothing);
 						player.UpdateRemote(_framesBetweenPackets, _enablePrediction, gameTime);
 
@@ -415,10 +415,10 @@ namespace HockeySlam.Class.GameState
 
 			// If we are the host, include prompts telling how to change the settings.
 			if (_networkSession.IsHost) {
-				quality += " (A to change)";
-				sendRate += " (B to change)";
-				prediction += " (X to toggle)";
-				smoothing += " (Y to toggle)";
+				quality += " (U to change)";
+				sendRate += " (I to change)";
+				prediction += " (O to toggle)";
+				smoothing += " (P to toggle)";
 			}
 
 			// Draw combined text to the screen.

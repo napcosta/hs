@@ -309,6 +309,9 @@ namespace HockeySlam.Class.GameEntities.Models
 			packetWriter.Write(simulationState.Position);
 			packetWriter.Write(simulationState.Velocity);
 			packetWriter.Write(simulationState.Rotation);
+
+			packetWriter.Write(PositionInput);
+			packetWriter.Write(RotationInput);
 		}
 
 		public void ReadInputFromClient(PacketReader packetReader, GameTime gameTime)
@@ -332,12 +335,17 @@ namespace HockeySlam.Class.GameEntities.Models
 			simulationState.Velocity = packetReader.ReadVector2();
 			simulationState.Rotation = packetReader.ReadSingle();
 
+			PositionInput = packetReader.ReadVector2();
+			RotationInput = packetReader.ReadVector4();
+
 			if (enablePrediction)
 				ApplyPrediction(gameTime, latency, packetSendTime);
 		}
 
 		private void ApplyPrediction(GameTime gameTime, TimeSpan latency, float packetSendTime)
 		{
+
+
 			float localTime = (float)gameTime.TotalGameTime.TotalSeconds;
 
 			float timeDelta = localTime - packetSendTime;
