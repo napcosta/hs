@@ -184,12 +184,12 @@ namespace HockeySlam.Class.GameState
 
 			/* Only send if we are not the server. There is no point sending packets
 			 * to ourselves, because we already know what they will contain */
-			localPlayer.UpdateLocal(positionInput, rotationInput, gameTime);
 
 			if (!_networkSession.IsHost) {
 					localPlayer.ClientWriteNetworkPacket(_packetWriter);
 					gamer.SendData(_packetWriter, SendDataOptions.InOrder, _networkSession.Host);
-			}
+			} else
+				localPlayer.UpdateLocal(positionInput, rotationInput, gameTime);
 		}
 
 		void ReadPlayerInput(PlayerIndex playerIndex, out Vector2 positionInput, out Vector4 rotationInput)
