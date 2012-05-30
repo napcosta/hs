@@ -184,7 +184,6 @@ namespace HockeySlam.Class.GameState
 
 			/* Only send if we are not the server. There is no point sending packets
 			 * to ourselves, because we already know what they will contain */
-
 			localPlayer.UpdateLocal(positionInput, rotationInput, gameTime);
 
 			if (!_networkSession.IsHost) {
@@ -274,12 +273,10 @@ namespace HockeySlam.Class.GameState
 		void UpdateServer(GameTime gameTime, bool sendPacketThisFrame)
 		{
 			_disk.Update(gameTime);
-
 			foreach (Gamer gamer in _networkSession.RemoteGamers) {
 				Player player = gamer.Tag as Player;
 				player.UpdateRemoteOnServer(gameTime);
 			}
-			
 			if (sendPacketThisFrame) {
 				Vector3 diskPosition = _disk.getPosition();
 				_packetWriter.Write(diskPosition);
@@ -344,7 +341,7 @@ namespace HockeySlam.Class.GameState
 
 						TimeSpan latency = _networkSession.SimulatedLatency +
 								   TimeSpan.FromTicks(sender.RoundtripTime.Ticks / 2);
-						Console.WriteLine(_enablePrediction + " " + _enableSmoothing);
+
 						player.ReadNetworkPacket(_packetReader, gameTime, latency, _enablePrediction, _enableSmoothing);
 						player.UpdateRemote(_framesBetweenPackets, _enablePrediction, gameTime);
 
@@ -416,10 +413,10 @@ namespace HockeySlam.Class.GameState
 
 			// If we are the host, include prompts telling how to change the settings.
 			if (_networkSession.IsHost) {
-				quality += " (U to change)";
-				sendRate += " (I to change)";
-				prediction += " (O to toggle)";
-				smoothing += " (P to toggle)";
+				quality += " (A to change)";
+				sendRate += " (B to change)";
+				prediction += " (X to toggle)";
+				smoothing += " (Y to toggle)";
 			}
 
 			// Draw combined text to the screen.

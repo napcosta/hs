@@ -345,7 +345,6 @@ namespace HockeySlam.Class.GameEntities.Models
 		private void ApplyPrediction(GameTime gameTime, TimeSpan latency, float packetSendTime)
 		{
 
-
 			float localTime = (float)gameTime.TotalGameTime.TotalSeconds;
 
 			float timeDelta = localTime - packetSendTime;
