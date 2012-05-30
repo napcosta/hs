@@ -133,7 +133,7 @@ namespace HockeySlam.Class.GameState
 				_networkSession.SessionProperties[0] = (int)_networkQuality;
 				_networkSession.SessionProperties[1] = _framesBetweenPackets;
 				_networkSession.SessionProperties[2] = _enablePrediction ? 1 : 0;
-				_networkSession.SessionProperties[3] = _enablePrediction ? 1 : 0;
+				_networkSession.SessionProperties[3] = _enableSmoothing ? 1 : 0;
 			} else {
 				if (_networkSession.SessionProperties[0] != null)
 					_networkQuality = (NetworkQuality)_networkSession.SessionProperties[0];
@@ -273,6 +273,12 @@ namespace HockeySlam.Class.GameState
 		void UpdateServer(GameTime gameTime, bool sendPacketThisFrame)
 		{
 			_disk.Update(gameTime);
+
+			foreach (Gamer gamer in _networkSession.RemoteGamers) {
+				Player player = gamer.Tag as Player;
+				player.UpdateRemoteOnServer(gameTime);
+			}
+			
 			if (sendPacketThisFrame) {
 				Vector3 diskPosition = _disk.getPosition();
 				_packetWriter.Write(diskPosition);

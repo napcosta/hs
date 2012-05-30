@@ -251,6 +251,12 @@ namespace HockeySlam.Class.GameEntities.Models
 			displayState = simulationState;
 		}
 
+		public void UpdateRemoteOnServer(GameTime gameTime)
+		{
+			UpdateState(ref simulationState, gameTime);
+			displayState = simulationState;
+		}
+
 		/// <summary>
 		/// Applies prediction and smoothing to a remotely controlled tank.
 		/// </summary>
@@ -309,9 +315,6 @@ namespace HockeySlam.Class.GameEntities.Models
 		{
 			PositionInput = packetReader.ReadVector2();
 			RotationInput = packetReader.ReadVector4();
-
-			UpdateState(ref simulationState, gameTime);
-			displayState = simulationState;
 		}
 
 		public void ReadNetworkPacket(PacketReader packetReader, GameTime gameTime, TimeSpan latency,
@@ -654,7 +657,6 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		public void setArrowPlayer()
 		{
-			System.Console.WriteLine("setting arrow player Pos");
 			Vector3 project = _game.GraphicsDevice.Viewport.Project(new Vector3(displayState.Position.X, displayState.Position.Y + 4.3f, displayState.Position.Z), _camera.projection, _camera.view, Matrix.Identity);
 			_arrowManager.setLocalPlayerPos(new Vector2(project.X, project.Y));
 		}
