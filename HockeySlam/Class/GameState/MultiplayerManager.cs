@@ -274,10 +274,9 @@ namespace HockeySlam.Class.GameState
 		{
 			_disk.Update(gameTime);
 			if (sendPacketThisFrame) {
+				Vector3 diskPosition = _disk.getPosition();
+				_packetWriter.Write(diskPosition);
 				foreach (NetworkGamer gamer in _networkSession.AllGamers) {
-
-					Vector3 diskPosition = _disk.getPosition();
-					_packetWriter.Write(diskPosition);
 
 					Player player = gamer.Tag as Player;
 
