@@ -56,17 +56,18 @@ namespace HockeySlam.Class.GameState
 			}
 			//AddEntity("disk", new Disk(this, _game, camera));
 			AddEntity("ice", new Ice(_game, camera, this));
-			AddEntity("particleManager", new ParticleManager(_game, camera, this));
+			if(_networkSession != null)
+				AddEntity("particleManager", new ParticleManager(_game, camera, _networkSession));
 			AddEntity("arrowManager", new ArrowManager(_game));
 		}
 
 		public void startGame()
 		{
 			addEntities();
+			CreateAllPlayers((Camera)getGameEntity("camera"));
 			ActivateAllEntities();
 			Initialize();
 			LoadContent();
-			CreateAllPlayers((Camera)getGameEntity("camera"));
 		}
 
 		public void Initialize()

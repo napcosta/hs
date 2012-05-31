@@ -13,28 +13,18 @@ namespace HockeySlam.Class.GameEntities.Particles
 {
 	class IceParticles : ParticleSystem
 	{
-		GameManager gameManager;
-		Dictionary<Player, ParticleEmitter> playerParticles;
+		ParticleEmitter particleEmitter;
+		Player player;
 
-		public IceParticles(Game game, ContentManager content, GameManager gameManager)
+		public IceParticles(Game game, ContentManager content, Player player)
 			: base(game, content)
 		{
-			this.gameManager = gameManager;
+			this.player = player;
 		}
 
 		protected override void InitializeSettings(ParticleSettings settings)
 		{
-			playerParticles = new Dictionary<Player, ParticleEmitter>();
-
-			MultiplayerManager multiplayerManager = (MultiplayerManager)gameManager.getGameEntity("multiplayerManager");
-			if (multiplayerManager != null) {
-				List<Player> players = multiplayerManager.GetPlayers();
-
-				foreach (Player player in players) {
-					if (player != null)
-						playerParticles.Add(player, new ParticleEmitter(this, 10, Vector3.Zero));
-				}
-			}
+			particleEmitter = new ParticleEmitter(this, 10, Vector3.Zero);
 
 			settings.TextureName = "Textures/whiteParticle";
 
@@ -65,18 +55,7 @@ namespace HockeySlam.Class.GameEntities.Particles
 
 		public override void  SpecificUpdate(GameTime gameTime)
 		{
-			MultiplayerManager multiplayerManager = (MultiplayerManager)gameManager.getGameEntity("multiplayerManager");
-			if (multiplayerManager != null) {
-				List<Player> players = multiplayerManager.GetPlayers();
-
-				foreach (Player player in players)
-					if(!playerParticles.ContainsKey(player) && player != null)
-						playerParticles.Add(player, new ParticleEmitter(this, 10, Vector3.Zero));
-			}
-
-			foreach (KeyValuePair<Player, ParticleEmitter> player in playerParticles) {
-				player.Value.Update(gameTime, player.Key.getPositionVector());
-			}
+			particleEmitter.Update(gameTime, player.getPositionVector());
 		}
 	}
 }

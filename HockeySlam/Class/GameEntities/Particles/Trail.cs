@@ -13,34 +13,24 @@ namespace HockeySlam.Class.GameEntities.Particles
 {
 	class Trail : ParticleSystem
 	{
-		GameManager gameManager;
-		Dictionary<Player, ParticleEmitter> playerParticles;
+		ParticleEmitter particleEmitter;
+		Player player;
 
-		public Trail(Game game, ContentManager content, GameManager gameManager)
+		public Trail(Game game, ContentManager content, Player player)
 			: base(game, content)
 		{
-			this.gameManager = gameManager;
+			this.player = player;
 		}
 
 		protected override void InitializeSettings(ParticleSettings settings)
 		{
-			playerParticles = new Dictionary<Player, ParticleEmitter>();
-
-			MultiplayerManager multiplayerManager = (MultiplayerManager)gameManager.getGameEntity("multiplayerManager");
-			if (multiplayerManager != null) {
-				List<Player> players = multiplayerManager.GetPlayers();
-
-				foreach (Player player in players) {
-					if (player != null)
-						playerParticles.Add(player, new ParticleEmitter(this, 70, Vector3.Zero));
-				}
-			}
+			particleEmitter =  new ParticleEmitter(this, 70, Vector3.Zero);
 
 			settings.TextureName = "Textures/trace";
 
 			settings.MaxParticles = 1000;
 
-			settings.Duration = TimeSpan.FromSeconds(12);
+			settings.Duration = TimeSpan.FromSeconds(15);
 
 			settings.DurationRandomness = 1.5f;
 
@@ -65,20 +55,9 @@ namespace HockeySlam.Class.GameEntities.Particles
 
 		public override void SpecificUpdate(GameTime gameTime)
 		{
-			MultiplayerManager multiplayerManager = (MultiplayerManager)gameManager.getGameEntity("multiplayerManager");
-			if (multiplayerManager != null) {
-				List<Player> players = multiplayerManager.GetPlayers();
-
-				foreach (Player player in players)
-					if (!playerParticles.ContainsKey(player) && player != null)
-						playerParticles.Add(player, new ParticleEmitter(this, 70, Vector3.Zero));
-			}
-
-			foreach (KeyValuePair<Player, ParticleEmitter> player in playerParticles) {
-				Vector3 pos = player.Key.getPositionVector();
-				pos.Y = 1;
-				player.Value.Update(gameTime, pos);
-			}
+			Vector3 pos = player.getPositionVector();
+			pos.Y = 1;
+			particleEmitter.Update(gameTime, pos);
 		}
 	}
 }
