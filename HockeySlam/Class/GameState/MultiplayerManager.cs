@@ -281,7 +281,7 @@ namespace HockeySlam.Class.GameState
 		/// <param name="sendPacketThisFrame"></param>
 		void UpdateServer(GameTime gameTime, bool sendPacketThisFrame)
 		{
-			_disk.UpdateLocal(gameTime);
+			
 			foreach (Gamer gamer in _networkSession.RemoteGamers) {
 				Player player = gamer.Tag as Player;
 				player.UpdateRemoteOnServer(gameTime);
@@ -383,7 +383,7 @@ namespace HockeySlam.Class.GameState
 
 			foreach (LocalNetworkGamer gamer in _networkSession.LocalGamers)
 				UpdateLocalGamer(gamer, gameTime);
-
+			_disk.UpdateLocal(gameTime);
 			if (_networkSession.IsHost)
 				UpdateServer(gameTime, sendPacketThisFrame);
 

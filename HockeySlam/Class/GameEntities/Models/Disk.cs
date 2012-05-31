@@ -351,7 +351,7 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		public void bounce(Vector2 newVelocity)
 		{
-			displayState.Velocity = newVelocity;
+			simulationState.Velocity = newVelocity;
 		}
 
 		public Vector2 getVelocity()

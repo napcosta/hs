@@ -121,7 +121,8 @@ namespace HockeySlam.Class.GameEntities.Models
 				if (!collisionOccured) {
 					if (_leftBox.Intersects(sphere)) {
 						Vector2 bounceVelocity = collideObject.getVelocity();
-						bounceVelocity.X *= -1;
+						if(bounceVelocity.X > 0)
+							bounceVelocity.X *= -1;
 						collideObject.bounce(bounceVelocity);
 						if (isObjectPlayer)
 							deactivateKeys[(int)KeyboardKey.LEFT] = true;
@@ -129,7 +130,8 @@ namespace HockeySlam.Class.GameEntities.Models
 					}
 					if (_rightBox.Intersects(sphere)) {
 						Vector2 bounceVelocity = collideObject.getVelocity();
-						bounceVelocity.X *= -1;
+						if(bounceVelocity.X < 0)
+							bounceVelocity.X *= -1;
 						collideObject.bounce(bounceVelocity);
 						if (isObjectPlayer)
 							deactivateKeys[(int)KeyboardKey.RIGHT] = true;
@@ -137,7 +139,8 @@ namespace HockeySlam.Class.GameEntities.Models
 					}
 					if (_backBox.Intersects(sphere)) {
 						Vector2 bounceVelocity = collideObject.getVelocity();
-						bounceVelocity.Y *= -1;
+						if(bounceVelocity.Y < 0)
+							bounceVelocity.Y *= -1;
 						collideObject.bounce(bounceVelocity);
 						if (isObjectPlayer)
 							deactivateKeys[(int)KeyboardKey.UP] = true;
@@ -145,7 +148,8 @@ namespace HockeySlam.Class.GameEntities.Models
 					}
 					if (_frontBox.Intersects(sphere)) {
 						Vector2 bounceVelocity = collideObject.getVelocity();
-						bounceVelocity.Y *= -1;
+						if(bounceVelocity.Y > 0)
+							bounceVelocity.Y *= -1;
 						collideObject.bounce(bounceVelocity);
 						if (isObjectPlayer)
 							deactivateKeys[(int)KeyboardKey.DOWN] = true;
