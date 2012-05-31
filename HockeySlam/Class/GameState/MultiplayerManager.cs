@@ -274,23 +274,29 @@ namespace HockeySlam.Class.GameState
 				_rotationInput.W--;
 		}
 
-		/* Updates the server and sends the packets to the clients */
+		/// <summary>
+		/// Updates the server and sends the packets to the clients
+		/// </summary>
+		/// <param name="gameTime"></param>
+		/// <param name="sendPacketThisFrame"></param>
 		void UpdateServer(GameTime gameTime, bool sendPacketThisFrame)
 		{
-			_disk.Update(gameTime);
+			_disk.UpdateLocal(gameTime);
 			foreach (Gamer gamer in _networkSession.RemoteGamers) {
 				Player player = gamer.Tag as Player;
 				player.UpdateRemoteOnServer(gameTime);
 			}
 			if (sendPacketThisFrame) {
-				Vector3 diskPosition = _disk.getPosition();
-				_packetWriter.Write(diskPosition);
+				_packetWriter.Write((float)gameTime.TotalGameTime.TotalSeconds);
+				//Vector3 diskPosition = _disk.getPosition();
+				//_packetWriter.Write(diskPosition);
+				_disk.ServerWriteNetworkPacket(_packetWriter);
 				foreach (NetworkGamer gamer in _networkSession.AllGamers) {
 
 					Player player = gamer.Tag as Player;
 
 					_packetWriter.Write(gamer.Id);
-					player.ServerWriteNetworkPacket(_packetWriter, gameTime);
+					player.ServerWriteNetworkPacket(_packetWriter);
 				}
 				//Send the combined data for all players to everyone in the session.
 				LocalNetworkGamer server = (LocalNetworkGamer)_networkSession.Host;
@@ -330,10 +336,15 @@ namespace HockeySlam.Class.GameState
 		{
 			while (gamer.IsDataAvailable) {
 				NetworkGamer sender;
-
 				gamer.ReceiveData(_packetReader, out sender);
-				Vector3 diskPosition = _packetReader.ReadVector3();
-				_disk.setPosition(diskPosition);
+				TimeSpan latency = _networkSession.SimulatedLatency +
+								   TimeSpan.FromTicks(sender.RoundtripTime.Ticks / 2);
+				float packetSendTime = _packetReader.ReadSingle();
+				//Vector3 diskPosition = _packetReader.ReadVector3();
+				//_disk.setPosition(diskPosition);
+				_disk.ReadNetworkPacket(_packetReader, gameTime, latency, _enablePrediction, _enableSmoothing, packetSendTime);
+				_disk.UpdateRemote(_framesBetweenPackets, _enablePrediction, gameTime);
+				
 				while (_packetReader.Position < _packetReader.Length) {
 					//Read the state of one Player from the network packet
 
@@ -344,10 +355,9 @@ namespace HockeySlam.Class.GameState
 					if (remoteGamer != null) {
 						Player player = remoteGamer.Tag as Player;
 
-						TimeSpan latency = _networkSession.SimulatedLatency +
-								   TimeSpan.FromTicks(sender.RoundtripTime.Ticks / 2);
+						
 
-						player.ReadNetworkPacket(_packetReader, gameTime, latency, _enablePrediction, _enableSmoothing);
+						player.ReadNetworkPacket(_packetReader, gameTime, latency, _enablePrediction, _enableSmoothing, packetSendTime);
 						player.UpdateRemote(_framesBetweenPackets, _enablePrediction, gameTime);
 
 						if (remoteGamer.IsLocal) {

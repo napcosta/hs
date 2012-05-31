@@ -12,16 +12,18 @@ using Microsoft.Xna.Framework.Media;
 using HockeySlam.Class.GameEntities;
 using HockeySlam.Class.GameState;
 using HockeySlam.Interface;
+using Microsoft.Xna.Framework.Net;
+using HockeySlam.Class.Networking;
 
 namespace HockeySlam.Class.GameEntities.Models
 {
 	public class Disk : BaseModel, IGameEntity, ICollidable, IDebugEntity, IReflectable
 	{
-		BoundingSphere _collisionArea;
-		Vector2 _velocity;
+		
+		//Vector2 _velocity;
 		int _maxVelocity;
-		Vector3 _position;
-		bool _isColliding;
+		//Vector3 _position;
+		
 
 		Matrix _rotation;
 		Matrix _scale;
@@ -30,26 +32,32 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		GameManager _gameManager;
 
-		struct DiskState
+		float _currentSmoothing;
+
+		RollingAverage _clockDelta = new RollingAverage(100);
+
+		public struct DiskState
 		{
 			public Vector3 Position;
 			public Vector2 Velocity;
+			public bool IsColliding;
+			public BoundingSphere CollisionArea;
 		}
 
 		// This is the latest master copy of the Disk state, used by our local
 		// physics computations and prediction. This state will jerk whenever
 		// a new packet is received.
-		DiskState _simulationState;
+		DiskState simulationState;
 
 		// This is a copy of the state from immediately before the last
 		// network packet was received
-		DiskState _previousState;
+		DiskState previousState;
 
 		// This is the player state that is drawn onto the screen. It is gradually
 		// interpolated from the _previousState toward the _simulationState, in
 		// order to smooth out any sudden jumps caused by discontinuities when
 		// a network packet suddenly modifies the _simulationState
-		DiskState _displayState;
+		DiskState displayState;
 
 		/* -------------------- AGENTS ----------------------*/
 		ReactiveAgent _playerWithDisk;
@@ -67,10 +75,10 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		public override void Initialize()
 		{
-			_velocity = Vector2.Zero;
+			simulationState.Velocity = Vector2.Zero;
 			_maxVelocity = 12;
-			_position = new Vector3(4, 1, 0);
-			_isColliding = false;
+			simulationState.Position = new Vector3(4, 1, 0);
+			simulationState.IsColliding = false;
 
 			Matrix pos = Matrix.CreateTranslation(4, 1, 0);
 			_rotation = Matrix.CreateRotationX(MathHelper.PiOver2);
@@ -78,7 +86,10 @@ namespace HockeySlam.Class.GameEntities.Models
 
 			world = world * _rotation * _scale * pos;
 
-			_collisionArea = new BoundingSphere(new Vector3(4,1,0), 0.45f);
+			simulationState.CollisionArea = new BoundingSphere(new Vector3(4,1,0), 0.45f);
+
+			previousState = simulationState;
+			displayState = simulationState;
 
 			CollisionManager cm = (CollisionManager)_gameManager.getGameEntity("collisionManager");
 			DebugManager dm = (DebugManager)_gameManager.getGameEntity("debugManager");
@@ -94,7 +105,7 @@ namespace HockeySlam.Class.GameEntities.Models
 		{
 			List<BoundingSphere> bs = new List<BoundingSphere>();
 
-			bs.Add(_collisionArea);
+			bs.Add(displayState.CollisionArea);
 
 			return bs;
 		}
@@ -107,112 +118,197 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		public void DrawDebug()
 		{
-			BoundingSphereRender.Render(_collisionArea, _game.GraphicsDevice, _camera.view, _camera.projection, Color.Brown);
+			BoundingSphereRender.Render(displayState.CollisionArea, _game.GraphicsDevice, _camera.view, _camera.projection, Color.Brown);
 		}
 
 		public void AddVelocity(Vector2 velocity)
 		{
-			_velocity += velocity;
+			simulationState.Velocity += velocity;
 
-			if (_velocity.X > _maxVelocity)
-				_velocity.X = _maxVelocity;
-			else if (_velocity.X < -_maxVelocity)
-				_velocity.X = -_maxVelocity;
+			if (simulationState.Velocity.X > _maxVelocity)
+				simulationState.Velocity.X = _maxVelocity;
+			else if (simulationState.Velocity.X < -_maxVelocity)
+				simulationState.Velocity.X = -_maxVelocity;
 
-			if (_velocity.Y > _maxVelocity)
-				_velocity.Y = _maxVelocity;
-			else if (_velocity.Y < -_maxVelocity)
-				_velocity.Y = -_maxVelocity;
+			if (simulationState.Velocity.Y > _maxVelocity)
+				simulationState.Velocity.Y = _maxVelocity;
+			else if (simulationState.Velocity.Y < -_maxVelocity)
+				simulationState.Velocity.Y = -_maxVelocity;
 
-			_isColliding = true;
+			simulationState.IsColliding = true;
 		}
 
 		public void AddRotationVelocity(Vector2 velocity)
 		{
-			_velocity += velocity;
+			simulationState.Velocity += velocity;
+		}
+
+		/// <summary>
+		/// Updates a local disk
+		/// </summary>
+		/// <param name="positionInput"></param>
+		/// <param name="rotationInput"></param>
+		public void UpdateLocal(GameTime gameTime)
+		{
+			UpdateState(ref simulationState, gameTime);
+
+			displayState = simulationState;
 		}
 
 		public override void Update(GameTime gameTime)
 		{
+			base.Update(gameTime);
+		}
+
+		void UpdateState(ref DiskState state, GameTime gameTime)
+		{
 			if (!_isSinglePlayer || _playerWithDisk == null) {
 
 
-				if (!_isColliding) {
-					UpdateVelocityX(drag, moreDrag);
-					UpdateVelocityY(drag, moreDrag);
+				if (!state.IsColliding) {
+					UpdateVelocityX(ref state, drag, moreDrag);
+					UpdateVelocityY(ref state, drag, moreDrag);
 				}
 
-				_isColliding = false;
-				
-				Vector2 normalizedVelocity = normalizeVelocity(_velocity);
+				state.IsColliding = false;
+
+				Vector2 normalizedVelocity = normalizeVelocity(state.Velocity);
 				float time = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-				_position.X += time * _velocity.Y * normalizedVelocity.Y;
-				_position.Z += time * _velocity.X * normalizedVelocity.X;
+				state.Position.X += time * state.Velocity.Y * normalizedVelocity.Y;
+				state.Position.Z += time * state.Velocity.X * normalizedVelocity.X;
 
-				_collisionArea.Center.X = _position.X;
-				_collisionArea.Center.Z = _position.Z;
+				state.CollisionArea.Center.X = state.Position.X;
+				state.CollisionArea.Center.Z = state.Position.Z;
 				notify();
 			} else {
-				_position = _playerWithDisk.getPlayer().getStickPosition();
-				_collisionArea.Center = _playerWithDisk.getPlayer().getStickPosition();
-				_velocity = Vector2.Zero;
+				state.Position = _playerWithDisk.getPlayer().getStickPosition();
+				state.CollisionArea.Center = _playerWithDisk.getPlayer().getStickPosition();
+				state.Velocity = Vector2.Zero;
 			}
-			
-			base.Update(gameTime);
-
-			UpdateState(ref _simulationState);
-		}
-
-		void UpdateState(ref DiskState state)
-		{
-			state.Position = _position;
-			state.Velocity = _velocity;
 
 		}
 
-		private void UpdateVelocityY(float drag, float moreDrag)
+		public void ServerWriteNetworkPacket(PacketWriter packetWriter)
 		{
-			if (Math.Abs(_velocity.Y) > _maxVelocity) {
-				if (_velocity.Y >= moreDrag)
-					_velocity.Y -= moreDrag;
-				else if (_velocity.Y <= -moreDrag)
-					_velocity.Y += moreDrag;
-				else _velocity.Y = 0;
-			} else {
-				if (_velocity.Y >= drag)
-					_velocity.Y -= drag;
-				else if (_velocity.Y <= -drag)
-					_velocity.Y += drag;
-				else _velocity.Y = 0;
+			packetWriter.Write(simulationState.Position);
+			packetWriter.Write(simulationState.Velocity);
+		}
+
+		public void ReadNetworkPacket(PacketReader packetReader, GameTime gameTime, TimeSpan latency,
+			      bool enablePrediction, bool enableSmoothing, float packetSendTime)
+		{
+			if (enableSmoothing) {
+				previousState = displayState;
+				_currentSmoothing = 1;
+			} else
+				_currentSmoothing = 0;
+
+			//float packetSendTime = packetReader.ReadSingle();
+
+			simulationState.Position = packetReader.ReadVector3();
+			simulationState.Velocity = packetReader.ReadVector2();
+
+			if (enablePrediction)
+				ApplyPrediction(gameTime, latency, packetSendTime);
+		}
+
+		private void ApplyPrediction(GameTime gameTime, TimeSpan latency, float packetSendTime)
+		{
+
+			float localTime = (float)gameTime.TotalGameTime.TotalSeconds;
+
+			float timeDelta = localTime - packetSendTime;
+
+			_clockDelta.AddValue(timeDelta);
+
+			float timeDerivation = timeDelta - _clockDelta.AverageValue;
+
+			latency += TimeSpan.FromSeconds(timeDerivation);
+
+			TimeSpan oneFrame = TimeSpan.FromSeconds(1.0 / 60.0);
+
+			while (latency >= oneFrame) {
+				UpdateState(ref simulationState, gameTime);
+				latency -= oneFrame;
 			}
 		}
 
-		private void UpdateVelocityX(float drag, float moreDrag)
+		public void UpdateRemote(int framesBetweenPackets, bool enablePrediction, GameTime gameTime)
 		{
-			if (Math.Abs(_velocity.X) <= _maxVelocity) {
-				if (_velocity.X >= drag)
-					_velocity.X -= drag;
-				else if (_velocity.X <= -drag)
-					_velocity.X += drag;
-				else _velocity.X = 0;
+			float smoothingDecay = 1.0f / framesBetweenPackets;
+
+			_currentSmoothing -= smoothingDecay;
+
+			if (_currentSmoothing < 0)
+				_currentSmoothing = 0;
+
+			if (enablePrediction) {
+				UpdateState(ref simulationState, gameTime);
+
+				if (_currentSmoothing > 0)
+					UpdateState(ref previousState, gameTime);
+			}
+
+			if (_currentSmoothing > 0)
+				ApplySmoothing();
+			else
+				displayState = simulationState;
+		}
+
+		private void ApplySmoothing()
+		{
+			displayState.Position = Vector3.Lerp(simulationState.Position,
+						 previousState.Position,
+						 _currentSmoothing);
+
+			displayState.Velocity = Vector2.Lerp(simulationState.Velocity,
+							     previousState.Velocity,
+							     _currentSmoothing);
+		}
+
+		private void UpdateVelocityY(ref DiskState state, float drag, float moreDrag)
+		{
+			if (Math.Abs(state.Velocity.Y) > _maxVelocity) {
+				if (state.Velocity.Y >= moreDrag)
+					state.Velocity.Y -= moreDrag;
+				else if (state.Velocity.Y <= -moreDrag)
+					state.Velocity.Y += moreDrag;
+				else state.Velocity.Y = 0;
 			} else {
-				if (_velocity.X >= moreDrag)
-					_velocity.X -= moreDrag;
-				else if (_velocity.X <= -moreDrag)
-					_velocity.X += moreDrag;
-				else _velocity.X = 0;
+				if (state.Velocity.Y >= drag)
+					state.Velocity.Y -= drag;
+				else if (state.Velocity.Y <= -drag)
+					state.Velocity.Y += drag;
+				else state.Velocity.Y = 0;
+			}
+		}
+
+		private void UpdateVelocityX(ref DiskState state, float drag, float moreDrag)
+		{
+			if (Math.Abs(state.Velocity.X) <= _maxVelocity) {
+				if (state.Velocity.X >= drag)
+					state.Velocity.X -= drag;
+				else if (state.Velocity.X <= -drag)
+					state.Velocity.X += drag;
+				else state.Velocity.X = 0;
+			} else {
+				if (state.Velocity.X >= moreDrag)
+					state.Velocity.X -= moreDrag;
+				else if (state.Velocity.X <= -moreDrag)
+					state.Velocity.X += moreDrag;
+				else state.Velocity.X = 0;
 			}
 		}
 
 		public override void Draw(GameTime gameTime)
 		{
-			Matrix pos = Matrix.CreateTranslation(_position.X, _position.Y, _position.Z);
+			Matrix pos = Matrix.CreateTranslation(displayState.Position.X, displayState.Position.Y, displayState.Position.Z);
 
 			world = Matrix.Identity;
 			world *= _rotation * _scale * pos;
 
-			_camera.updateDiskPosition(_position);
+			_camera.updateDiskPosition(displayState.Position);
 
 			base.Draw(gameTime);
 		}
@@ -234,14 +330,8 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		public Vector3 getPosition()
 		{
-			return _position;
+			return displayState.Position;
 		}
-
-		public void synchPosition(Vector3 pos)
-		{
-			_position = pos;
-		}
-
 
 		public List<BoundingBox> getBoundingBoxes()
 		{
@@ -253,7 +343,7 @@ namespace HockeySlam.Class.GameEntities.Models
 			List<BoundingSphere> bss = collideObject.getBoundingSpheres();
 
 			foreach (BoundingSphere bs in bss) {
-				if (bs.Intersects(_collisionArea))
+				if (bs.Intersects(displayState.CollisionArea))
 					return true;
 			}
 			return false;
@@ -261,17 +351,17 @@ namespace HockeySlam.Class.GameEntities.Models
 
 		public void bounce(Vector2 newVelocity)
 		{
-			_velocity = newVelocity;
+			displayState.Velocity = newVelocity;
 		}
 
 		public Vector2 getVelocity()
 		{
-			return _velocity;
+			return displayState.Velocity;
 		}
 
 		public void setPosition(Vector3 position)
 		{
-			_position = position;
+			displayState.Position = position;
 		}
 
 		/* -------------------------- AGENTS --------------------------- */
@@ -284,7 +374,7 @@ namespace HockeySlam.Class.GameEntities.Models
 		// Direction coordinates must be beetween 0 and 1
 		public void shoot(Vector2 direction)
 		{
-			_velocity = direction*_maxVelocity*5;
+			displayState.Velocity = direction*_maxVelocity*5;
 			_playerWithDisk = null;
 		}
 
