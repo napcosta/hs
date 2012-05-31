@@ -397,13 +397,14 @@ namespace HockeySlam.Class.GameEntities.Models
 			KeyboardKey indexToConsider;
 
 			indexToConsider = getPriorityIndex(); //Index from the PriorityVector
-
+			Console.WriteLine("->" + RotationInput);
 			if (indexToConsider == KeyboardKey.LEFT &&
 				((state.Rotation >= 0.0f && state.Rotation <= MathHelper.PiOver2) ||
 				(state.Rotation <= -3 * MathHelper.PiOver2 && state.Rotation >= -2 * MathHelper.Pi) ||
 				(state.Rotation >= 3 * MathHelper.PiOver2 && state.Rotation <= 2 * MathHelper.Pi) ||
 				(state.Rotation <= 0.0f && state.Rotation >= -MathHelper.PiOver2))) {
 				_rotation = -0.1f;
+				Console.WriteLine("oieds");
 			} else if (indexToConsider == KeyboardKey.LEFT &&
 				  ((state.Rotation >= MathHelper.PiOver2 && state.Rotation <= 3 * MathHelper.PiOver2) ||
 				  (state.Rotation <= -MathHelper.PiOver2 && state.Rotation >= -3 * MathHelper.Pi))) {
@@ -512,7 +513,7 @@ namespace HockeySlam.Class.GameEntities.Models
 			world *= Matrix.CreateRotationY(displayState.Rotation);
 			//world *= oldWorld;
 			position = Matrix.CreateTranslation(displayState.Position.X, displayState.Position.Y, displayState.Position.Z);
-			//System.Console.WriteLine(simulationState.Rotation);
+			System.Console.WriteLine(_rotation);
 			world = world * _scale * position;
 		}
 

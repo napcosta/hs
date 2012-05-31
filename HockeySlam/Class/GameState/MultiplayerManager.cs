@@ -236,42 +236,42 @@ namespace HockeySlam.Class.GameState
 				positionInput.Y = _lastPositionInput.Y;
 			}
 
-			if (keyboard.IsKeyDown(Keys.Up) && _rotationInput.X == 0)
-				_rotationInput.X = _priority++;
-			if (keyboard.IsKeyDown(Keys.Down) && _rotationInput.Y == 0)
-				_rotationInput.Y = _priority++;
-			if (keyboard.IsKeyDown(Keys.Left) && _rotationInput.Z == 0)
-				_rotationInput.Z = _priority++;
-			if (keyboard.IsKeyDown(Keys.Right) && _rotationInput.W == 0)
-				_rotationInput.W = _priority++;
+			if (keyboard.IsKeyDown(Keys.Up) && rotationInput.X == 0)
+				rotationInput.X = _priority++;
+			if (keyboard.IsKeyDown(Keys.Down) && rotationInput.Y == 0)
+				rotationInput.Y = _priority++;
+			if (keyboard.IsKeyDown(Keys.Left) && rotationInput.Z == 0)
+				rotationInput.Z = _priority++;
+			if (keyboard.IsKeyDown(Keys.Right) && rotationInput.W == 0)
+				rotationInput.W = _priority++;
 
 			float keyPriority = 4;
-			if (keyboard.IsKeyUp(Keys.Up) && _rotationInput.X != 0) {
+			if (keyboard.IsKeyUp(Keys.Up) && rotationInput.X != 0) {
 				keyPriority = _rotationInput.X - 1;
-				_rotationInput.X = 0;
+				rotationInput.X = 0;
 				_priority--;
-			} else if (keyboard.IsKeyUp(Keys.Down) && _rotationInput.Y != 0) {
+			} else if (keyboard.IsKeyUp(Keys.Down) && rotationInput.Y != 0) {
 				keyPriority = _rotationInput.Y - 1;
-				_rotationInput.Y = 0;
+				rotationInput.Y = 0;
 				_priority--;
-			} else if (keyboard.IsKeyUp(Keys.Left) && _rotationInput.Z != 0) {
+			} else if (keyboard.IsKeyUp(Keys.Left) && rotationInput.Z != 0) {
 				keyPriority = _rotationInput.Z - 1;
-				_rotationInput.Z = 0;
+				rotationInput.Z = 0;
 				_priority--;
-			} else if (keyboard.IsKeyUp(Keys.Right) && _rotationInput.W != 0) {
+			} else if (keyboard.IsKeyUp(Keys.Right) && rotationInput.W != 0) {
 				keyPriority = _rotationInput.W - 1;
-				_rotationInput.W = 0;
+				rotationInput.W = 0;
 				_priority--;
 			}
 
-			if (_rotationInput.X > keyPriority)
-				_rotationInput.X--;
-			if (_rotationInput.Y > keyPriority)
-				_rotationInput.Y--;
-			if (_rotationInput.Z > keyPriority)
-				_rotationInput.Z--;
-			if (_rotationInput.W > keyPriority)
-				_rotationInput.W--;
+			if (rotationInput.X > keyPriority)
+				rotationInput.X--;
+			if (rotationInput.Y > keyPriority)
+				rotationInput.Y--;
+			if (rotationInput.Z > keyPriority)
+				rotationInput.Z--;
+			if (rotationInput.W > keyPriority)
+				rotationInput.W--;
 		}
 
 		/// <summary>
