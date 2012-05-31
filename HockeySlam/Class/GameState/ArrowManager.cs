@@ -15,8 +15,11 @@ namespace HockeySlam.Class.GameState
 		Dictionary<Player, Vector2> _playerOffScreen;
 		Game _game;
 		Vector2  _localPlayerPos;
+		int _localPlayerTeam;
 
-		Texture2D _arrow;
+		Texture2D _arrowTeam1;
+		Texture2D _arrowTeam2;
+
 		float _rotation;
 		public ArrowManager(Game game)
 		{
@@ -36,11 +39,15 @@ namespace HockeySlam.Class.GameState
 			spriteBatch.Begin();
 			foreach (KeyValuePair<Player, Vector2> pair in _playerOffScreen) {
 				Rectangle src = new Rectangle((int)pair.Value.X, (int)pair.Value.Y, 30, 30);
-				spriteBatch.Draw(_arrow, src, null, Color.White, -_rotation, Vector2.Zero, SpriteEffects.None, 0);
+				if(pair.Key.getTeam() == 1)
+					spriteBatch.Draw(_arrowTeam1, src, null, Color.White, -_rotation, Vector2.Zero, SpriteEffects.None, 0);
+				else spriteBatch.Draw(_arrowTeam2, src, null, Color.White, -_rotation, Vector2.Zero, SpriteEffects.None, 0);
 			}
 
 			Rectangle src2 = new Rectangle((int)_localPlayerPos.X+8, (int)_localPlayerPos.Y-5, 15, 15);
-			spriteBatch.Draw(_arrow, src2, null, Color.White, MathHelper.Pi, Vector2.Zero, SpriteEffects.None, 0);
+			if(_localPlayerTeam == 1)
+				spriteBatch.Draw(_arrowTeam1, src2, null, Color.White, MathHelper.Pi, Vector2.Zero, SpriteEffects.None, 0);
+			else spriteBatch.Draw(_arrowTeam2, src2, null, Color.White, MathHelper.Pi, Vector2.Zero, SpriteEffects.None, 0);
 
 			spriteBatch.End();
 
@@ -56,7 +63,8 @@ namespace HockeySlam.Class.GameState
 
 		public void LoadContent()
 		{
-			_arrow = _game.Content.Load<Texture2D>("Textures/Arrow");
+			_arrowTeam2 = _game.Content.Load<Texture2D>("Textures/Arrow");
+			_arrowTeam1 = _game.Content.Load<Texture2D>("Textures/ArrowBlue");
 		}
 
 		public void updatePosition(Player player, Vector2 position,float rotation)
@@ -73,9 +81,10 @@ namespace HockeySlam.Class.GameState
 				_playerOffScreen.Remove(player);
 		}
 
-		public void setLocalPlayerPos(Vector2 localPlayerPos)
+		public void setLocalPlayer(Vector2 localPlayerPos, int team)
 		{
 			_localPlayerPos = localPlayerPos;
+			_localPlayerTeam = team;
 		}
 	}
 }

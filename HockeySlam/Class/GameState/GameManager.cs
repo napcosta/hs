@@ -89,7 +89,7 @@ namespace HockeySlam.Class.GameState
 		{
 			if (_networkSession != null) {
 				foreach (NetworkGamer gamer in _networkSession.AllGamers) {
-					Player newPlayer = new Player(this, _game, camera, 2, false);
+					Player newPlayer = new Player(this, _game, camera, (int)gamer.Tag, false);
 					newPlayer.Initialize();
 					newPlayer.LoadContent();
 
@@ -159,7 +159,8 @@ namespace HockeySlam.Class.GameState
 			_game.GraphicsDevice.DepthStencilState = lastDepth;
 
 			MultiplayerManager mpmgr = (MultiplayerManager)getGameEntity("multiplayerManager");
-			mpmgr.DrawOptions();
+			if(mpmgr != null)
+				mpmgr.DrawOptions();
 
 		}
 

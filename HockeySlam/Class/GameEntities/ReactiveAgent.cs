@@ -23,7 +23,6 @@ namespace HockeySlam.Class.GameEntities
 		BoundingSphere _boundingSphere;
 		Random _randomGenerator;
 		Vector2 _direction;
-		Vector3 _fovTarget;
 		Vector3 _lastPositionWithDisk;
 		float _fovRotation;
 		float _farPlane;

@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework.Net;
 using Microsoft.Xna.Framework.GamerServices;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Content;
+using Microsoft.Xna.Framework.Input;
 
 using HockeySlam.Class.Networking;
 using HockeySlam.Class.GameEntities.Models;
@@ -21,6 +22,13 @@ namespace HockeySlam.Class.Screens
 		NetworkSession _networkSession;
 		Texture2D _isReadyTexture;
 		Texture2D _gradient;
+		SpriteFont _smallerFont;
+
+		PacketReader _packetReader;
+		PacketWriter _packetWriter;
+
+		KeyboardState _currentKeyBoard;
+		KeyboardState _lastKeyBoard;
 
 		#endregion
 
@@ -31,6 +39,8 @@ namespace HockeySlam.Class.Screens
 			_networkSession = networkSession;
 			TransitionOnTime = TimeSpan.FromSeconds(0.5);
 			TransitionOffTime = TimeSpan.FromSeconds(0.5);
+			_packetReader = new PacketReader();
+			_packetWriter = new PacketWriter();
 
 		}
 
@@ -40,6 +50,8 @@ namespace HockeySlam.Class.Screens
 
 			_isReadyTexture = content.Load<Texture2D>("Textures/ready");
 			_gradient = content.Load<Texture2D>("Screens/gradient");
+
+			_smallerFont = ScreenManager.Game.Content.Load<SpriteFont>("Fonts/SmallerGameFont");
 		}
 
 		#endregion
@@ -49,6 +61,11 @@ namespace HockeySlam.Class.Screens
 		public override void Update(GameTime gameTime, bool otherScreenHasFocus, bool coveredByOtherScreen)
 		{
 			base.Update(gameTime, otherScreenHasFocus, coveredByOtherScreen);
+
+			foreach (Gamer gamer in _networkSession.AllGamers) {
+				if (gamer.Tag == null)
+					gamer.Tag = 1;
+			}
 
 			if (!IsExiting) {
 				if (_networkSession.SessionState == NetworkSessionState.Playing)
@@ -65,7 +82,10 @@ namespace HockeySlam.Class.Screens
 		public override void HandleInput(GameTime gameTime, GameState.InputState input)
 		{
 			foreach (LocalNetworkGamer gamer in _networkSession.LocalGamers) {
+				ReadIncomingPackets(gamer);
 				PlayerIndex playerIndex = gamer.SignedInGamer.PlayerIndex;
+
+				_currentKeyBoard = Keyboard.GetState(playerIndex);
 
 				PlayerIndex unwantedOutput;
 
@@ -73,7 +93,49 @@ namespace HockeySlam.Class.Screens
 					handleMenuSelected(gamer);
 				else if (input.IsMenuCancel(playerIndex, out unwantedOutput))
 					handleMenuCancel(gamer);
+				else if(isSelectingTeam1())
+					handleChangeToTeam(gamer, 1);
+				else if(isSelectingTeam2())
+					handleChangeToTeam(gamer, 2);
+
+				_lastKeyBoard = _currentKeyBoard;
 			}
+		}
+
+		private void ReadIncomingPackets(LocalNetworkGamer gamer)
+		{
+			while (gamer.IsDataAvailable) {
+				NetworkGamer sender;
+
+				gamer.ReceiveData(_packetReader, out sender);
+
+				if (sender.IsLocal)
+					continue;
+
+				int newTeam = _packetReader.ReadByte();
+				sender.Tag = newTeam;
+			}
+		}
+
+		private void handleChangeToTeam(LocalNetworkGamer gamer, int team)
+		{
+			if ((int)gamer.Tag == team)
+				return;
+
+			gamer.Tag = team;
+			_packetWriter.Write(team);
+
+			gamer.SendData(_packetWriter, SendDataOptions.InOrder);
+		}
+
+		private bool isSelectingTeam1()
+		{
+			return _currentKeyBoard.IsKeyDown(Keys.Left) && _lastKeyBoard.IsKeyUp(Keys.Left);
+		}
+
+		private bool isSelectingTeam2()
+		{
+			return _currentKeyBoard.IsKeyDown(Keys.Right) && _lastKeyBoard.IsKeyUp(Keys.Right);
 		}
 
 		private void handleMenuCancel(LocalNetworkGamer gamer)
@@ -114,18 +176,18 @@ namespace HockeySlam.Class.Screens
 			SpriteBatch spriteBatch = ScreenManager.SpriteBatch;
 			SpriteFont font = ScreenManager.Font;
 
-			Vector2 position = new Vector2(100, 150);
+			Vector2 positionTeam1 = new Vector2(100, 150);
+			Vector2 positionTeam2 = new Vector2(400, 150);
+			
 
 			float transitionOffset = (float)Math.Pow(TransitionPosition, 2);
 
 			if (ScreenState == ScreenState.TransitionOn)
-				position.X -= transitionOffset * 256;
+				positionTeam1.X -= transitionOffset * 256;
 			else
-				position.X += transitionOffset * 256;
+				positionTeam1.X += transitionOffset * 256;
 
 			spriteBatch.Begin();
-
-			int gamerCount = 0;
 
 			Viewport viewport = ScreenManager.GraphicsDevice.Viewport;
 			Rectangle rec = new Rectangle((int)(0.1*viewport.Width), (int)(0.1*viewport.Height), 
@@ -134,13 +196,16 @@ namespace HockeySlam.Class.Screens
 			spriteBatch.Draw(_gradient, rec, Color.White);
 
 			foreach (NetworkGamer gamer in _networkSession.AllGamers) {
-				drawGamer(gamer, position);
+				if (gamer.Tag == null)
+					gamer.Tag = 1;
 
-				if (++gamerCount == 8) {
-					position.X += 433;
-					position.Y = 150;
-				} else
-					position.Y += ScreenManager.Font.LineSpacing;
+				if ((int)gamer.Tag == 1) {
+					drawGamer(gamer, positionTeam1);
+					positionTeam1.Y += ScreenManager.Font.LineSpacing;
+				} else {
+					drawGamer(gamer, positionTeam2);
+					positionTeam2.Y += ScreenManager.Font.LineSpacing;
+				}
 			}
 
 			string title = "Lobby";
@@ -153,6 +218,20 @@ namespace HockeySlam.Class.Screens
 			titlePosition.Y -= transitionOffset * 100;
 
 			spriteBatch.DrawString(font, title, titlePosition, titleColor, 0, titleOrigin, titleScale, SpriteEffects.None, 0);
+
+			title = "Team 1";
+
+			titlePosition.X = 230;
+			titlePosition.Y = 130;
+
+			spriteBatch.DrawString(font, title, titlePosition, Color.CadetBlue, 0, titleOrigin, 1, SpriteEffects.None, 0);
+
+			title = "Team 2";
+
+			titlePosition.X = 530;
+			titlePosition.Y = 130;
+
+			spriteBatch.DrawString(font, title, titlePosition, Color.IndianRed, 0, titleOrigin, 1, SpriteEffects.None, 0);
 
 			spriteBatch.End();
 
@@ -167,10 +246,12 @@ namespace HockeySlam.Class.Screens
 			Vector2 iconWidth = new Vector2(30, 0);
 			Vector2 iconOffset = new Vector2(0, 3);
 
-			Vector2 iconPosition = position + iconOffset;
+			Vector2 iconPosition = position + iconOffset + new Vector2(10,0);
+
+			Rectangle rec = new Rectangle((int)iconPosition.X, (int)iconPosition.Y, 20, 20);
 
 			if (gamer.IsReady) {
-				spriteBatch.Draw(_isReadyTexture, iconPosition, Color.White * TransitionAlpha);
+				spriteBatch.Draw(_isReadyTexture, rec, Color.White * TransitionAlpha);
 			}
 
 			string text = gamer.Gamertag;
@@ -180,7 +261,7 @@ namespace HockeySlam.Class.Screens
 
 			Color color = (gamer.IsLocal) ? Color.Yellow : Color.White;
 
-			spriteBatch.DrawString(font, text, position + iconWidth * 2, color * TransitionAlpha);
+			spriteBatch.DrawString(_smallerFont, text, position + iconWidth * 2, color * TransitionAlpha);
 		}
 
 		#endregion
