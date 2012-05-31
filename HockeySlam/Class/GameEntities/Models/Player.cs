@@ -515,7 +515,7 @@ namespace HockeySlam.Class.GameEntities.Models
 			world *= Matrix.CreateRotationY(displayState.Rotation);
 			//world *= oldWorld;
 			position = Matrix.CreateTranslation(displayState.Position.X, displayState.Position.Y, displayState.Position.Z);
-
+			//System.Console.WriteLine(simulationState.Rotation);
 			world = world * _scale * position;
 		}
 
