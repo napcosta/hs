@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Net;
 
 using HockeySlam.Interface;
 using HockeySlam.Class.GameEntities;
 using HockeySlam.Class.GameEntities.Particles;
 using HockeySlam.Class.Particles;
+using HockeySlam.Class.GameEntities.Models;
 
 namespace HockeySlam.Class.GameState
 {
@@ -15,15 +17,15 @@ namespace HockeySlam.Class.GameState
 	{
 		Game game;
 		Camera camera;
-		GameManager gameManager;
+		NetworkSession networkSession;
 
 		List<ParticleSystem> particles;
 
-		public ParticleManager(Game game, Camera camera, GameManager gameManager)
+		public ParticleManager(Game game, Camera camera, NetworkSession networkSession)
 		{
 			this.game = game;
 			this.camera = camera;
-			this.gameManager = gameManager;
+			this.networkSession = networkSession;
 		}
 
 		public void Initialize()
@@ -38,8 +40,11 @@ namespace HockeySlam.Class.GameState
 
 		private void InitializeParticles()
 		{
-			particles.Add(new IceParticles(game, game.Content, gameManager));
-			particles.Add(new Trail(game, game.Content, gameManager));
+			foreach (NetworkGamer gamer in networkSession.AllGamers) {
+				Player player = gamer.Tag as Player;
+				particles.Add(new Trail(game, game.Content, player));
+				particles.Add(new IceParticles(game, game.Content, player));
+			}
 		}
 
 		public void LoadContent()

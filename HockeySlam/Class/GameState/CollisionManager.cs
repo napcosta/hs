@@ -20,10 +20,13 @@ namespace HockeySlam.Class.GameState
 
 		List<ICollidable> collidableObjects;
 
-		public void Initialize() 
+		public CollisionManager()
 		{
 			collidableObjects = new List<ICollidable>();
 		}
+
+		public void Initialize() 
+		{ }
 
 		public void register(ICollidable collidable)
 		{

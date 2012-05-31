@@ -35,11 +35,6 @@ namespace HockeySlam.Class.GameEntities.Models
 		float _maxVelocity;
 		Matrix position;
 		
-		//Vector3 lastPosition;
-		
-
-		float tempRotation;
-		
 		float _rotation;
 
 		List<Boolean> arrowKeysPressed;
@@ -155,14 +150,16 @@ namespace HockeySlam.Class.GameEntities.Models
 			_vertexBuffer.SetData(_verts);
 			_basicEffect = new BasicEffect(_game.GraphicsDevice);
 
-			_arrow = _game.Content.Load<Texture2D>("Textures/Arrow");
+			if (_team == 2)
+				_arrow = _game.Content.Load<Texture2D>("Textures/Arrow");
+			else _arrow = _game.Content.Load<Texture2D>("Textures/ArrowBlue");
+
 			base.LoadContent();
 		}
 
 		public override void Initialize()
 		{
 			// TODO: Add your initialization code here
-			tempRotation = 0;
 
 			position = Matrix.Identity;
 
@@ -664,7 +661,7 @@ namespace HockeySlam.Class.GameEntities.Models
 		public void setArrowPlayer()
 		{
 			Vector3 project = _game.GraphicsDevice.Viewport.Project(new Vector3(displayState.Position.X, displayState.Position.Y + 4.3f, displayState.Position.Z), _camera.projection, _camera.view, Matrix.Identity);
-			_arrowManager.setLocalPlayerPos(new Vector2(project.X, project.Y));
+			_arrowManager.setLocalPlayer(new Vector2(project.X, project.Y), _team);
 		}
 
 		private bool isOutOfScreen()
@@ -723,6 +720,11 @@ namespace HockeySlam.Class.GameEntities.Models
 		{
 			state.LastRotation = state.Rotation;
 			state.Rotation = (state.Rotation + rotation) % MathHelper.TwoPi;
+		}
+
+		public int getTeam()
+		{
+			return _team;
 		}
 
 		/* ---------------------------- AGENTS ------------------------------- */

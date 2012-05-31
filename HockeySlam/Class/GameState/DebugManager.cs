@@ -15,11 +15,15 @@ namespace HockeySlam.Class.GameState
 		bool toggleDebug;
 		bool debugKeyPressed;
 
+		public DebugManager()
+		{
+			debugEntities = new List<IDebugEntity>();
+		}
+
 		public void LoadContent() { }
 
 		public void Initialize()
 		{
-			debugEntities = new List<IDebugEntity>();
 			toggleDebug = false;
 			debugKeyPressed = false;
 		}

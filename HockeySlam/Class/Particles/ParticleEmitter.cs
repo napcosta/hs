@@ -49,7 +49,7 @@ namespace HockeySlam.Class.Particles
 
 					Vector3 position = Vector3.Lerp(previousPosition, newPosition, mu);
 
-					particleSystem.AddParticle(newPosition, velocity);
+					particleSystem.AddParticle(position, velocity);
 				}
 
 				timeLeftOver = timeToSpend;
