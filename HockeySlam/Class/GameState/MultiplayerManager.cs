@@ -369,7 +369,10 @@ namespace HockeySlam.Class.GameState
 
 			}
 		}
-
+		/// <summary>
+		/// Updates the network session among clients and server alike
+		/// </summary>
+		/// <param name="gameTime"></param>
 		void UpdateNetworkSession(GameTime gameTime)
 		{
 			bool sendPacketThisFrame = false;
@@ -428,10 +431,10 @@ namespace HockeySlam.Class.GameState
 
 			// If we are the host, include prompts telling how to change the settings.
 			if (_networkSession.IsHost) {
-				quality += " (A to change)";
-				sendRate += " (B to change)";
-				prediction += " (X to toggle)";
-				smoothing += " (Y to toggle)";
+				quality += " (U to change)";
+				sendRate += " (I to change)";
+				prediction += " (O to toggle)";
+				smoothing += " (P to toggle)";
 			}
 
 			// Draw combined text to the screen.
